@@ -149,6 +149,7 @@ model User {
   createdPresales    PreSalesRequest[] @relation("PresalesCreator")
   createdContacts    Contact[]      @relation("ContactCreator")
   createdBusinessCards BusinessCard[] @relation("BusinessCardCreator")
+  createdColdVisitRecords ColdVisitRecord[] @relation("ColdVisitCreator")
 
   @@index([email])
   @@index([role])
@@ -197,6 +198,7 @@ model Customer {
   teamActivities  TeamActivity[]
   contacts        Contact[]
   businessCards   BusinessCard[]
+  coldVisitRecords ColdVisitRecord[]
 
   @@index([stage])
   @@index([priority])
@@ -555,4 +557,28 @@ model BusinessCard {
   @@index([customerId])
   @@index([status])
   @@map("business_cards")
+}
+
+// ==================== Cold Visit (AI Assistant) ====================
+
+model ColdVisitRecord {
+  id                String   @id @default(uuid())
+  companyName       String
+  inputType         String   // "text" | "image"
+  inputContent      String?  @db.Text
+  imageUrl          String?
+  intelligenceResult Json?   // AI分析结果
+  customerId        String?
+  status            String   @default("analyzed") // analyzed, converted
+  createdById       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  customer  Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdBy User?     @relation("ColdVisitCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([companyName])
+  @@index([status])
+  @@map("cold_visit_records")
 }

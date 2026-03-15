@@ -406,3 +406,92 @@ export interface CreateCustomerFromCardInput {
   contactWechat?: string;
   contactRole?: ContactRole;
 }
+
+// ==================== 陌生拜访AI助手相关类型 ====================
+
+// 企业基本信息
+export interface CompanyBasicInfo {
+  name: string;
+  industry?: string;
+  scale?: string;
+  founded?: string;
+  address?: string;
+  website?: string;
+  description?: string;
+}
+
+// 近期动态
+export interface CompanyNews {
+  title: string;
+  date: string;
+  summary: string;
+}
+
+// 关键联系人
+export interface KeyContact {
+  name: string;
+  title: string;
+  department: string;
+  source: string;
+  confidence: number;
+}
+
+// 销售话术
+export interface SalesPitch {
+  opening: string;
+  painPoints: string[];
+  talkingPoints: string[];
+  objectionHandlers: Array<{
+    objection: string;
+    response: string;
+  }>;
+}
+
+// 企业信息智能分析结果
+export interface CompanyIntelligence {
+  basicInfo: CompanyBasicInfo;
+  businessScope: string[];
+  recentNews: CompanyNews[];
+  keyContacts: KeyContact[];
+  salesPitch: SalesPitch;
+}
+
+// 陌生拜访记录
+export interface ColdVisitRecord {
+  id: string;
+  companyName: string;
+  inputType: 'text' | 'image';
+  inputContent?: string;
+  imageUrl?: string;
+  intelligenceResult?: CompanyIntelligence;
+  customerId?: string;
+  status: 'analyzed' | 'converted';
+  createdAt: string;
+  updatedAt: string;
+  customer?: {
+    id: string;
+    name: string;
+    shortName: string;
+  };
+}
+
+// 分析企业输入
+export interface AnalyzeCompanyInput {
+  companyName?: string;
+  imageUrl?: string;
+}
+
+// 转换为客户输入
+export interface ConvertFromColdVisitInput {
+  name: string;
+  shortName?: string;
+  industry?: string;
+  city?: string;
+  address?: string;
+  priority?: 'high' | 'medium' | 'low';
+  source?: 'direct' | 'referral' | 'website' | 'conference' | 'partner';
+  notes?: string;
+  contactPerson?: string;
+  phone?: string;
+  email?: string;
+}

@@ -13,6 +13,7 @@ import mapRoutes from './map.routes';
 import dashboardRoutes from './dashboard.routes';
 import contactRoutes from './contacts.routes';
 import businessCardRoutes from './businessCards.routes';
+import coldVisitRoutes from './coldVisit.routes';
 
 const router = Router();
 
@@ -33,5 +34,6 @@ router.use('/map', mapRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/', contactRoutes);  // Contact routes include both /customers/:id/contacts and /contacts/:id
 router.use('/', businessCardRoutes);  // Business card routes
+router.use('/cold-visit', coldVisitRoutes);  // Cold visit AI assistant routes
 
 export default router;

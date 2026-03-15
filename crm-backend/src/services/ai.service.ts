@@ -6,6 +6,41 @@
 // 情感类型定义
 export type SentimentType = 'positive' | 'neutral' | 'negative';
 
+// 企业信息智能分析结果接口
+export interface CompanyIntelligenceResult {
+  basicInfo: {
+    name: string;
+    industry?: string;
+    scale?: string;
+    founded?: string;
+    address?: string;
+    website?: string;
+    description?: string;
+  };
+  businessScope: string[];
+  recentNews: Array<{
+    title: string;
+    date: string;
+    summary: string;
+  }>;
+  keyContacts: Array<{
+    name: string;
+    title: string;
+    department: string;
+    source: string;
+    confidence: number;
+  }>;
+  salesPitch: {
+    opening: string;
+    painPoints: string[];
+    talkingPoints: string[];
+    objectionHandlers: Array<{
+      objection: string;
+      response: string;
+    }>;
+  };
+}
+
 // AI分析结果接口
 export interface AIAnalysisResult {
   transcript: string;
@@ -328,6 +363,201 @@ class AIService {
   async generateSummary(_text: string, keywords: string[]): Promise<string> {
     // 模拟摘要生成
     return `本次通话主要讨论了${keywords.slice(0, 3).join('、')}等内容，客户态度良好，后续需要持续跟进。`;
+  }
+
+  /**
+   * 企业信息智能分析（陌生拜访AI助手核心功能）
+   * @param companyName 企业名称
+   * @param imageUrl 可选的图片URL（如门牌、宣传资料等）
+   */
+  async analyzeCompany(companyName: string, imageUrl?: string): Promise<CompanyIntelligenceResult> {
+    // 如果配置了真实API，调用真实服务
+    if (AI_CONFIG.useRealAPI) {
+      return this.callRealCompanyAnalysis(companyName, imageUrl);
+    }
+
+    // 使用模拟分析
+    return this.mockCompanyAnalysis(companyName);
+  }
+
+  /**
+   * 调用真实AI进行企业信息分析
+   */
+  private async callRealCompanyAnalysis(_companyName: string, _imageUrl?: string): Promise<CompanyIntelligenceResult> {
+    // TODO: 实现真实的企业信息分析API调用
+    // 1. 调用搜索引擎API获取企业基本信息
+    // 2. 调用大模型分析和整理信息
+    // 3. 生成拜访话术建议
+    
+    // 目前返回模拟数据
+    return this.mockCompanyAnalysis(_companyName);
+  }
+
+  /**
+   * 模拟企业信息分析（开发测试用）
+   */
+  private mockCompanyAnalysis(companyName: string): Promise<CompanyIntelligenceResult> {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const result = this.generateMockCompanyIntelligence(companyName);
+        resolve(result);
+      }, 2000 + Math.random() * 1000);
+    });
+  }
+
+  /**
+   * 生成模拟的企业信息分析结果
+   */
+  private generateMockCompanyIntelligence(companyName: string): CompanyIntelligenceResult {
+    // 企业规模模板
+    const scales = ['1-50人', '50-200人', '200-500人', '500-1000人', '1000人以上'];
+    const scale = scales[Math.floor(Math.random() * scales.length)];
+
+    // 行业模板
+    const industries = [
+      '信息技术', '制造业', '金融服务', '教育培训', '医疗健康',
+      '电子商务', '物流运输', '房地产', '文化传媒', '能源环保'
+    ];
+    const industry = industries[Math.floor(Math.random() * industries.length)];
+
+    // 业务范围模板
+    const businessScopes: Record<string, string[]> = {
+      '信息技术': ['软件开发', '系统集成', '云服务', '数据分析', '人工智能应用', 'IT咨询'],
+      '制造业': ['生产制造', '供应链管理', '质量控制', '设备维护', '工艺研发', '产品测试'],
+      '金融服务': ['贷款服务', '投资理财', '风险控制', '资产管理', '保险代理', '支付结算'],
+      '教育培训': ['在线教育', '职业培训', '企业内训', '课程研发', '教材出版', '学习管理'],
+      '医疗健康': ['医疗服务', '医疗器械', '药品研发', '健康管理', '远程医疗', '医学检测'],
+      '电子商务': ['B2B平台', 'B2C零售', '跨境贸易', '供应链整合', '数字营销', '客户服务'],
+      '物流运输': ['仓储管理', '配送服务', '冷链物流', '国际货运', '供应链优化', '智能调度'],
+      '房地产': ['房地产开发', '物业管理', '商业运营', '房产经纪', '装修服务', '投资咨询'],
+      '文化传媒': ['内容创作', '广告营销', '品牌策划', '媒体运营', '活动执行', '视频制作'],
+      '能源环保': ['新能源开发', '节能减排', '环境监测', '废物处理', '绿色建筑', '碳中和服务'],
+    };
+
+    const businessScope = businessScopes[industry] || ['主营业务', '增值服务', '技术支持', '售后服务'];
+
+    // 关键联系人模板
+    const contactTemplates = [
+      { title: '总经理', department: '管理层', confidence: 0.95 },
+      { title: '采购总监', department: '采购部', confidence: 0.85 },
+      { title: '技术总监', department: '技术部', confidence: 0.80 },
+      { title: '运营总监', department: '运营部', confidence: 0.75 },
+      { title: '财务总监', department: '财务部', confidence: 0.70 },
+      { title: '人力资源总监', department: '人力资源部', confidence: 0.65 },
+    ];
+
+    const keyContacts = contactTemplates
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 2 + Math.floor(Math.random() * 2))
+      .map((template, index) => ({
+        name: `张${['伟', '强', '明', '华', '军', '平'][index]}`,
+        title: template.title,
+        department: template.department,
+        source: '公开信息',
+        confidence: template.confidence,
+      }));
+
+    // 近期动态模板
+    const recentNewsTemplates = [
+      { title: `${companyName}获得新一轮融资`, summary: '公司近期完成融资，资金将用于业务扩展和技术研发。' },
+      { title: `${companyName}发布新产品`, summary: '公司推出创新产品，进一步拓展市场份额。' },
+      { title: `${companyName}战略合作签约`, summary: '与行业领先企业达成战略合作，共同开拓市场。' },
+      { title: `${companyName}获得行业认证`, summary: '公司产品通过权威认证，品质获得市场认可。' },
+    ];
+
+    const recentNews = recentNewsTemplates
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 2)
+      .map((news) => ({
+        ...news,
+        date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      }));
+
+    // 生成销售话术
+    const salesPitch = this.generateSalesPitch(companyName, industry, businessScope);
+
+    return {
+      basicInfo: {
+        name: companyName,
+        industry,
+        scale,
+        founded: `${1990 + Math.floor(Math.random() * 30)}年`,
+        address: `北京市${['朝阳区', '海淀区', '东城区', '西城区', '丰台区'][Math.floor(Math.random() * 5)]}${['科技园', '商务中心', '创业园', '产业基地'][Math.floor(Math.random() * 4)]}`,
+        website: `www.${companyName.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+        description: `${companyName}是一家专注于${industry}领域的企业，致力于为客户提供优质的产品和服务。`,
+      },
+      businessScope: businessScope.slice(0, 4),
+      recentNews,
+      keyContacts,
+      salesPitch,
+    };
+  }
+
+  /**
+   * 生成销售话术建议
+   */
+  private generateSalesPitch(
+    companyName: string,
+    industry: string,
+    businessScope: string[]
+  ): CompanyIntelligenceResult['salesPitch'] {
+    // 开场白模板
+    const openingTemplates = [
+      `您好，了解到${companyName}在${industry}领域有着出色的表现，我们公司的解决方案可以帮助贵公司在${businessScope[0]}方面实现更大的突破。`,
+      `您好，注意到${companyName}近期发展迅速，我们专门为${industry}行业提供一站式解决方案，希望能有机会与您深入交流。`,
+      `您好，我是专门负责${industry}行业的客户经理。了解到贵公司在${businessScope[0]}和${businessScope[1]}方面的需求，想向您介绍一下我们的解决方案。`,
+    ];
+
+    // 痛点模板
+    const painPointTemplates: Record<string, string[]> = {
+      '信息技术': ['数字化转型压力', '系统整合困难', '数据安全隐患', '技术人才短缺'],
+      '制造业': ['生产效率提升', '质量管控难度', '供应链协同', '成本控制压力'],
+      '金融服务': ['风险管理复杂', '合规要求严格', '客户体验优化', '数字化转型'],
+      '教育培训': ['在线教学效果', '学员管理效率', '课程研发周期', '招生成本控制'],
+      '医疗健康': ['医疗资源整合', '数据互联互通', '患者服务体验', '合规监管要求'],
+      '电子商务': ['用户增长瓶颈', '供应链管理', '营销成本高', '客户留存难'],
+      '物流运输': ['配送效率优化', '成本控制', '信息化程度低', '客户服务提升'],
+      '房地产': ['销售转化率', '客户关系管理', '项目运营效率', '数字化转型'],
+      '文化传媒': ['内容创作效率', '版权保护', '变现渠道有限', '用户粘性不足'],
+      '能源环保': ['政策合规要求', '技术升级成本', '运营效率提升', '市场拓展困难'],
+    };
+
+    const painPoints = painPointTemplates[industry] || ['运营效率', '成本控制', '市场竞争', '客户服务'];
+
+    // 谈话要点模板
+    const talkingPoints = [
+      '了解客户当前的业务痛点和挑战',
+      '介绍我们如何帮助同行业客户解决问题',
+      '分享成功案例和实际效果',
+      '探讨合作可能性和下一步计划',
+    ];
+
+    // 异议处理模板
+    const objectionHandlers = [
+      {
+        objection: '我们已经有供应商了',
+        response: '理解，我们不是要替代现有供应商，而是希望能作为备选方案，为您提供更多选择和更优价格。',
+      },
+      {
+        objection: '现在不是采购的时机',
+        response: '完全理解，我们可以先保持联系，定期分享行业资讯和最佳实践，等您有需要时随时沟通。',
+      },
+      {
+        objection: '预算有限',
+        response: '我们提供灵活的合作方案，可以根据您的预算和需求定制服务内容，分期实施也是可行的。',
+      },
+      {
+        objection: '需要向上级汇报',
+        response: '没问题，我可以准备一份详细的方案介绍，包括投资回报分析，方便您向领导汇报。',
+      },
+    ];
+
+    return {
+      opening: openingTemplates[Math.floor(Math.random() * openingTemplates.length)],
+      painPoints: painPoints.slice(0, 3),
+      talkingPoints,
+      objectionHandlers: objectionHandlers.slice(0, 2),
+    };
   }
 }
 

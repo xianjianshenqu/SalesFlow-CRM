@@ -3,7 +3,18 @@
  * 用于前端与后端API通信
  */
 
-import type { AudioRecording, RecordingStats } from '../types';
+import type { 
+  AudioRecording, 
+  RecordingStats,
+  ColdVisitRecord,
+  ConvertFromColdVisitInput,
+  CompanyBasicInfo,
+  CompanyNews,
+  KeyContact,
+  SalesPitch,
+  CompanyIntelligence,
+  AnalyzeCompanyInput
+} from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000');
@@ -625,6 +636,33 @@ export const businessCardApi = {
   delete: (id: string) => api.delete(`/business-cards/${id}`),
 };
 
+// ==================== 陌生拜访AI助手API ====================
+export const coldVisitApi = {
+  // 分析企业信息
+  analyze: (input: { companyName?: string; imageUrl?: string }) =>
+    api.post<ColdVisitRecord>('/cold-visit/analyze', input),
+
+  // 转换为客户
+  convert: (recordId: string, data: Partial<ConvertFromColdVisitInput>) =>
+    api.post<{ customer: Customer; record: ColdVisitRecord }>(`/cold-visit/${recordId}/convert`, data),
+
+  // 获取历史记录
+  getHistory: (params?: { page?: number; limit?: number; status?: string; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.status) query.set('status', params.status);
+    if (params?.search) query.set('search', params.search);
+    return api.get<{ data: ColdVisitRecord[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/cold-visit/history?${query}`);
+  },
+
+  // 获取单个记录
+  getById: (id: string) => api.get<ColdVisitRecord>(`/cold-visit/${id}`),
+
+  // 删除记录
+  delete: (id: string) => api.delete(`/cold-visit/${id}`),
+};
+
 // ==================== 类型导出 ====================
 export type {
   User,
@@ -653,6 +691,15 @@ export type {
   BusinessCard,
   CreateCustomerFromCardInput,
   CustomerFromCardResult,
+  // 陌生拜访相关类型
+  CompanyBasicInfo,
+  CompanyNews,
+  KeyContact,
+  SalesPitch,
+  CompanyIntelligence,
+  ColdVisitRecord,
+  AnalyzeCompanyInput,
+  ConvertFromColdVisitInput,
 };
 
 export default api;

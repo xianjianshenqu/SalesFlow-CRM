@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mockCustomers, filterCustomersByStage, getCustomerColor } from '../../data/customers';
 import { STAGE_LABELS, STAGE_COLORS, type Stage, type Customer } from '../../types';
+import { ColdVisitAssistant } from '../../components/ColdVisitAssistant';
 
 // 格式化金额
 function formatCurrency(value: number): string {
@@ -59,6 +60,7 @@ export default function Customers() {
   const [activeTab, setActiveTab] = useState<Stage | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showColdVisitAssistant, setShowColdVisitAssistant] = useState(false);
   const itemsPerPage = 10;
 
   // 筛选客户
@@ -95,6 +97,13 @@ export default function Customers() {
           <p className="text-slate-500 dark:text-slate-400 mt-1">管理您的所有客户信息和跟进状态</p>
         </div>
         <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setShowColdVisitAssistant(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+          >
+            <span className="material-symbols-outlined text-sm">travel_explore</span>
+            陌生拜访AI助手
+          </button>
           <button className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
             <span className="material-symbols-outlined text-sm">document_scanner</span>
             扫描名片
@@ -306,6 +315,12 @@ export default function Customers() {
           </div>
         </div>
       </div>
+
+      {/* 陌生拜访AI助手弹窗 */}
+      <ColdVisitAssistant
+        isOpen={showColdVisitAssistant}
+        onClose={() => setShowColdVisitAssistant(false)}
+      />
     </div>
   );
 }
