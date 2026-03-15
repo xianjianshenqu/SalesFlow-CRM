@@ -470,6 +470,160 @@ interface CreateRecordingInput {
   notes?: string;
 }
 
+// ==================== 联系人类型 ====================
+type ContactRole = 'decision_maker' | 'key_influencer' | 'coach' | 'end_user' | 'gatekeeper' | 'blocker';
+
+interface Contact {
+  id: string;
+  customerId: string;
+  name: string;
+  title?: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  wechat?: string;
+  role: ContactRole;
+  isPrimary: boolean;
+  notes?: string;
+  lastContact?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface CreateContactInput {
+  name: string;
+  title?: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  wechat?: string;
+  role?: ContactRole;
+  isPrimary?: boolean;
+  notes?: string;
+  lastContact?: string;
+}
+
+interface ContactStats {
+  total: number;
+  primaryCount: number;
+  byRole: { role: string; _count: number }[];
+}
+
+// ==================== 名片扫描类型 ====================
+interface OcrResult {
+  name?: string;
+  title?: string;
+  department?: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  address?: string;
+  website?: string;
+  wechat?: string;
+}
+
+interface BusinessCard {
+  id: string;
+  customerId?: string;
+  imageUrl: string;
+  ocrResult?: OcrResult;
+  rawData?: OcrResult;
+  status: 'pending' | 'processed' | 'failed';
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+  customer?: {
+    id: string;
+    name: string;
+    shortName: string;
+  };
+}
+
+interface CreateCustomerFromCardInput {
+  name: string;
+  shortName?: string;
+  industry?: string;
+  city?: string;
+  address?: string;
+  priority?: 'high' | 'medium' | 'low';
+  source?: 'direct' | 'referral' | 'website' | 'conference' | 'partner';
+  notes?: string;
+  contactName: string;
+  contactTitle?: string;
+  contactDepartment?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  contactMobile?: string;
+  contactWechat?: string;
+  contactRole?: ContactRole;
+}
+
+interface CustomerFromCardResult {
+  customer: Customer;
+  contact: Contact;
+}
+
+// ==================== 联系人API ====================
+export const contactApi = {
+  getByCustomer: (customerId: string, params?: {
+    role?: string;
+    department?: string;
+    isPrimary?: boolean;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.role) query.set('role', params.role);
+    if (params?.department) query.set('department', params.department);
+    if (params?.isPrimary !== undefined) query.set('isPrimary', String(params.isPrimary));
+    if (params?.search) query.set('search', params.search);
+    return api.get<Contact[]>(`/customers/${customerId}/contacts?${query}`);
+  },
+
+  getById: (id: string) => api.get<Contact>(`/contacts/${id}`),
+
+  create: (customerId: string, data: CreateContactInput) =>
+    api.post<Contact>(`/customers/${customerId}/contacts`, data),
+
+  update: (id: string, data: Partial<CreateContactInput>) =>
+    api.put<Contact>(`/contacts/${id}`, data),
+
+  delete: (id: string) => api.delete(`/contacts/${id}`),
+
+  setPrimary: (id: string) => api.patch<Contact>(`/contacts/${id}/primary`),
+
+  batchImport: (customerId: string, contacts: CreateContactInput[]) =>
+    api.post<Contact[]>(`/customers/${customerId}/contacts/batch`, { contacts }),
+
+  getStats: (customerId?: string) => {
+    const query = customerId ? `?customerId=${customerId}` : '';
+    return api.get<ContactStats>(`/contacts/stats${query}`);
+  },
+};
+
+// ==================== 名片扫描API ====================
+export const businessCardApi = {
+  scan: (imageUrl: string) =>
+    api.post<BusinessCard>('/business-cards/scan', { imageUrl }),
+
+  createCustomer: (businessCardId: string, data: CreateCustomerFromCardInput) =>
+    api.post<CustomerFromCardResult>(`/business-cards/${businessCardId}/create-customer`, data),
+
+  getAll: (params?: { status?: string; page?: number; pageSize?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.status) query.set('status', params.status);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+    return api.get<{ items: BusinessCard[]; total: number }>(`/business-cards?${query}`);
+  },
+
+  getById: (id: string) => api.get<BusinessCard>(`/business-cards/${id}`),
+
+  delete: (id: string) => api.delete(`/business-cards/${id}`),
+};
+
 // ==================== 类型导出 ====================
 export type {
   User,
@@ -490,6 +644,14 @@ export type {
   TeamActivity,
   AudioRecording,
   RecordingStats,
+  Contact,
+  ContactRole,
+  CreateContactInput,
+  ContactStats,
+  OcrResult,
+  BusinessCard,
+  CreateCustomerFromCardInput,
+  CustomerFromCardResult,
 };
 
 export default api;

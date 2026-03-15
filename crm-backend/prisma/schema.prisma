@@ -107,6 +107,15 @@ enum PaymentStatus {
   overdue
 }
 
+enum ContactRole {
+  decision_maker    // 决策人 - 最终拍板、付钱、签合同的人
+  key_influencer    // 关键人/影响者 - 能影响决策但不最终拍板
+  coach             // 教练/内线 - 站在你这边，给你透信息、帮你指路
+  end_user          // 用户 - 未来真正用你产品的人
+  gatekeeper        // 把关人 - 筛选方案、控制流程（采购、行政、财务）
+  blocker           // 反对者 - 阻碍项目、不支持你的人
+}
+
 // ==================== User & Authentication ====================
 
 model User {
@@ -138,6 +147,8 @@ model User {
   teamMember         TeamMember?
   createdRecordings  AudioRecording[] @relation("RecordingCreator")
   createdPresales    PreSalesRequest[] @relation("PresalesCreator")
+  createdContacts    Contact[]      @relation("ContactCreator")
+  createdBusinessCards BusinessCard[] @relation("BusinessCardCreator")
 
   @@index([email])
   @@index([role])
@@ -184,6 +195,8 @@ model Customer {
   serviceProjects ServiceProject[]
   presalesRequests PreSalesRequest[]
   teamActivities  TeamActivity[]
+  contacts        Contact[]
+  businessCards   BusinessCard[]
 
   @@index([stage])
   @@index([priority])
@@ -489,4 +502,57 @@ model PreSalesRequest {
   @@index([assignedResourceId])
   @@index([assignedMemberId])
   @@map("presales_requests")
+}
+
+// ==================== Contacts ====================
+
+model Contact {
+  id          String      @id @default(uuid())
+  customerId  String
+  name        String
+  title       String?     // 职位
+  department  String?     // 部门
+  email       String?
+  phone       String?
+  mobile      String?     // 手机
+  wechat      String?     // 微信
+  role        ContactRole @default(end_user)
+  isPrimary   Boolean     @default(false)  // 是否主联系人
+  notes       String?     @db.Text
+  lastContact DateTime?   // 最后联系时间
+  createdById String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdBy User?    @relation("ContactCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([role])
+  @@index([department])
+  @@map("contacts")
+}
+
+// ==================== Business Cards ====================
+
+model BusinessCard {
+  id          String   @id @default(uuid())
+  customerId  String?
+  imageUrl    String
+  ocrResult   Json?    // OCR识别结果
+  rawData     Json?    // 原始识别数据
+  status      String   @default("pending") // pending, processed, failed
+  errorMessage String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdBy User?    @relation("BusinessCardCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([status])
+  @@map("business_cards")
 }

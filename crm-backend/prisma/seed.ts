@@ -25,7 +25,7 @@ async function main() {
   // Create sales users
   const salesPassword = await hash('sales123', 12);
   
-  const alex = await prisma.user.upsert({
+  const _alex = await prisma.user.upsert({
     where: { email: 'alex@crm.com' },
     update: {},
     create: {
@@ -38,7 +38,7 @@ async function main() {
     },
   });
 
-  const sarah = await prisma.user.upsert({
+  const _sarah = await prisma.user.upsert({
     where: { email: 'sarah@crm.com' },
     update: {},
     create: {
@@ -51,7 +51,7 @@ async function main() {
     },
   });
 
-  const mike = await prisma.user.upsert({
+  const _mike = await prisma.user.upsert({
     where: { email: 'mike@crm.com' },
     update: {},
     create: {

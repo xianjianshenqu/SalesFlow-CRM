@@ -269,3 +269,140 @@ export const PAYMENT_STATUS_COLORS: Record<PaymentStatus, { bg: string; text: st
   pending: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400' },
   overdue: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-400' }
 };
+
+// ==================== 联系人相关类型 ====================
+
+// 联系人角色类型
+export type ContactRole = 'decision_maker' | 'key_influencer' | 'coach' | 'end_user' | 'gatekeeper' | 'blocker';
+
+// 联系人接口
+export interface Contact {
+  id: string;
+  customerId: string;
+  name: string;
+  title?: string;           // 职位
+  department?: string;      // 部门
+  email?: string;
+  phone?: string;
+  mobile?: string;          // 手机
+  wechat?: string;          // 微信
+  role: ContactRole;
+  isPrimary: boolean;       // 是否主联系人
+  notes?: string;
+  lastContact?: string;     // 最后联系时间
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 联系人角色标签
+export const CONTACT_ROLE_LABELS: Record<ContactRole, string> = {
+  decision_maker: '决策人',
+  key_influencer: '关键人',
+  coach: '教练',
+  end_user: '用户',
+  gatekeeper: '把关人',
+  blocker: '反对者',
+};
+
+// 联系人角色颜色映射
+export const CONTACT_ROLE_COLORS: Record<ContactRole, { bg: string; text: string; icon: string }> = {
+  decision_maker: { 
+    bg: 'bg-red-100 dark:bg-red-900/30', 
+    text: 'text-red-700 dark:text-red-400',
+    icon: '🎯'
+  },
+  key_influencer: { 
+    bg: 'bg-orange-100 dark:bg-orange-900/30', 
+    text: 'text-orange-700 dark:text-orange-400',
+    icon: '⭐'
+  },
+  coach: { 
+    bg: 'bg-green-100 dark:bg-green-900/30', 
+    text: 'text-green-700 dark:text-green-400',
+    icon: '🤝'
+  },
+  end_user: { 
+    bg: 'bg-blue-100 dark:bg-blue-900/30', 
+    text: 'text-blue-700 dark:text-blue-400',
+    icon: '👤'
+  },
+  gatekeeper: { 
+    bg: 'bg-purple-100 dark:bg-purple-900/30', 
+    text: 'text-purple-700 dark:text-purple-400',
+    icon: '🚧'
+  },
+  blocker: { 
+    bg: 'bg-slate-100 dark:bg-slate-800', 
+    text: 'text-slate-700 dark:text-slate-400',
+    icon: '⚠️'
+  },
+};
+
+// 创建联系人输入
+export interface CreateContactInput {
+  name: string;
+  title?: string;
+  department?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  wechat?: string;
+  role?: ContactRole;
+  isPrimary?: boolean;
+  notes?: string;
+  lastContact?: string;
+}
+
+// ==================== 名片扫描相关类型 ====================
+
+// OCR识别结果
+export interface OcrResult {
+  name?: string;
+  title?: string;
+  department?: string;
+  company?: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  address?: string;
+  website?: string;
+  wechat?: string;
+}
+
+// 名片接口
+export interface BusinessCard {
+  id: string;
+  customerId?: string;
+  imageUrl: string;
+  ocrResult?: OcrResult;
+  rawData?: OcrResult;
+  status: 'pending' | 'processed' | 'failed';
+  errorMessage?: string;
+  createdAt: string;
+  updatedAt: string;
+  customer?: {
+    id: string;
+    name: string;
+    shortName: string;
+  };
+}
+
+// 从名片创建客户输入
+export interface CreateCustomerFromCardInput {
+  name: string;
+  shortName?: string;
+  industry?: string;
+  city?: string;
+  address?: string;
+  priority?: 'high' | 'medium' | 'low';
+  source?: 'direct' | 'referral' | 'website' | 'conference' | 'partner';
+  notes?: string;
+  contactName: string;
+  contactTitle?: string;
+  contactDepartment?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  contactMobile?: string;
+  contactWechat?: string;
+  contactRole?: ContactRole;
+}

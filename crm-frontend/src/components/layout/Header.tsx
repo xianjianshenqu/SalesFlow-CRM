@@ -1,11 +1,21 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../stores/authStore';
 
 interface HeaderProps {
   title?: string;
 }
 
 export function Header({ title = '工作台' }: HeaderProps) {
+  const navigate = useNavigate();
+  const { user, logout } = useAuthStore();
   const [searchValue, setSearchValue] = useState('');
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   return (
     <header className="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 shrink-0">
@@ -43,18 +53,34 @@ export function Header({ title = '工作台' }: HeaderProps) {
         <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
 
         {/* 用户头像 */}
-        <div className="flex items-center gap-3">
+        <div className="relative flex items-center gap-3">
           <div className="text-right hidden sm:block">
-            <p className="text-sm font-semibold text-slate-900 dark:text-white leading-none">Alex Chen</p>
-            <p className="text-[10px] text-slate-500 mt-1 uppercase">Sales Manager</p>
+            <p className="text-sm font-semibold text-slate-900 dark:text-white leading-none">{user?.name || 'User'}</p>
+            <p className="text-[10px] text-slate-500 mt-1 uppercase">{user?.role === 'admin' ? '管理员' : user?.role === 'manager' ? '经理' : '销售'}</p>
           </div>
-          <div className="size-10 rounded-full bg-slate-200 overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
-            <img
-              alt="User Profile"
-              className="w-full h-full object-cover"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7V0G3LOBXMmra5NcyxKWwA2mjirmBLHljZahivlXMtB5KNOEC67SfxwT1UeKdVkylAW-UPF2CDVWCGlykjFu35B1VIsBaAgZ0Zeq7QNrC2M6Y06NDWYBwKKZQCkF4e0GvzuB6Tc6h6Gg2Gj4NUE6adMnSkD7ZBAvZztq_hwRwtji0lgSpiUj3JPSPcJIu87orKlQaKBG7Cf3SnsLbwXwyZNJu3XF5a9gwtzl9rTgi7PAZJ0XRzExYWnqzQY4QkI_nFGkOE_8ae-Y"
-            />
-          </div>
+          <button 
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            className="size-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-semibold ring-2 ring-primary/20 hover:bg-primary/20 transition-colors"
+          >
+            {user?.name?.charAt(0) || 'U'}
+          </button>
+          
+          {/* 用户下拉菜单 */}
+          {showUserMenu && (
+            <div className="absolute right-0 top-full mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50">
+              <div className="px-4 py-2 border-b border-slate-200 dark:border-slate-700">
+                <p className="text-sm font-medium text-slate-900 dark:text-white">{user?.name}</p>
+                <p className="text-xs text-slate-500">{user?.email}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <span className="material-symbols-outlined text-base">logout</span>
+                退出登录
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>

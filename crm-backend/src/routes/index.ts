@@ -11,6 +11,8 @@ import serviceRoutes from './services.routes';
 import presalesRoutes from './presales.routes';
 import mapRoutes from './map.routes';
 import dashboardRoutes from './dashboard.routes';
+import contactRoutes from './contacts.routes';
+import businessCardRoutes from './businessCards.routes';
 
 const router = Router();
 
@@ -29,5 +31,7 @@ router.use('/services', serviceRoutes);
 router.use('/presales', presalesRoutes);
 router.use('/map', mapRoutes);
 router.use('/dashboard', dashboardRoutes);
+router.use('/', contactRoutes);  // Contact routes include both /customers/:id/contacts and /contacts/:id
+router.use('/', businessCardRoutes);  // Business card routes
 
 export default router;
