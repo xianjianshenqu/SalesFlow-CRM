@@ -69,11 +69,11 @@ async function main() {
   // Create team members
   await prisma.teamMember.createMany({
     data: [
-      { name: 'Alex Chen', role: '销售经理', department: '企业销售部', revenue: 2850000, deals: 12, activities: 156, rank: 1 },
-      { name: 'Sarah Wang', role: '高级销售代表', department: '企业销售部', revenue: 1920000, deals: 8, activities: 134, rank: 2 },
-      { name: 'Mike Liu', role: '销售代表', department: '中小企业部', revenue: 1280000, deals: 6, activities: 98, rank: 3 },
-      { name: 'Emily Zhang', role: '销售代表', department: '中小企业部', revenue: 980000, deals: 5, activities: 87, rank: 4 },
-      { name: 'David Li', role: '销售代表', department: '渠道销售部', revenue: 750000, deals: 4, activities: 76, rank: 5 },
+      { name: 'Alex Chen', role: 'manager', department: '企业销售部', revenue: 2850000, deals: 12 },
+      { name: 'Sarah Wang', role: 'sales', department: '企业销售部', revenue: 1920000, deals: 8 },
+      { name: 'Mike Liu', role: 'sales', department: '中小企业部', revenue: 1280000, deals: 6 },
+      { name: 'Emily Zhang', role: 'sales', department: '中小企业部', revenue: 980000, deals: 5 },
+      { name: 'David Li', role: 'sales', department: '渠道销售部', revenue: 750000, deals: 4 },
     ],
     skipDuplicates: true,
   });
@@ -192,9 +192,9 @@ async function main() {
   // Create presales resources
   await prisma.preSalesResource.createMany({
     data: [
-      { name: '张技术', title: '高级售前工程师', skills: ['云计算', '大数据', 'AI'], status: 'available' },
-      { name: '李方案', title: '方案架构师', skills: ['企业架构', '微服务', '安全'], status: 'busy', currentProject: '华为数字化转型' },
-      { name: '王演示', title: '售前顾问', skills: ['产品演示', '需求分析'], status: 'available' },
+      { name: '张技术', skills: ['云计算', '大数据', 'AI'], status: 'available' },
+      { name: '李方案', skills: ['企业架构', '微服务', '安全'], status: 'busy' },
+      { name: '王演示', skills: ['产品演示', '需求分析'], status: 'available' },
     ],
     skipDuplicates: true,
   });
