@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Enterprise CRM - Post-sales Service Center</title>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary rounded-lg p-1.5 text-white">
+<span class="material-symbols-outlined text-2xl">rocket_launch</span>
+</div>
+<div>
+<h1 class="text-sm font-bold leading-tight">Enterprise CRM</h1>
+<p class="text-xs text-slate-500">Service Center</p>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto px-4 space-y-1 py-4">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm font-medium">工作台</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">group</span>
+<span class="text-sm font-medium">客户管理</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">filter_alt</span>
+<span class="text-sm font-medium">销售漏斗</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">description</span>
+<span class="text-sm font-medium">商务方案</span></a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl font-fill">support_agent</span>
+<span class="text-sm font-bold">售后服务</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">payments</span>
+<span class="text-sm font-medium">回款统计</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">mic</span>
+<span class="text-sm font-medium">AI 录音分析</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">calendar_today</span>
+<span class="text-sm font-medium">智能日程</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">map</span>
+<span class="text-sm font-medium">客户地图</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">badge</span>
+<span class="text-sm font-medium">团队协作</span></a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-xl">person_add</span>
+<span class="text-sm font-medium">售前中心</span></a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2">
+<div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+<img alt="User Profile" data-alt="Corporate headshot of a male professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBrTQ1jujDkqtVDa67xRjK0RC7HmJh7i_5b_WaYdwChz1YEGmuFRrj19GSrQ33W3eLsy_V9tqx5XIVASCAkb--9ymXNkcU6SZqJu1y1YCoD_vQ0OQidqqLAGT2g-QvYmBsWnca9RjPdDkMTVF4DUaG7pAyEQ-vrNhHgkN9mv69OsZ2JkzgUJaBHG2G5yUD4fCJ_nUiT_La8MruM_8CmyER43GN04lKkwMOjBO8kduosRYg0dwW28SZIllYY1N87cq0vRDFaLP3KZjk"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate">Alex Johnson</p>
+<p class="text-[10px] text-slate-500 truncate">Service Lead</p>
+</div>
+<span class="material-symbols-outlined text-lg text-slate-400">settings</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-8 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold">Post-sales Management</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary transition-all" placeholder="Search accounts or resources" type="text"/>
+</div>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 h-2 w-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+</div>
+</header>
+<!-- Content Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+<div class="flex flex-col gap-2">
+<h3 class="text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">Implementation &amp; Progress Tracking</h3>
+<p class="text-slate-500">Monitor active deployments, tech resource allocation, and sync statuses.</p>
+</div>
+<!-- Tab Navigation -->
+<div class="border-b border-slate-200 dark:border-slate-800 flex gap-8">
+<button class="pb-4 text-sm font-bold border-b-2 border-primary text-primary px-2">Overview</button>
+<button class="pb-4 text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 px-2 transition-colors">Implementation Status</button>
+<button class="pb-4 text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 px-2 transition-colors">Resource Timeline</button>
+<button class="pb-4 text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 px-2 transition-colors">Tech Sync Log</button>
+</div>
+<!-- Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- 1. Training & Implementation tracking -->
+<div class="col-span-12 lg:col-span-7 space-y-4">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-6">
+<h4 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">model_training</span>
+                                Training &amp; Deployment
+                            </h4>
+<button class="text-xs text-primary font-bold">View All Projects</button>
+</div>
+<div class="space-y-6">
+<!-- Project Item -->
+<div class="flex items-start gap-4 p-4 border border-slate-100 dark:border-slate-800 rounded-lg hover:shadow-md transition-shadow">
+<div class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg text-primary">
+<span class="material-symbols-outlined">corporate_fare</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<p class="font-bold text-sm">Global Logistics Corp.</p>
+<span class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold rounded-full uppercase">On Track</span>
+</div>
+<p class="text-xs text-slate-500 mb-3">Enterprise Suite v4.2 Deployment</p>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[75%]"></div>
+</div>
+<div class="flex justify-between mt-2">
+<span class="text-[10px] font-medium text-slate-400">Step 3 of 4: Staff Training</span>
+<span class="text-[10px] font-bold text-slate-900 dark:text-slate-300">75% Complete</span>
+</div>
+</div>
+</div>
+<!-- Project Item -->
+<div class="flex items-start gap-4 p-4 border border-slate-100 dark:border-slate-800 rounded-lg hover:shadow-md transition-shadow">
+<div class="bg-orange-50 dark:bg-orange-900/30 p-3 rounded-lg text-orange-600">
+<span class="material-symbols-outlined">shopping_cart</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<p class="font-bold text-sm">Nova Retail Group</p>
+<span class="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-[10px] font-bold rounded-full uppercase">Pending Sync</span>
+</div>
+<p class="text-xs text-slate-500 mb-3">POS Integration &amp; API Setup</p>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full w-[30%]"></div>
+</div>
+<div class="flex justify-between mt-2">
+<span class="text-[10px] font-medium text-slate-400">Step 1 of 3: Backend Config</span>
+<span class="text-[10px] font-bold text-slate-900 dark:text-slate-300">30% Complete</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 2. Payment follow-up reminders -->
+<div class="col-span-12 lg:col-span-5 space-y-4">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-4">
+<h4 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-red-500">payments</span>
+                                Urgent Follow-ups
+                            </h4>
+</div>
+<div class="space-y-3">
+<div class="p-3 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-lg">
+<div class="flex justify-between items-center mb-1">
+<span class="text-xs font-bold text-red-800 dark:text-red-400">Overdue: 12 Days</span>
+<span class="text-xs font-bold text-red-800 dark:text-red-400">$14,200.00</span>
+</div>
+<p class="text-sm font-semibold">Vertex Solutions - Subscription</p>
+<button class="mt-2 w-full py-1.5 bg-red-500 text-white text-xs font-bold rounded-lg hover:bg-red-600 transition-colors">Send Reminder</button>
+</div>
+<div class="p-3 bg-slate-50 dark:bg-slate-800 border-l-4 border-slate-300 dark:border-slate-600 rounded-r-lg">
+<div class="flex justify-between items-center mb-1">
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">Due in 2 days</span>
+<span class="text-xs font-bold">$8,500.00</span>
+</div>
+<p class="text-sm font-semibold">CloudSphere Inc - Annual Renewal</p>
+</div>
+</div>
+</div>
+<!-- 4. Sync status with tech teams -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<h4 class="font-bold flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary">sync</span>
+                            Tech Sync Status
+                        </h4>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="flex -space-x-2">
+<div class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 overflow-hidden">
+<img alt="Tech Member" data-alt="Portrait of a male software engineer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC5RAXDbDu9tadL3kdWWJis4qHhjg1nuurKeqaDeOR_zKf816fXol4e8ZkkZaMIqRUqHgugPdXFYlTkyMPei_TJkFzcEVI3xNpYvHuPpyBv0AQNbyRK1p_4AKC3P4vfOJ2KQa6xYI0X10dOrYcmQVBt1cvxsF5DPTQuAnxYZWBGh0I2Vyd7Olceg5HPAAioklYIpwF_glxLdkapa-qZ8kIM9BiJLRThqMObUOFxASXJgFOneiXr-zSQVEj1Pgnx72S_xW_yjpG8ngY"/>
+</div>
+<div class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 overflow-hidden flex items-center justify-center bg-primary text-white text-[10px] font-bold">
+                                        +3
+                                    </div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<p class="text-xs font-bold">R&amp;D Engineering Team</p>
+<div class="flex items-center gap-1.5 text-[10px] text-green-500 font-bold">
+<span class="h-1.5 w-1.5 rounded-full bg-green-500"></span>
+                                            Synced 4m ago
+                                        </div>
+</div>
+<p class="text-[10px] text-slate-500">Feature Request: Custom API v2</p>
+</div>
+</div>
+<div class="flex items-center gap-4 opacity-75">
+<div class="flex -space-x-2">
+<div class="h-8 w-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 overflow-hidden">
+<img alt="Support Member" data-alt="Portrait of a female developer" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1vkrSjzOz1iM7AdQ8bafISCg2NaHkBTd_7FKhvkQ6s6cYbrANMutPKpDsITGXN3isjjeXwi1zZBXTmkCdjpSrqR1GuqGvN9ViGYR_AuUrW6FSv1VkxUve9Bte0FH8KRfqCOaWGV-OQJZ7_is2RcvXp5YGittWcpqzSTT58qLGEUadrhIVJdpnf80dpVM9FkuvaMpqDuOM2ZHNwiENJeUduEio65O1cKNpjHC1SO5JpIZMts8fcSyfugUDlLioZK6w2lcotYkfPQE"/>
+</div>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-center">
+<p class="text-xs font-bold">QA Testing Lab</p>
+<div class="flex items-center gap-1.5 text-[10px] text-amber-500 font-bold">
+<span class="h-1.5 w-1.5 rounded-full bg-amber-500 animate-pulse"></span>
+                                            Syncing...
+                                        </div>
+</div>
+<p class="text-[10px] text-slate-500">Regression Test: Build 882</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- 3. Technical & R&D Resource Schedule (Timeline) -->
+<div class="col-span-12">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 overflow-x-auto">
+<div class="flex items-center justify-between mb-6 min-w-[800px]">
+<h4 class="font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">event_available</span>
+                                Engineering Resource Availability
+                            </h4>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded text-xs font-bold">Prev Week</button>
+<button class="px-3 py-1 bg-primary text-white rounded text-xs font-bold">Next Week</button>
+</div>
+</div>
+<div class="min-w-[800px]">
+<!-- Timeline Header -->
+<div class="grid grid-cols-8 gap-1 mb-2">
+<div class="col-span-1"></div>
+<div class="col-span-1 text-center py-2 text-xs font-bold text-slate-500 border-x border-slate-100 dark:border-slate-800">Mon 12</div>
+<div class="col-span-1 text-center py-2 text-xs font-bold text-slate-500 border-x border-slate-100 dark:border-slate-800">Tue 13</div>
+<div class="col-span-1 text-center py-2 text-xs font-bold text-slate-900 dark:text-slate-100 border-x border-primary/20 bg-primary/5">Wed 14 (Today)</div>
+<div class="col-span-1 text-center py-2 text-xs font-bold text-slate-500 border-x border-slate-100 dark:border-slate-800">Thu 15</div>
+<div class="col-span-1 text-center py-2 text-xs font-bold text-slate-500 border-x border-slate-100 dark:border-slate-800">Fri 16</div>
+<div class="col-span-1 text-center py-2 text-xs font-bold text-slate-500 border-x border-slate-100 dark:border-slate-800">Sat 17</div>
+<div class="col-span-1 text-center py-2 text-xs font-bold text-slate-500 border-x border-slate-100 dark:border-slate-800">Sun 18</div>
+</div>
+<!-- Timeline Rows -->
+<div class="space-y-1">
+<!-- Engineer 1 -->
+<div class="grid grid-cols-8 gap-1">
+<div class="col-span-1 flex items-center gap-2 pr-4">
+<div class="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">SM</div>
+<span class="text-xs font-medium truncate">Sarah M. (Dev)</span>
+</div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded relative overflow-hidden">
+<div class="absolute inset-y-1 left-0 right-0 bg-primary/40 rounded flex items-center px-1 text-[8px] text-white overflow-hidden">Training</div>
+</div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-primary/5 h-8 rounded relative">
+<div class="absolute inset-y-1 left-1 right-2 bg-primary rounded flex items-center px-1 text-[8px] text-white">Client Sync</div>
+</div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded relative">
+<div class="absolute inset-y-1 left-4 right-0 bg-slate-400 rounded flex items-center px-1 text-[8px] text-white">Review</div>
+</div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+</div>
+<!-- Engineer 2 -->
+<div class="grid grid-cols-8 gap-1">
+<div class="col-span-1 flex items-center gap-2 pr-4">
+<div class="h-6 w-6 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-[10px] font-bold">RL</div>
+<span class="text-xs font-medium truncate">Rick L. (Lead)</span>
+</div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-2 bg-slate-50 dark:bg-slate-800/50 h-8 rounded relative">
+<div class="absolute inset-y-1 left-2 right-12 bg-amber-500 rounded flex items-center px-1 text-[8px] text-white">System Arch</div>
+</div>
+<div class="col-span-1 bg-primary/5 h-8 rounded"></div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded relative">
+<div class="absolute inset-y-1 left-0 right-0 bg-primary/40 rounded flex items-center px-1 text-[8px] text-white font-bold">Available</div>
+</div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+</div>
+<!-- Engineer 3 -->
+<div class="grid grid-cols-8 gap-1">
+<div class="col-span-1 flex items-center gap-2 pr-4">
+<div class="h-6 w-6 rounded-full bg-green-100 flex items-center justify-center text-[10px] font-bold text-green-700">JT</div>
+<span class="text-xs font-medium truncate">James T. (QA)</span>
+</div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-primary/5 h-8 rounded"></div>
+<div class="col-span-2 bg-slate-50 dark:bg-slate-800/50 h-8 rounded relative">
+<div class="absolute inset-y-1 left-0 right-4 bg-green-500 rounded flex items-center px-1 text-[8px] text-white font-bold">Release Cycle</div>
+</div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+<div class="col-span-1 bg-slate-50 dark:bg-slate-800/50 h-8 rounded"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

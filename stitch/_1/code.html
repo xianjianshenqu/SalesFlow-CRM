@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Customer Management | SalesFlow</title>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="flex min-h-screen">
+<!-- Side Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col fixed h-full">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary size-8 rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">hub</span>
+</div>
+<div>
+<h1 class="font-bold text-lg leading-none">SalesFlow</h1>
+<p class="text-xs text-slate-500 font-medium">Sales CRM</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">工作台</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">客户管理</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">filter_list</span>
+<span class="text-sm font-medium">销售漏斗</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">商务方案</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="text-sm font-medium">售后服务</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-medium">回款统计</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">mic_noise_reduction</span>
+<span class="text-sm font-medium">AI 录音分析</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">calendar_month</span>
+<span class="text-sm font-medium">智能日程</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-sm font-medium">客户地图</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-sm font-medium">团队协作</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">store</span>
+<span class="text-sm font-medium">售前中心</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<button class="w-full bg-primary text-white py-2 px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+                    Upgrade Plan
+                </button>
+<div class="mt-4 flex items-center gap-3 px-2">
+<div class="w-8 h-8 rounded-full bg-slate-200" data-alt="User avatar profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAl7yPRohYvxi2xuooYlXGAGmrFcytxXQ5rdlmTuM_VPVO7nbkCUeKBkrq5f1RTmfkQcAKOhjEbjlkAw9ZS24kmnAM0OWAsWApxi-JkQ-sFjZ1VqDX0LQmw4E4ql056u0Efqd3kl4j1aJ752MjKDpMdbFMEgA7RBK0-_4RLhQW1YQrBFDf372bXeRGNxh8Ii8Hi0dCHz5aErLfNhtKp8jOv_87hhYhOzqyPFk6UjMZ7IUtLiFRNxTwcNIk-smo7G8lSFAUhyofheNw')"></div>
+<div class="flex-1 overflow-hidden">
+<p class="text-xs font-bold truncate">Alex Chen</p>
+<p class="text-[10px] text-slate-500 truncate">Admin Account</p>
+</div>
+<span class="material-symbols-outlined text-slate-400">settings</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 ml-64 flex flex-col">
+<!-- Header Bar -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-10">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Search customers, leads, or tasks..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="relative p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:border-slate-800 mx-2"></div>
+<div class="flex items-center gap-2 cursor-pointer">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">SF</div>
+<span class="material-symbols-outlined text-slate-400">expand_more</span>
+</div>
+</div>
+</header>
+<div class="p-8">
+<!-- Page Title -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div>
+<h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Customer Management (客户管理)</h2>
+<div class="flex items-center gap-2 mt-2">
+<span class="flex items-center gap-1 text-sm font-medium text-slate-500">
+<span class="material-symbols-outlined text-lg">group</span>
+                                8 customers
+                            </span>
+<span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+<span class="text-sm font-medium text-green-600 bg-green-50 dark:bg-green-900/20 px-2 py-0.5 rounded">8 active</span>
+</div>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 border border-slate-200 dark:border-slate-800 rounded-lg text-sm font-bold bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-xl">download</span>
+                            Export Data
+                        </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-shadow shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl">person_add</span>
+                            + 添加客户
+                        </button>
+</div>
+</div>
+<!-- Tabs & Filters -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<div class="flex border-b border-slate-100 dark:border-slate-800">
+<button class="px-6 py-4 text-sm font-bold text-primary border-b-2 border-primary">All</button>
+<button class="px-6 py-4 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">New Leads</button>
+<button class="px-6 py-4 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Contacted</button>
+<button class="px-6 py-4 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Solution</button>
+<button class="px-6 py-4 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Negotiation</button>
+<button class="px-6 py-4 text-sm font-bold text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">Won</button>
+</div>
+<div class="p-4 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/30">
+<div class="flex items-center gap-2">
+<button class="p-2 flex items-center justify-center border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-600 hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<span class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-2">Displaying 5 of 8 results</span>
+</div>
+<div class="flex items-center gap-2">
+<select class="text-sm border-slate-200 dark:border-slate-700 dark:bg-slate-800 rounded-lg focus:ring-primary/20 focus:border-primary">
+<option>Sort by: Recently Added</option>
+<option>Estimated Value: High to Low</option>
+<option>Next Follow-up: Soonest</option>
+</select>
+</div>
+</div>
+<!-- Data Table -->
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50/50 dark:bg-slate-800/50 text-slate-500 uppercase text-[11px] font-black tracking-widest border-b border-slate-100 dark:border-slate-800">
+<tr>
+<th class="px-6 py-4 font-black">Customer Info</th>
+<th class="px-6 py-4 font-black">Stage</th>
+<th class="px-6 py-4 font-black">Est. Value</th>
+<th class="px-6 py-4 font-black">Next Follow-up</th>
+<th class="px-6 py-4 font-black">Source</th>
+<th class="px-6 py-4 font-black">Priority</th>
+<th class="px-6 py-4 font-black">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-red-50 flex items-center justify-center border border-red-100">
+<span class="text-red-600 font-black text-xs">HW</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Huawei (华为)</p>
+<p class="text-xs text-slate-500">li.wei@huawei.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400 ring-1 ring-inset ring-amber-500/10">
+                                            Negotiation
+                                        </span>
+</td>
+<td class="px-6 py-5 font-bold text-slate-700 dark:text-slate-300">¥1,250,000</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Oct 14, 2023</span>
+<span class="text-[10px] text-red-500 font-bold uppercase">Overdue</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Direct Outreach</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-red-500"></span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">High</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center border border-orange-100">
+<span class="text-orange-600 font-black text-xs">AL</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Alibaba (阿里巴巴)</p>
+<p class="text-xs text-slate-500">zhang.m@alibaba-inc.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 ring-1 ring-inset ring-blue-500/10">
+                                            Solution
+                                        </span>
+</td>
+<td class="px-6 py-5 font-bold text-slate-700 dark:text-slate-300">¥850,000</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Oct 18, 2023</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">In 2 days</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Referral</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-red-500"></span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">High</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center border border-green-100">
+<span class="text-green-600 font-black text-xs">BYD</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">BYD (比亚迪)</p>
+<p class="text-xs text-slate-500">chen.q@byd.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-600 dark:bg-indigo-900/30 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/10">
+                                            Contacted
+                                        </span>
+</td>
+<td class="px-6 py-5 font-bold text-slate-700 dark:text-slate-300">¥420,000</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Oct 20, 2023</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">In 4 days</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Website Demo</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-amber-500"></span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">Med</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center border border-blue-100">
+<span class="text-blue-600 font-black text-xs">PA</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Ping An (平安保险)</p>
+<p class="text-xs text-slate-500">finance@pingan.com.cn</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400 ring-1 ring-inset ring-emerald-500/10">
+                                            Won
+                                        </span>
+</td>
+<td class="px-6 py-5 font-bold text-slate-700 dark:text-slate-300">¥2,100,000</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Oct 25, 2023</span>
+<span class="text-[10px] text-emerald-500 font-bold uppercase">Review</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Partner</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-red-500"></span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">High</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center border border-teal-100">
+<span class="text-teal-600 font-black text-xs">TN</span>
+</div>
+<div>
+<p class="font-bold text-slate-900 dark:text-white">Tencent (腾讯)</p>
+<p class="text-xs text-slate-500">marketing@tencent.com</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 ring-1 ring-inset ring-slate-500/10">
+                                            New Lead
+                                        </span>
+</td>
+<td class="px-6 py-5 font-bold text-slate-700 dark:text-slate-300">¥120,000</td>
+<td class="px-6 py-5">
+<div class="flex flex-col">
+<span class="text-sm font-medium">Oct 16, 2023</span>
+<span class="text-[10px] text-slate-400 font-bold uppercase">Today</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm">Conference</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1.5">
+<span class="w-2 h-2 rounded-full bg-slate-300"></span>
+<span class="text-xs font-bold text-slate-600 dark:text-slate-400">Low</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<button class="p-1.5 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-400 transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination Footer -->
+<div class="p-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<p class="text-sm text-slate-500">Showing <span class="font-bold text-slate-900 dark:text-white">1</span> to <span class="font-bold text-slate-900 dark:text-white">5</span> of <span class="font-bold text-slate-900 dark:text-white">8</span> customers</p>
+<div class="flex gap-2">
+<button class="px-3 py-1 text-sm font-bold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed" disabled="">Previous</button>
+<button class="px-3 py-1 text-sm font-bold border border-slate-200 dark:border-slate-700 rounded-lg bg-slate-100 dark:bg-slate-800">1</button>
+<button class="px-3 py-1 text-sm font-bold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50">2</button>
+<button class="px-3 py-1 text-sm font-bold border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50">Next</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

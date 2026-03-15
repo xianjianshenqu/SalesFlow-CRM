@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h1 class="font-bold text-lg leading-none">SalesFlow</h1>
+<p class="text-xs text-slate-500 mt-1 uppercase tracking-wider">Enterprise</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1"><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">工作台</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">客户管理</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">filter_alt</span>
+<span class="text-sm font-medium">销售漏斗</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">商务方案</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="text-sm font-medium">售后服务</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-medium">回款统计</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">mic</span>
+<span class="text-sm font-medium">AI 录音分析</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-sm font-medium">智能日程</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-sm font-medium">客户地图</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-sm font-medium">团队协作</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="text-sm font-medium">售前中心</span>
+</a></nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<button class="w-full bg-primary text-white py-2.5 rounded-lg font-semibold flex items-center justify-center gap-2 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>New Lead</span>
+</button>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- Header/Top Bar -->
+<header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 sticky top-0 z-10">
+<div class="flex items-center gap-4 flex-1 max-w-xl">
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Search proposals, customers..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold leading-none">Alex Chen</p>
+<p class="text-xs text-slate-500 mt-1">Sales Director</p>
+</div>
+<img alt="User Avatar" class="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-700" data-alt="Corporate headshot of a male professional" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCWUunC99qRqovYtsmmM6A0HIW5H3YK9Sbnd868s2C5KoL28ALc5dwV0Fm0aDHoSSe_kjM22FjOhY--Am7xe10kO_Db1Q5c2ypQHApyR6vUYc1LphGMEmmWHyJlHm5Rmu3_whvfxA8rx-B1LBIh1hWx0kaL_NRrAtRa7DYTKXafdeev6wO1e3NJPsX-hax4g_st0TotpnIsKXKKOC-sYqWr5ua-joTAzFVw3fYhwPfTJJe7TEYMGdNaKbZw4bJBFhsAg72lIYowL_U"/>
+</div>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Title & Action -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">商务方案中心</h2>
+<p class="text-slate-500 mt-1 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-lg">auto_awesome</span>
+                            AI-powered business solution generation &amp; management
+                        </p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined">magic_button</span>
+                        + AI 生成方案
+                    </button>
+</div>
+<!-- Tabs -->
+<div class="border-b border-slate-200 dark:border-slate-800">
+<nav class="flex gap-8">
+<a class="border-b-2 border-primary pb-4 px-1 text-sm font-bold text-primary flex items-center gap-2" href="#">
+                            商务方案 <span class="bg-primary/10 px-2 py-0.5 rounded text-xs">3</span>
+</a>
+<a class="border-b-2 border-transparent pb-4 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2" href="#">
+                            合同管理 <span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-xs">2</span>
+</a>
+<a class="border-b-2 border-transparent pb-4 px-1 text-sm font-medium text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-2" href="#">
+                            售后服务 <span class="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded text-xs">3</span>
+</a>
+</nav>
+</div>
+<!-- Process Flow -->
+<div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-16 h-16 bg-primary/5 -mr-8 -mt-8 rounded-full"></div>
+<div class="w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<p class="text-sm font-bold leading-tight">AI Analysis</p>
+<p class="text-xs text-slate-500 mt-0.5">需求深度解析</p>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center text-indigo-600 shrink-0">
+<span class="material-symbols-outlined">file_copy</span>
+</div>
+<div>
+<p class="text-sm font-bold leading-tight">Template Match</p>
+<p class="text-xs text-slate-500 mt-0.5">最优模板匹配</p>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center text-purple-600 shrink-0">
+<span class="material-symbols-outlined">auto_fix_high</span>
+</div>
+<div>
+<p class="text-sm font-bold leading-tight">Auto Generate</p>
+<p class="text-xs text-slate-500 mt-0.5">自动生成文案</p>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-green-50 dark:bg-green-900/30 flex items-center justify-center text-green-600 shrink-0">
+<span class="material-symbols-outlined">verified</span>
+</div>
+<div>
+<p class="text-sm font-bold leading-tight">Approval</p>
+<p class="text-xs text-slate-500 mt-0.5">利益相关方审批</p>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-amber-50 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 shrink-0">
+<span class="material-symbols-outlined">contract</span>
+</div>
+<div>
+<p class="text-sm font-bold leading-tight">Contract</p>
+<p class="text-xs text-slate-500 mt-0.5">合同条款确认</p>
+</div>
+</div>
+</div>
+<!-- Proposal Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Card 1 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all group">
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1.5"></span>
+                                    Pending Review
+                                </span>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<h3 class="text-lg font-bold group-hover:text-primary transition-colors">Global Deployment Strategy V2.0</h3>
+<p class="text-sm text-slate-500 mt-2 mb-6">TechNova Enterprises</p>
+<div class="flex justify-between items-center py-4 border-t border-slate-100 dark:border-slate-800">
+<div class="text-xs text-slate-400">VALUE</div>
+<div class="font-bold text-slate-900 dark:text-white">$120,000</div>
+</div>
+<div class="flex justify-between items-center py-4 border-t border-slate-100 dark:border-slate-800">
+<div class="text-xs text-slate-400">CREATED</div>
+<div class="text-sm font-medium">Oct 24, 2023</div>
+</div>
+</div>
+<div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex gap-2">
+<button class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2 rounded-lg text-sm font-semibold hover:bg-slate-100 transition-colors">View</button>
+<button class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">Submit</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all group">
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300">
+<span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5"></span>
+                                    Proposal Sent
+                                </span>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<h3 class="text-lg font-bold group-hover:text-primary transition-colors">Hybrid Cloud Integration Plan</h3>
+<p class="text-sm text-slate-500 mt-2 mb-6">Omni Logistics Group</p>
+<div class="flex justify-between items-center py-4 border-t border-slate-100 dark:border-slate-800">
+<div class="text-xs text-slate-400">VALUE</div>
+<div class="font-bold text-slate-900 dark:text-white">$45,500</div>
+</div>
+<div class="flex justify-between items-center py-4 border-t border-slate-100 dark:border-slate-800">
+<div class="text-xs text-slate-400">CREATED</div>
+<div class="text-sm font-medium">Oct 22, 2023</div>
+</div>
+</div>
+<div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex gap-2">
+<button class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2 rounded-lg text-sm font-semibold hover:bg-slate-100 transition-colors">View</button>
+<button class="flex-1 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 py-2 rounded-lg text-sm font-semibold hover:bg-slate-300 transition-colors flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-sm">download</span>
+                                PDF
+                            </button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden hover:shadow-xl hover:shadow-primary/5 transition-all group">
+<div class="p-6">
+<div class="flex justify-between items-start mb-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5"></span>
+                                    Draft
+                                </span>
+<button class="text-slate-400 hover:text-slate-600">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<h3 class="text-lg font-bold group-hover:text-primary transition-colors">Smart Manufacturing Ecosystem</h3>
+<p class="text-sm text-slate-500 mt-2 mb-6">FutureWorks Corp</p>
+<div class="flex justify-between items-center py-4 border-t border-slate-100 dark:border-slate-800">
+<div class="text-xs text-slate-400">VALUE</div>
+<div class="font-bold text-slate-900 dark:text-white">$285,000</div>
+</div>
+<div class="flex justify-between items-center py-4 border-t border-slate-100 dark:border-slate-800">
+<div class="text-xs text-slate-400">CREATED</div>
+<div class="text-sm font-medium">Oct 20, 2023</div>
+</div>
+</div>
+<div class="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 flex gap-2">
+<button class="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2 rounded-lg text-sm font-semibold hover:bg-slate-100 transition-colors">Edit</button>
+<button class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">Complete</button>
+</div>
+</div>
+</div>
+<!-- Footer Summary -->
+<div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl flex flex-wrap items-center justify-between gap-6">
+<div class="flex gap-12">
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold tracking-widest">Active Proposals</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white mt-1">24</p>
+</div>
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold tracking-widest">Total Pipeline</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white mt-1">$1.42M</p>
+</div>
+<div>
+<p class="text-xs text-slate-400 uppercase font-bold tracking-widest">Avg. Success Rate</p>
+<p class="text-2xl font-black text-green-500 mt-1">68.4%</p>
+</div>
+</div>
+<div class="flex -space-x-3">
+<img alt="Team member" class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900" data-alt="Female professional portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAx2QuokjZVzuLJGHy65_WRdauz5LNEWnFoX1D9AQJw9bJJwnee7SDZ6eq8ZDYeF2FkWAxwmRxj8vWCAR2X4LU6sdBXNEDwyoPNMViYZMhXx5mgnfP9mcy6tDteInlk0j1h4bdBzvO0I8yGPqhH-owkfoOT73j-JVL8KhJJ-rRg_Lk7TiJwgDCMb5MlIdjupQj8oRGZxcv2VnbolHbBZKHkRhqfWAXyzP8AaZdJ-Pj3Azu7ic2ck9ak1iztMtk6TQQV57NCLTmvTHw"/>
+<img alt="Team member" class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900" data-alt="Male professional portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCHzrTk96IJ5pyWeroUq26lKuu1iKMKh1r_dhF-UcDo0dUJXxoMjBVXMAn96Mp-AvRxq9N9kxqZR6DA2u1EI2xV5QTyl074wwivK5bVmybnunotFCjE_vk0vOkFLh83WD4OKx1Xm-0pxWbfMwIIcnc5jRp1JjIwOkv7m7Mr6kjDDGs390mdnEWeslpmyN6P0VckH_WCL3lpeQHdJZYc1ghTMsqBPGpoDAAH1JQZP-YPXx-FntMD6zc8uFmk43Pj1smsrsCr_HQJdv4"/>
+<img alt="Team member" class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900" data-alt="Female professional portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2jiZSYHweWR4uyUUJVjTs4VSEZOlCrhDfQHDSEP4ou7RPsZj8yDy-yKDfZsEa--DlvNRLnV2IqU9PNfZQPhAVst-9LB_T66rFi05D73tuZmNBR2s2ebcWJJSRca1C3eAFvmZU3bLe8a7yhUdk2Ub1jToMwTRLrBFqb7YtuC1K6t2MvtKE3o8_S7bZByiRmGDaX_hMlSHeqsVAu0s82ZRo6HeFVKYoT6G8a9FBkjcC3WS6LUJhbu082VUHI0HkM29AZTNPuJjmqFo"/>
+<div class="w-10 h-10 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold">+5</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

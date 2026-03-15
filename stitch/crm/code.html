@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SalesFlow CRM Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary size-10 rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<div>
+<h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white">SalesFlow</h1>
+<p class="text-xs text-slate-500 dark:text-slate-400">AI CRM Enterprise</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1 overflow-y-auto"><a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">工作台</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">客户管理</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">filter_alt</span>
+<span class="text-sm font-medium">销售漏斗</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">商务方案</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="text-sm font-medium">售后服务</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-medium">回款统计</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings_voice</span>
+<span class="text-sm font-medium">AI 录音分析</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-sm font-medium">智能日程</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-sm font-medium">客户地图</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-sm font-medium">团队协作</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="text-sm font-medium">售前中心</span>
+</a></nav>
+<div class="p-4 mt-auto">
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-white py-2.5 rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+<span>New Lead</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8">
+<div class="flex-1 max-w-xl">
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-slate-800 transition-all" placeholder="Search leads, deals, or customers..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary rounded-lg text-sm font-semibold hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined text-sm">rocket_launch</span>
+<span>Upgrade</span>
+</button>
+<button class="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2.5 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:bg-slate-800 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold text-slate-900 dark:text-white leading-none">Alex Chen</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase">Sales Manager</p>
+</div>
+<div class="size-10 rounded-full bg-slate-200 overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+<img alt="User Profile" data-alt="Close-up professional portrait of a man in a business suit" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7V0G3LOBXMmra5NcyxKWwA2mjirmBLHljZahivlXMtB5KNOEC67SfxwT1UeKdVkylAW-UPF2CDVWCGlykjFu35B1VIsBaAgZ0Zeq7QNrC2M6Y06NDWYBwKKZQCkF4e0GvzuB6Tc6h6Gg2Gj4NUE6adMnSkD7ZBAvZztq_hwRwtji0lgSpiUj3JPSPcJIu87orKlQaKBG7Cf3SnsLbwXwyZNJu3XF5a9gwtzl9rTgi7PAZJ0XRzExYWnqzQY4QkI_nFGkOE_8ae-Y"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content -->
+<main class="flex-1 overflow-y-auto bg-background-light dark:bg-background-dark p-8">
+<div class="max-w-[1400px] mx-auto space-y-6">
+<!-- Top Row Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-green-600 text-sm font-medium bg-green-50 px-2 py-0.5 rounded-full">+23%</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Monthly Revenue</p>
+<h3 class="text-2xl font-bold mt-1 text-slate-900 dark:text-white">¥350.0万</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-500">
+<span class="material-symbols-outlined">person_check</span>
+</div>
+<span class="text-green-600 text-sm font-medium bg-green-50 px-2 py-0.5 rounded-full">+5</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Active Customers</p>
+<h3 class="text-2xl font-bold mt-1 text-slate-900 dark:text-white">7</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-amber-500/10 rounded-lg text-amber-500">
+<span class="material-symbols-outlined">query_stats</span>
+</div>
+<span class="text-green-600 text-sm font-medium bg-green-50 px-2 py-0.5 rounded-full">+12%</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Pipeline Value</p>
+<h3 class="text-2xl font-bold mt-1 text-slate-900 dark:text-white">¥995.0万</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-red-500/10 rounded-lg text-red-500">
+<span class="material-symbols-outlined">event_busy</span>
+</div>
+<span class="text-red-600 text-sm font-medium bg-red-50 px-2 py-0.5 rounded-full">Urgent</span>
+</div>
+<p class="text-sm text-slate-500 dark:text-slate-400">Today's Visits</p>
+<h3 class="text-2xl font-bold mt-1 text-slate-900 dark:text-white">2</h3>
+</div>
+</div>
+<!-- AI Banner -->
+<div class="bg-gradient-to-r from-primary to-[#2a68e8] rounded-xl p-8 text-white relative overflow-hidden shadow-xl shadow-primary/20">
+<div class="relative z-10 max-w-2xl">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-primary-200">auto_awesome</span>
+<p class="text-primary-100 font-medium tracking-wide uppercase text-xs">AI Intelligence Suggestions</p>
+</div>
+<h2 class="text-2xl font-bold mb-3">Optimize your follow-ups today</h2>
+<p class="text-primary-50 text-base leading-relaxed opacity-90">
+                                Recommended follow-ups for <span class="font-bold underline decoration-2 underline-offset-4">Ming Zhang</span> and <span class="font-bold underline decoration-2 underline-offset-4">Xinyi Wu</span> based on their recent engagement with the Q4 proposal. Both show high intent patterns in the last 24 hours.
+                            </p>
+<div class="mt-6 flex gap-4">
+<button class="px-6 py-2.5 bg-white text-primary rounded-lg font-bold text-sm shadow-lg hover:bg-primary-50 transition-colors">Generate Outreach Plan</button>
+<button class="px-6 py-2.5 bg-primary/20 text-white border border-primary-200/30 rounded-lg font-semibold text-sm hover:bg-primary/30 transition-colors">Dismiss</button>
+</div>
+</div>
+<div class="absolute right-0 top-0 bottom-0 w-1/3 opacity-20 pointer-events-none">
+<svg class="h-full w-full" preserveaspectratio="none" viewbox="0 0 100 100">
+<path d="M0 100 C 20 0 50 0 100 100" fill="currentColor"></path>
+</svg>
+</div>
+<span class="material-symbols-outlined absolute -bottom-10 -right-10 text-[200px] text-white/10 select-none">psychology</span>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+<!-- Main Content Col -->
+<div class="xl:col-span-2 space-y-6">
+<!-- Sales Funnel -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Sales Funnel Overview</h3>
+<p class="text-sm text-slate-500">Pipeline health across all stages</p>
+</div>
+<div class="text-right">
+<p class="text-2xl font-bold text-slate-900 dark:text-white">¥2,450,000</p>
+<p class="text-xs text-green-600 font-medium">Total Volume (+8.2% vs last month)</p>
+</div>
+</div>
+<div class="space-y-6">
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold uppercase text-slate-400 px-1">
+<span>New Leads</span>
+<span>70%</span>
+</div>
+<div class="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 70%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold uppercase text-slate-400 px-1">
+<span>Contacted</span>
+<span>45%</span>
+</div>
+<div class="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary/80 rounded-full" style="width: 45%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold uppercase text-slate-400 px-1">
+<span>Solution</span>
+<span>32%</span>
+</div>
+<div class="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary/60 rounded-full" style="width: 32%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold uppercase text-slate-400 px-1">
+<span>Negotiation</span>
+<span>18%</span>
+</div>
+<div class="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary/40 rounded-full" style="width: 18%"></div>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between text-xs font-bold uppercase text-slate-400 px-1">
+<span>Won</span>
+<span>12%</span>
+</div>
+<div class="h-3 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary/20 rounded-full" style="width: 12%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- AI Audio Analysis -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white">Latest AI Audio Analysis</h3>
+<button class="text-primary text-sm font-semibold hover:underline">View All</button>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+<div class="size-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+<span class="material-symbols-outlined">sentiment_very_satisfied</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Discovery Call: TechNova Corp</h4>
+<p class="text-xs text-slate-500 mt-0.5">Summary: Client expressed high interest in AI integration capabilities. Budget is pre-approved.</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-medium text-slate-400">10:24 AM</p>
+<span class="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded mt-1">Positive</span>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+<div class="size-10 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500">
+<span class="material-symbols-outlined">sentiment_neutral</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Follow-up: BlueSky Retail</h4>
+<p class="text-xs text-slate-500 mt-0.5">Summary: Concerns about implementation timeline. Needs more detail on the migration process.</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-medium text-slate-400">09:15 AM</p>
+<span class="inline-block px-2 py-0.5 bg-amber-100 text-amber-700 text-[10px] rounded mt-1">Neutral</span>
+</div>
+</div>
+<div class="flex items-center gap-4 p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+<div class="size-10 rounded-full bg-green-500/10 flex items-center justify-center text-green-500">
+<span class="material-symbols-outlined">sentiment_satisfied</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-slate-900 dark:text-white">Closing: GreenEarth Logistics</h4>
+<p class="text-xs text-slate-500 mt-0.5">Summary: Contract terms agreed upon. Sending final doc for digital signature by EOD.</p>
+</div>
+<div class="text-right">
+<p class="text-xs font-medium text-slate-400">Yesterday</p>
+<span class="inline-block px-2 py-0.5 bg-green-100 text-green-700 text-[10px] rounded mt-1">Positive</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Content Col (Schedule) -->
+<div class="space-y-6">
+<!-- Daily Schedule -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mb-6">Daily Schedule</h3>
+<div class="relative space-y-8 before:content-[''] before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[2px] before:bg-slate-100 dark:before:bg-slate-800">
+<div class="relative pl-8">
+<div class="absolute left-0 top-1.5 size-6 rounded-full bg-primary/20 flex items-center justify-center z-10 border-4 border-white dark:border-slate-900">
+<div class="size-2 rounded-full bg-primary"></div>
+</div>
+<div>
+<p class="text-xs font-bold text-primary uppercase">10:00 AM - 11:00 AM</p>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white mt-1">Follow-up Call</h4>
+<p class="text-xs text-slate-500 mt-1">Discussing implementation with TechNova Corp CTO.</p>
+</div>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-0 top-1.5 size-6 rounded-full bg-emerald-500/20 flex items-center justify-center z-10 border-4 border-white dark:border-slate-900">
+<div class="size-2 rounded-full bg-emerald-500"></div>
+</div>
+<div>
+<p class="text-xs font-bold text-emerald-500 uppercase">01:30 PM - 02:30 PM</p>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white mt-1">Proposal Discussion</h4>
+<p class="text-xs text-slate-500 mt-1">Reviewing pricing model with Finance Director at Global Logics.</p>
+</div>
+</div>
+<div class="relative pl-8">
+<div class="absolute left-0 top-1.5 size-6 rounded-full bg-amber-500/20 flex items-center justify-center z-10 border-4 border-white dark:border-slate-900">
+<div class="size-2 rounded-full bg-amber-500"></div>
+</div>
+<div>
+<p class="text-xs font-bold text-amber-500 uppercase">04:00 PM - 05:30 PM</p>
+<h4 class="text-sm font-bold text-slate-900 dark:text-white mt-1">Site Visit</h4>
+<p class="text-xs text-slate-500 mt-1">On-site meeting at BlueSky Retail headquarters.</p>
+</div>
+</div>
+</div>
+<button class="w-full mt-8 py-2 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-lg text-sm text-slate-400 font-medium hover:border-primary hover:text-primary transition-colors">
+                                    + Add New Task
+                                </button>
+</div>
+<!-- Map Mini-View -->
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<h3 class="text-lg font-bold text-slate-900 dark:text-white mb-4">Customer Locations</h3>
+<div class="h-48 bg-slate-100 dark:bg-slate-800 rounded-lg relative overflow-hidden">
+<div class="absolute inset-0 bg-[url('https://placeholder.pics/svg/400x300')] bg-cover bg-center opacity-50 grayscale hover:grayscale-0 transition-all cursor-crosshair" data-alt="Stylized map showing customer clusters across a city grid" data-location="Shanghai" style=""></div>
+<div class="absolute top-1/2 left-1/3 size-3 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50"></div>
+<div class="absolute top-1/4 right-1/4 size-3 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50" style="animation-delay: 1s"></div>
+<div class="absolute bottom-1/3 left-1/2 size-3 bg-primary rounded-full animate-pulse shadow-lg shadow-primary/50" style="animation-delay: 0.5s"></div>
+</div>
+<div class="mt-4 flex items-center justify-between text-xs font-semibold text-slate-500">
+<span>3 Customers Nearby</span>
+<a class="text-primary hover:underline" href="#">Full Map View</a>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

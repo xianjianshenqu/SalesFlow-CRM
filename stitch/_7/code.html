@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Customer Map Distribution | SalesFlow</title>
+<style>@keyframes bounce-short { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } } .animate-bounce-short { animation: bounce-short 2s ease-in-out infinite; }</style></head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">insights</span>
+</div>
+<div>
+<h1 class="text-lg font-bold leading-none">SalesFlow</h1>
+<p class="text-xs text-slate-500 mt-1 uppercase tracking-wider">Enterprise Edition</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1"><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">dashboard</span><span class="text-sm font-medium">工作台</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">group</span><span class="text-sm font-medium">客户管理</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">filter_list</span><span class="text-sm font-medium">销售漏斗</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">description</span><span class="text-sm font-medium">商务方案</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">support_agent</span><span class="text-sm font-medium">售后服务</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">payments</span><span class="text-sm font-medium">回款统计</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">mic</span><span class="text-sm font-medium">AI 录音分析</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">calendar_today</span><span class="text-sm font-medium">智能日程</span></a><a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px] fill-1">map</span><span class="text-sm font-semibold">客户地图</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">groups</span><span class="text-sm font-medium">团队协作</span></a><a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#"><span class="material-symbols-outlined text-[20px]">assignment_ind</span><span class="text-sm font-medium">售前中心</span></a></nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl">
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Avatar of current user profile" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcWhHd-b_GJdG5IvH0aE0bJecCBv6IMYoWTxdRHrJxpr4gvluXAtmTb9YRtWMJyj9yzDwrT3e1TjOVPsqslRftg2S50SIlnH_D4dAOpaBHRL1sUt-GzW6FeAq4Ro2v46s-fUr29W443yyDY-I1YGNdrAqLBPeohTuG_aBj6F82Ea-xP7nHIzuTH6_cv8dC4kwoiVntDZY6ivlweR6dQf8zbibSrZbrBCtR22XT3lBdeVXNdEZChVveIQhiIl-JwZQcoP5MHNlFVRc"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold truncate">Alex Chen</p>
+<p class="text-xs text-slate-500 truncate">Senior Manager</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+<!-- Top Header -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md px-6 flex items-center justify-between z-10">
+<div class="flex items-center gap-4 flex-1 max-w-2xl">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="w-full bg-slate-100 dark:bg-slate-800 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Search for customer or region..." type="text"/>
+</div>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400">Beijing</span>
+<span class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded-full text-xs font-medium text-slate-600 dark:text-slate-400">Hangzhou</span>
+<span class="px-3 py-1 bg-primary/20 text-primary rounded-full text-xs font-bold">Shenzhen</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="size-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="size-10 flex items-center justify-center rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400 transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<div class="flex-1 flex overflow-hidden">
+<!-- Map Section -->
+<div class="flex-1 relative bg-slate-200 dark:bg-slate-950 overflow-hidden"><div class="absolute top-6 left-1/2 -translate-x-1/2 z-20 w-full max-w-sm px-4"><div class="bg-white dark:bg-slate-900 rounded-xl shadow-2xl border-2 border-primary/20 p-4 flex gap-4 animate-bounce-short"><div class="size-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-primary">location_on</span></div><div><h5 class="text-sm font-bold text-slate-900 dark:text-white">Nearby Customers to Visit</h5><p class="text-xs text-slate-600 dark:text-slate-400 mt-1">You are near <span class="font-bold">BYD HQ</span>. 2 customers nearby haven't been visited for 30 days.</p><div class="flex gap-2 mt-3"><button class="px-3 py-1.5 bg-primary text-white text-[10px] font-bold rounded-lg">View Details</button><button class="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold rounded-lg">Dismiss</button></div></div><button class="absolute top-2 right-2 text-slate-400 hover:text-slate-600"><span class="material-symbols-outlined text-lg">close</span></button></div></div>
+<!-- Placeholder Map Image with data-location -->
+<div class="absolute inset-0 bg-[url('https://placeholder.pics/svg/1200x800')] bg-cover bg-center opacity-80" data-alt="High detail topographical map of China with regional borders" data-location="China" style=""></div>
+<!-- Simplified Map Grid Overlay -->
+<div class="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_1px_1px,rgba(0,0,0,0.1)_1px,transparent_0)] [background-size:40px_40px]"></div>
+<!-- Map Markers -->
+<!-- Beijing -->
+<div class="absolute top-[25%] left-[65%] -translate-x-1/2 -translate-y-1/2 group">
+<div class="relative">
+<div class="size-6 bg-primary rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white scale-100 group-hover:scale-110 transition-transform cursor-pointer">
+<span class="text-[10px] font-bold">2</span>
+</div>
+<div class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<p class="text-xs font-bold">Beijing</p>
+<p class="text-[10px] text-slate-500">2 Active Customers</p>
+</div>
+</div>
+</div>
+<!-- Hangzhou -->
+<div class="absolute top-[55%] left-[78%] -translate-x-1/2 -translate-y-1/2 group">
+<div class="relative">
+<div class="size-6 bg-primary rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white scale-100 group-hover:scale-110 transition-transform cursor-pointer">
+<span class="text-[10px] font-bold">1</span>
+</div>
+<div class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<p class="text-xs font-bold">Hangzhou</p>
+<p class="text-[10px] text-slate-500">1 Active Customer</p>
+</div>
+</div>
+</div>
+<!-- Shenzhen -->
+<div class="absolute top-[75%] left-[68%] -translate-x-1/2 -translate-y-1/2 group">
+<div class="relative">
+<div class="size-8 bg-primary rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white scale-100 group-hover:scale-110 transition-transform cursor-pointer">
+<span class="text-[12px] font-bold">4</span>
+</div>
+<div class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<p class="text-xs font-bold">Shenzhen Cluster</p>
+<p class="text-[10px] text-slate-500">4 Active Customers</p>
+</div>
+</div>
+</div>
+<!-- Ningde -->
+<div class="absolute top-[65%] left-[75%] -translate-x-1/2 -translate-y-1/2 group">
+<div class="relative">
+<div class="size-6 bg-primary rounded-full border-2 border-white shadow-lg flex items-center justify-center text-white scale-100 group-hover:scale-110 transition-transform cursor-pointer">
+<span class="text-[10px] font-bold">1</span>
+</div>
+<div class="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg shadow-xl border border-slate-100 dark:border-slate-700 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+<p class="text-xs font-bold">Ningde</p>
+<p class="text-[10px] text-slate-500">1 Active Customer</p>
+</div>
+</div>
+</div>
+<!-- Map Controls -->
+<div class="absolute bottom-8 right-8 flex flex-col gap-2">
+<div class="flex flex-col rounded-lg bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<button class="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 border-b border-slate-100 dark:border-slate-800 transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+<button class="p-2.5 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-lg">remove</span>
+</button>
+</div>
+<button class="size-10 flex items-center justify-center bg-white dark:bg-slate-900 shadow-xl border border-slate-200 dark:border-slate-800 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+<span class="material-symbols-outlined text-lg">near_me</span>
+</button>
+</div>
+<!-- Map Legend -->
+<div class="absolute bottom-8 left-8 p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl w-48">
+<h4 class="text-xs font-bold mb-3 uppercase tracking-wider text-slate-500">Map Legend</h4>
+<div class="space-y-2">
+<div class="flex items-center gap-3">
+<span class="size-3 rounded-full bg-primary border border-white"></span>
+<span class="text-xs font-medium">Customer Group</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="size-3 rounded-full bg-orange-400 border border-white"></span>
+<span class="text-xs font-medium">Pending Leads</span>
+</div>
+<div class="flex items-center gap-3">
+<span class="size-3 rounded-full bg-slate-300 dark:bg-slate-600 border border-white"></span>
+<span class="text-xs font-medium">Inactive regions</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Interaction Sidebar -->
+<aside class="w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 overflow-y-auto">
+<div class="p-6">
+<div class="flex items-center justify-between mb-6">
+<h2 class="text-lg font-bold">Visit Routes</h2>
+<button class="text-primary text-xs font-bold flex items-center gap-1 hover:underline">
+<span class="material-symbols-outlined text-sm">auto_fix</span>
+                                Smart Route
+                            </button>
+</div>
+<!-- Route List -->
+<div class="space-y-4 relative">
+<!-- Route Line Connection -->
+<div class="absolute left-[19px] top-6 bottom-6 w-0.5 bg-slate-100 dark:bg-slate-800"></div>
+<div class="relative flex gap-4">
+<div class="relative z-10 size-10 rounded-full bg-primary/10 flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
+<span class="material-symbols-outlined text-primary text-lg">factory</span>
+</div>
+<div class="flex-1 pb-4">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold">Ningde Times (CATL)</h3>
+<span class="text-[10px] font-bold text-slate-400">09:30 AM</span>
+</div>
+<p class="text-xs text-slate-500 mb-2">Ningde, Fujian Province</p>
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-primary/10 text-[10px] font-semibold text-primary rounded">VIP</span>
+<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-500 rounded">Quarterly Review</span>
+</div>
+</div>
+</div>
+<div class="relative flex gap-4">
+<div class="relative z-10 size-10 rounded-full bg-primary/10 flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
+<span class="material-symbols-outlined text-primary text-lg">storefront</span>
+</div>
+<div class="flex-1 pb-4">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold">Alibaba Group HQ</h3>
+<span class="text-[10px] font-bold text-slate-400">01:45 PM</span>
+</div>
+<p class="text-xs text-slate-500 mb-2">Hangzhou, Zhejiang</p>
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-primary/10 text-[10px] font-semibold text-primary rounded">Strategic</span>
+<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-500 rounded">On-site Visit</span>
+</div>
+</div>
+</div>
+<div class="relative flex gap-4">
+<div class="relative z-10 size-10 rounded-full bg-primary/10 flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
+<span class="material-symbols-outlined text-primary text-lg">router</span>
+</div>
+<div class="flex-1 pb-4">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold">Huawei Campus</h3>
+<span class="text-[10px] font-bold text-slate-400">04:15 PM</span>
+</div>
+<p class="text-xs text-slate-500 mb-2">Shenzhen, Guangdong</p>
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-primary/10 text-[10px] font-semibold text-primary rounded">Enterprise</span>
+<span class="px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-[10px] font-semibold text-slate-500 rounded">Training</span>
+</div>
+</div>
+</div>
+<div class="relative flex gap-4">
+<div class="relative z-10 size-10 rounded-full bg-primary/10 flex items-center justify-center border-2 border-white dark:border-slate-900 shadow-sm">
+<span class="material-symbols-outlined text-primary text-lg">electric_car</span>
+</div>
+<div class="flex-1">
+<div class="flex justify-between items-start mb-1">
+<h3 class="text-sm font-bold">BYD Headquarters</h3>
+<span class="text-[10px] font-bold text-slate-400">06:00 PM</span>
+</div>
+<p class="text-xs text-slate-500 mb-2">Shenzhen, Guangdong</p>
+<div class="flex gap-1">
+<span class="px-2 py-0.5 bg-orange-100 text-[10px] font-semibold text-orange-600 rounded">Renewal</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Regional Distribution -->
+<div class="mt-auto border-t border-slate-200 dark:border-slate-800 p-6 bg-slate-50 dark:bg-slate-900/50">
+<div class="flex items-center justify-between mb-4">
+<h2 class="text-sm font-bold uppercase tracking-widest text-slate-500">Distribution Overview</h2>
+<span class="text-xs font-bold text-primary">8 Total</span>
+</div>
+<div class="space-y-3">
+<div class="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-primary"></div>
+<span class="text-sm font-medium">Shenzhen</span>
+</div>
+<span class="text-sm font-bold">4</span>
+</div>
+<div class="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-primary/60"></div>
+<span class="text-sm font-medium">Beijing</span>
+</div>
+<span class="text-sm font-bold">2</span>
+</div>
+<div class="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-primary/40"></div>
+<span class="text-sm font-medium">Hangzhou</span>
+</div>
+<span class="text-sm font-bold">1</span>
+</div>
+<div class="flex items-center justify-between bg-white dark:bg-slate-800 p-3 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-primary/20"></div>
+<span class="text-sm font-medium">Fujian (Ningde)</span>
+</div>
+<span class="text-sm font-bold">1</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</div>
+</body></html>

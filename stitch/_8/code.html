@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>团队协作空间</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "system-ui", "-apple-system", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', 'Noto Sans SC', sans-serif; }
+        .podium-gradient {
+            background: linear-gradient(180deg, rgba(17, 82, 212, 0.1) 0%, rgba(17, 82, 212, 0) 100%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen flex-col">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-6 py-3">
+<div class="flex items-center gap-4">
+<div class="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white">
+<span class="material-symbols-outlined">group_work</span>
+</div>
+<h2 class="text-xl font-bold tracking-tight">团队协作空间</h2>
+</div>
+<div class="flex flex-1 justify-end gap-6 items-center">
+<label class="relative flex w-full max-w-sm items-center">
+<span class="material-symbols-outlined absolute left-3 text-slate-400">search</span>
+<input class="w-full rounded-lg border-none bg-slate-100 dark:bg-slate-800 py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50" placeholder="搜索团队、成员或项目..." type="text"/>
+</label>
+<div class="flex items-center gap-3">
+<button class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">notifications</span>
+</button>
+<button class="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-300">settings</span>
+</button>
+<div class="h-10 w-10 overflow-hidden rounded-full border-2 border-primary/20 bg-slate-200" data-alt="User profile avatar circle">
+<img alt="Avatar" class="h-full w-full object-cover" data-alt="Portrait of a smiling professional team leader" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAsyEQTGAxjMnFSQIZ_GdIzbbcmERLESpUngCyduBdNraY6SPz0PSOKk-5NeCAfF2J4n_lNN5J62jZx7jtMUbg2WYRmKMybCDwu9O_qj0WAcZex-GoTO-L7p7tZiKZw09Uexi-6y4ZpEwJfDvI6zYeLfckuPUEC-fZlMEMNCCLHoavwDo5_zRGe-7WMnLkDbyhtysk2_8Mmm556AwP_P4wmew2puggtLkUAmzaKZ1aUn1aFyxW2W50reo_MdgcsGrYNiAmjTIj8JAQ"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="hidden w-64 flex-col border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark p-4 lg:flex">
+<div class="mb-6">
+<p class="px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">主菜单</p>
+<nav class="mt-3 space-y-1"><a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">工作台</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-sm font-medium">客户管理</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">filter_alt</span>
+<span class="text-sm font-medium">销售漏斗</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">商务方案</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="text-sm font-medium">售后服务</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-medium">回款统计</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">mic</span>
+<span class="text-sm font-medium">AI 录音分析</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="text-sm font-medium">智能日程</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="text-sm font-medium">客户地图</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg bg-primary/10 px-3 py-2 text-primary" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="text-sm font-medium">团队协作</span>
+</a>
+<a class="flex items-center gap-3 rounded-lg px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">storefront</span>
+<span class="text-sm font-medium">售前中心</span>
+</a></nav>
+</div>
+<div class="mt-auto rounded-xl bg-primary/5 p-4">
+<p class="text-sm font-bold text-primary">企业专业版</p>
+<p class="mt-1 text-xs text-slate-500">已启用高级团队分析功能</p>
+<button class="mt-3 w-full rounded-lg bg-primary px-3 py-2 text-xs font-bold text-white hover:bg-primary/90">
+                        查看权益
+                    </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex flex-1 flex-col overflow-y-auto bg-slate-50 dark:bg-background-dark/50 p-6">
+<!-- Top Podium Section -->
+<section class="mb-8 overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm podium-gradient">
+<div class="p-6 text-center">
+<h2 class="text-2xl font-black tracking-tight">本月个人业绩巅峰榜</h2>
+<p class="mt-1 text-slate-500">实时更新的团队销售精英表现</p>
+</div>
+<div class="flex items-end justify-center gap-4 pb-8 px-6">
+<!-- 2nd Place -->
+<div class="flex flex-col items-center">
+<div class="relative mb-4">
+<div class="h-20 w-20 rounded-full border-4 border-slate-300 bg-slate-200 p-0.5" data-alt="Silver medal profile picture">
+<img alt="2nd" class="h-full w-full rounded-full object-cover" data-alt="Profile photo of a professional male analyst" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB9sImNO9GtAsEZw9LwFQ1wEmM_qpgfjLYKn-RnVwlSh4yDL9XAmMZllQVsvmsrfIJtyv2eZXVs5zzy6PrfSCKCx5GlAr9zIgVKvhnKt8MNPCsOo-5i95FxmpZFlGmU3gHYKj2x-elaJF6OhqZWyZyycUFyfI2ccXnZFRET14KO1Dd0idE7ibpg_hvqAiE_2amHuEQ3jr9AzmYJqOiS5DEjvqk7tm3Y2o_adq03UaCcK2-ByU9S91xv4r9BXfc4DBPQfA-MRuNu4Sc"/>
+</div>
+<div class="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-slate-400 text-white shadow-lg">
+<span class="text-xs font-bold">2</span>
+</div>
+</div>
+<div class="h-28 w-24 rounded-t-xl bg-slate-200/50 dark:bg-slate-800/50 flex flex-col items-center justify-center text-center p-2">
+<span class="text-sm font-bold">李华</span>
+<span class="text-xs text-primary font-semibold">¥892,400</span>
+</div>
+</div>
+<!-- 1st Place -->
+<div class="flex flex-col items-center">
+<div class="relative mb-4">
+<div class="h-24 w-24 rounded-full border-4 border-yellow-400 bg-slate-200 p-0.5 shadow-xl shadow-yellow-400/20" data-alt="Gold medal profile picture">
+<img alt="1st" class="h-full w-full rounded-full object-cover" data-alt="Profile photo of a confident female leader" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7WTeYjDU3DodKRqRwXx7UTV8wmPtE5ZuoJWANzvDKZfgPO6PmIWTJlaDr34z2T67fiSGH8gkZVa8zeDEASgndTZXKw-NXhjdEqNFbRds6yVRY95AYG9Y4pYAgfKc8d5nOWyVkrnxV4zsTZOWxXkJE7X2_Tu3wgNK9CYi2urK_hiYcx_KA1I9cekDqoe-7izswXQ3ETT_LAIInZPeP_YWnDJ9ZO1-0tWx4HCjUazQ9kPTkvcZqdIVT3UuBViSpnG9T6oeZHxd2A5Q"/>
+</div>
+<div class="absolute -bottom-2 -right-2 flex h-10 w-10 items-center justify-center rounded-full bg-yellow-400 text-white shadow-lg">
+<span class="material-symbols-outlined text-lg">workspace_premium</span>
+</div>
+</div>
+<div class="h-40 w-32 rounded-t-xl bg-primary/10 dark:bg-primary/20 flex flex-col items-center justify-center text-center p-3 border-x border-t border-primary/20">
+<span class="text-lg font-black text-primary">王小明</span>
+<span class="text-sm font-bold text-primary/80 mt-1">¥1,280,000</span>
+<div class="mt-2 flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-[10px] font-bold text-green-600">
+<span class="material-symbols-outlined text-xs">trending_up</span> 12%
+                                </div>
+</div>
+</div>
+<!-- 3rd Place -->
+<div class="flex flex-col items-center">
+<div class="relative mb-4">
+<div class="h-20 w-20 rounded-full border-4 border-amber-600/30 bg-slate-200 p-0.5" data-alt="Bronze medal profile picture">
+<img alt="3rd" class="h-full w-full rounded-full object-cover" data-alt="Profile photo of a young professional manager" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnPfSan3odrNEpTgmHNh9caT46NtC02A3amkwkmxjeHUWJQSqxSXyKCwZLxV4aQ9-RIY7H5KNo1a9o1ux4xI7PQNlHIfUtaeKIbtpDW4zJVRE7TczrH2YxR5R7CeyLpsnt3zgvx6Pp5nUniNpF196TVjz-boG5lc79PNqmFszVQhLJGHWVWINtf1px-HQymVWJ3kJ_GlQ5-gXx7Ac3lSnD5KptZcK4epiARVObMtGpZkxTTVf85zPmhv6N8V50C62CvB4UdKynai4"/>
+</div>
+<div class="absolute -bottom-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-amber-600/60 text-white shadow-lg">
+<span class="text-xs font-bold">3</span>
+</div>
+</div>
+<div class="h-24 w-24 rounded-t-xl bg-slate-200/50 dark:bg-slate-800/50 flex flex-col items-center justify-center text-center p-2">
+<span class="text-sm font-bold">张伟</span>
+<span class="text-xs text-primary font-semibold">¥756,200</span>
+</div>
+</div>
+</div>
+</section>
+<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+<!-- Ranked List (2/3 width) -->
+<div class="lg:col-span-2 space-y-4">
+<div class="flex items-center justify-between px-2">
+<h3 class="text-lg font-bold">销售代表排名</h3>
+<button class="text-sm font-medium text-primary hover:underline">导出完整榜单</button>
+</div>
+<div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+<table class="w-full text-left text-sm">
+<thead class="bg-slate-50 dark:bg-slate-800/50 text-slate-500">
+<tr>
+<th class="px-4 py-3 font-semibold">排名</th>
+<th class="px-4 py-3 font-semibold">代表</th>
+<th class="px-4 py-3 font-semibold text-right">总营收 (¥)</th>
+<th class="px-4 py-3 font-semibold text-right">成交数</th>
+<th class="px-4 py-3 font-semibold text-right">活动量</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-4 font-bold text-slate-400">#04</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-200 overflow-hidden" data-alt="Profile avatar small">
+<img alt="user" data-alt="Avatar headshot of a team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_uxh64nA549N8zBKpPSnYQ8Jc5o4w9nCc7kPMTecTV43JoL0dgVXhOsuKsh2rWI674UuRe2NZvL3GpQqHwPIr9kHF0XOw7bOUZZo_DJlnQjoIEDbUtUbnnt4hWYWoZqqlrsHh73A5CHR0n7j3FKdg_Ez-xXRkGeItsit72HNiXEkI0Ic5JjVsStiUyoS1TjLYUzBcu2SRMC1S-DaPmxKUtkWqMPetysL1AN-4ux3CsFObw5S0etwEDccRRsNyswndMI0XMp99bjs"/>
+</div>
+<span class="font-medium">赵敏</span>
+</div>
+</td>
+<td class="px-4 py-4 text-right font-semibold">¥642,000</td>
+<td class="px-4 py-4 text-right">48</td>
+<td class="px-4 py-4 text-right text-slate-500">215</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-4 font-bold text-slate-400">#05</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-200 overflow-hidden" data-alt="Profile avatar small">
+<img alt="user" data-alt="Avatar headshot of a team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAYxAqqMdWCtXH7M2NcjIqlhU1j2jORQZi7dE9uyoC8dop3649btvvDaJa0c_PEfbrT5WF9QX3kZDwY0mCRj8iXg9M2mesVZeFOHMIUKS8znpWvM4SVrmcvvgpKwVv8Ms7VABWu-qkS1-Vb7b_6leSiB6QfVrGBqIHTavBS5LG067F-8ROSar7zSIA6zCZqdtLG_1vTsXRYnRqfqenZpN0tArHIMaYYjFML_PiAQMwPEtBn61uCdM7GAAi_KH8j4-x1hfqKFM2_Gzs"/>
+</div>
+<span class="font-medium">孙立</span>
+</div>
+</td>
+<td class="px-4 py-4 text-right font-semibold">¥590,500</td>
+<td class="px-4 py-4 text-right">42</td>
+<td class="px-4 py-4 text-right text-slate-500">198</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-4 font-bold text-slate-400">#06</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-200 overflow-hidden" data-alt="Profile avatar small">
+<img alt="user" data-alt="Avatar headshot of a team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8smhxIYDbPtiJzrP5tqLqSTvm_oZsB-WAdKkhe19vpMOlJdudHpWnTIRiJ972s0Lk_AGMHqJyrcsVC-FY3FsuK3Lt0CiMLWJNMEvOGsRZOiB8nJfX-rubLCYpIW5w9JHvlUmjUtFHa5T1dVFqr9dLlaxYRR8VixWxSZVn5Fb0Ena6ZKNe3x3mXl1XZ-bbuLow7kbOu_1v0PlIdKE4ijh1MXS3TOiZS0DjIe4MpEjnqAbb5nYmmodrVRGMAC4YAhm9xX0miVtv49Y"/>
+</div>
+<span class="font-medium">周洁</span>
+</div>
+</td>
+<td class="px-4 py-4 text-right font-semibold">¥531,200</td>
+<td class="px-4 py-4 text-right">39</td>
+<td class="px-4 py-4 text-right text-slate-500">176</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-4 py-4 font-bold text-slate-400">#07</td>
+<td class="px-4 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-200 overflow-hidden" data-alt="Profile avatar small">
+<img alt="user" data-alt="Avatar headshot of a team member" src="https://lh3.googleusercontent.com/aida-public/AB6AXuArEWFEzFyLqKufF6cWahJktm2WlNuRC_ApcdO8QT66JWUZH5guZobSV3tgPdylRTK8T36sBDOef8mxB-V9w-2l1GODCCsFNn6W2OhFTuXcXyJUmde6TFyGrvO1Hw9_8jXRmCw6pytbG7DwDMHCtH7fsvenTOmY2R1kP7ZZEFPHwHSDNgBkaLqUqK_rSbex_MWnIsF4ubccRBS-qyn-X-IYYe85GlIO-uoNG4GRpN8pTQ62eh0uK7eUfex3DmWIwjfa9-uQdcv6luU"/>
+</div>
+<span class="font-medium">吴磊</span>
+</div>
+</td>
+<td class="px-4 py-4 text-right font-semibold">¥498,900</td>
+<td class="px-4 py-4 text-right">35</td>
+<td class="px-4 py-4 text-right text-slate-500">142</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Right Sidebar Stats -->
+<aside class="space-y-6">
+<h3 class="text-lg font-bold px-2">团队总览</h3>
+<div class="rounded-xl bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm text-slate-500">团队月度营收</span>
+<span class="text-xs font-bold text-green-500">+12.5%</span>
+</div>
+<p class="text-2xl font-black">¥4,820,000</p>
+<div class="mt-4 h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+<div class="h-full bg-primary" style="width: 78%"></div>
+</div>
+<p class="mt-2 text-xs text-slate-400">目标完成度: 78%</p>
+</div>
+<div class="rounded-xl bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm text-slate-500">总成交订单量</span>
+<span class="text-xs font-bold text-green-500">+8.2%</span>
+</div>
+<p class="text-2xl font-black">1,256 <span class="text-sm font-normal text-slate-400 ml-1">笔</span></p>
+</div>
+<div class="rounded-xl bg-white dark:bg-slate-900 p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-2">
+<span class="text-sm text-slate-500">活跃商机</span>
+<span class="text-xs font-bold text-slate-400">持平</span>
+</div>
+<p class="text-2xl font-black">432 <span class="text-sm font-normal text-slate-400 ml-1">个</span></p>
+</div>
+<div class="rounded-xl bg-slate-900 dark:bg-primary/20 p-5 text-white">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">campaign</span>
+<h4 class="font-bold">实时动态</h4>
+</div>
+<ul class="space-y-4 text-sm">
+<li class="flex gap-3">
+<div class="h-2 w-2 mt-1.5 rounded-full bg-primary shrink-0"></div>
+<p class="text-slate-300"><span class="font-bold text-white">王小明</span> 刚刚成交了一笔 ¥50k 的订单</p>
+</li>
+<li class="flex gap-3">
+<div class="h-2 w-2 mt-1.5 rounded-full bg-primary shrink-0"></div>
+<p class="text-slate-300"><span class="font-bold text-white">销售二组</span> 超额完成了周度指标</p>
+</li>
+</ul>
+</div>
+</aside>
+</div>
+</div>
+</main>
+</div>
+</body></html>

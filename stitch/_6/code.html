@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>智能日程建议</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#101622",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between border-b border-primary/10 bg-white dark:bg-background-dark/50 px-6 py-4 md:px-20 lg:px-40 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<h2 class="text-slate-900 dark:text-slate-100 text-xl font-bold leading-tight tracking-tight">智能日程建议</h2>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">calendar_today</span>
+</button>
+<button class="flex items-center justify-center rounded-lg h-10 w-10 bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</div>
+</header>
+<main class="flex-1 flex flex-col md:flex-row max-w-[1440px] mx-auto w-full px-4 md:px-10 lg:px-20 py-8 gap-8">
+<!-- Sidebar Navigation -->
+<aside class="w-full md:w-64 flex flex-col gap-6">
+<div class="flex items-center gap-3 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-primary/5">
+<div class="size-12 rounded-full bg-cover bg-center border-2 border-primary/20" data-alt="User profile photo showing professional portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB4WjEV8Jzylwm0-4baTQjwZZ_I0sdbipCdzYcXhY6N-i1SbjiPndo0PgJx0AiZhLoJh1Ly2GVusZ5Ls4lKXjsy5PCk00rrQHnDKzz5Fpc7HeYYuM0OCF72UCrQ_7T9djIA8-BWFgR7OAFOws4X1bSy7Qj3kwxUleJGcZJwhnwH9pHgKf05Je0_DHmADMMZsx3wr7dqjNKPGavqngslHq1NmEBDa7uCm8_HVZP39HXhYDcOxBBUxq3IvCYvoRo99oA5oNQeHSFrrg0");'></div>
+<div class="flex flex-col">
+<span class="text-slate-900 dark:text-slate-100 font-bold">李明 (AI 助手)</span>
+<span class="text-slate-500 text-xs">专业版 · 效率专家</span>
+</div>
+</div>
+<nav class="flex flex-col gap-1"><!-- 1. 工作台 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="font-medium text-sm">工作台</span>
+</a>
+<!-- 2. 客户管理 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-medium text-sm">客户管理</span>
+</a>
+<!-- 3. 销售漏斗 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">filter_alt</span>
+<span class="font-medium text-sm">销售漏斗</span>
+</a>
+<!-- 4. 商务方案 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="font-medium text-sm">商务方案</span>
+</a>
+<!-- 5. 售后服务 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="font-medium text-sm">售后服务</span>
+</a>
+<!-- 6. 回款统计 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="font-medium text-sm">回款统计</span>
+</a>
+<!-- 7. AI 录音分析 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">mic_analyzer</span>
+<span class="font-medium text-sm">AI 录音分析</span>
+</a>
+<!-- 8. 智能日程 (Active) -->
+<a class="flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-lg shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined">event_note</span>
+<span class="font-medium text-sm">智能日程</span>
+</a>
+<!-- 9. 客户地图 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">map</span>
+<span class="font-medium text-sm">客户地图</span>
+</a>
+<!-- 10. 团队协作 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">groups</span>
+<span class="font-medium text-sm">团队协作</span>
+</a>
+<!-- 11. 售前中心 -->
+<a class="flex items-center gap-3 px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-primary/5 hover:text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">hub</span>
+<span class="font-medium text-sm">售前中心</span>
+</a></nav>
+</aside>
+<!-- Content Area -->
+<div class="flex-1 flex flex-col gap-8">
+<!-- Header Info -->
+<div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-primary/5">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h1 class="text-3xl font-bold text-slate-900 dark:text-slate-100">今日 AI 智能建议</h1>
+<p class="text-slate-500 mt-2">根据您的 {{DATA:IMAGE:IMAGE_9}} 办公数据和任务紧迫性，已为您优化今日日程。</p>
+</div>
+<div class="flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-semibold">
+<span class="material-symbols-outlined text-sm">bolt</span>
+                                效率提升 24%
+                            </div>
+</div>
+</div>
+<!-- AI Priority Tasks -->
+<section class="flex flex-col gap-4">
+<h3 class="text-lg font-bold flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">priority_high</span>
+                            AI 优先处理任务
+                        </h3>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Card 1 -->
+<div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border-l-4 border-primary shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded">高优先级</span>
+<span class="text-slate-400 text-xs">09:30 - 10:30</span>
+</div>
+<h4 class="text-lg font-bold mb-2">客户战略电话会议</h4>
+<p class="text-slate-500 text-sm mb-4">AI 推理：该客户续约期将至，提前沟通可增加 15% 留存率。</p>
+<div class="flex gap-2">
+<button class="flex-1 bg-primary text-white py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">call</span>
+                                        立即呼叫
+                                    </button>
+<button class="flex-1 border border-primary/20 text-primary py-2 rounded-lg text-sm font-bold hover:bg-primary/5 transition-colors">
+                                        稍后提醒
+                                    </button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border-l-4 border-amber-500 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-3">
+<span class="bg-amber-100 text-amber-600 text-xs font-bold px-2 py-1 rounded">建议调整</span>
+<span class="text-slate-400 text-xs">11:00 - 12:00</span>
+</div>
+<h4 class="text-lg font-bold mb-2">周报数据初稿</h4>
+<p class="text-slate-500 text-sm mb-4">AI 推理：检测到您的集中注意力峰值在下午，建议推迟以保证产出质量。</p>
+<div class="flex gap-2">
+<button class="flex-1 bg-amber-500 text-white py-2 rounded-lg text-sm font-bold flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-sm">schedule</span>
+                                        推迟至 14:00
+                                    </button>
+<button class="flex-1 border border-amber-200 text-amber-600 py-2 rounded-lg text-sm font-bold hover:bg-amber-50 transition-colors">
+                                        忽略建议
+                                    </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Timeline View -->
+<section class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-primary/5">
+<h3 class="text-lg font-bold mb-6">全天时间轴视图</h3>
+<div class="relative space-y-0">
+<!-- 09:00 -->
+<div class="flex gap-6 group">
+<div class="flex flex-col items-center">
+<div class="text-xs font-bold text-slate-400 w-12 text-right">09:00</div>
+<div class="w-[2px] h-full bg-primary/10 mt-2 relative">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 size-3 rounded-full bg-primary ring-4 ring-primary/10"></div>
+</div>
+</div>
+<div class="pb-10 flex-1">
+<div class="bg-primary/5 border border-primary/10 p-4 rounded-xl">
+<p class="font-bold text-slate-800 dark:text-slate-200">收件箱清理</p>
+<p class="text-xs text-slate-500 mt-1">处理紧急回复，AI 已归类</p>
+</div>
+</div>
+</div>
+<!-- 10:30 -->
+<div class="flex gap-6 group">
+<div class="flex flex-col items-center">
+<div class="text-xs font-bold text-slate-400 w-12 text-right">10:30</div>
+<div class="w-[2px] h-full bg-primary/10 mt-2 relative">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 size-3 rounded-full bg-slate-300"></div>
+</div>
+</div>
+<div class="pb-10 flex-1">
+<div class="p-4 border-b border-primary/5">
+<p class="font-bold text-slate-700 dark:text-slate-300">产品回顾会议</p>
+<p class="text-xs text-slate-500 mt-1">线上视频会议 · 会议室 B</p>
+</div>
+</div>
+</div>
+<!-- 13:00 -->
+<div class="flex gap-6 group">
+<div class="flex flex-col items-center">
+<div class="text-xs font-bold text-slate-400 w-12 text-right">13:00</div>
+<div class="w-[2px] h-full bg-primary/10 mt-2 relative">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 size-3 rounded-full bg-slate-300"></div>
+</div>
+</div>
+<div class="pb-10 flex-1">
+<div class="p-4">
+<p class="font-bold text-slate-700 dark:text-slate-300">午间休息 &amp; AI 资讯阅读</p>
+<p class="text-xs text-slate-500 mt-1">基于您的偏好自动推送</p>
+</div>
+</div>
+</div>
+<!-- 15:00 -->
+<div class="flex gap-6 group">
+<div class="flex flex-col items-center">
+<div class="text-xs font-bold text-slate-400 w-12 text-right">15:00</div>
+<div class="w-[2px] h-full bg-primary/10 mt-2 relative">
+<div class="absolute top-0 left-1/2 -translate-x-1/2 size-3 rounded-full bg-emerald-500 ring-4 ring-emerald-100"></div>
+</div>
+</div>
+<div class="pb-10 flex-1">
+<div class="bg-emerald-50 border border-emerald-100 dark:bg-emerald-900/10 dark:border-emerald-800/20 p-4 rounded-xl">
+<div class="flex justify-between">
+<p class="font-bold text-emerald-700 dark:text-emerald-400">核心专注时段 (Deep Work)</p>
+<span class="text-xs bg-emerald-500 text-white px-2 py-0.5 rounded-full">最佳建议</span>
+</div>
+<p class="text-xs text-emerald-600 dark:text-emerald-500 mt-1">推荐进行代码重构或文档编写</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+</main>
+</div>
+</div>
+</body></html>
