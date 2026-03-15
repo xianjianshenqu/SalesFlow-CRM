@@ -40,13 +40,14 @@ class ApiService {
 
       clearTimeout(timeoutId);
 
-      const data = await response.json();
+      const result = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || `HTTP error! status: ${response.status}`);
+        throw new Error(result.message || `HTTP error! status: ${response.status}`);
       }
 
-      return { data, status: response.status };
+      // 后端返回格式: { success, data, message }，这里解包返回实际的 data
+      return { data: result.data, status: response.status };
     } catch (error) {
       clearTimeout(timeoutId);
       if (error instanceof Error && error.name === 'AbortError') {
@@ -96,10 +97,10 @@ export const authApi = {
     name: string;
     department?: string;
     phone?: string;
-  }) => api.post<{ user: User; token: string }>('/auth/register', data),
+  }) => api.post<{ user: User; tokens: { accessToken: string; refreshToken: string } }>('/auth/register', data),
 
   login: (data: { email: string; password: string }) =>
-    api.post<{ user: User; token: string }>('/auth/login', data),
+    api.post<{ user: User; tokens: { accessToken: string; refreshToken: string } }>('/auth/login', data),
 
   getProfile: () => api.get<User>('/auth/me'),
 

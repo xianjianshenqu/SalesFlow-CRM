@@ -47,10 +47,10 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const { data } = await authApi.login({ email, password });
-          localStorage.setItem('auth_token', data.token);
+          localStorage.setItem('auth_token', data.tokens.accessToken);
           set({
             user: data.user,
-            token: data.token,
+            token: data.tokens.accessToken,
             isAuthenticated: true,
             isLoading: false,
           });
@@ -66,10 +66,10 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true, error: null });
         try {
           const response = await authApi.register(data);
-          localStorage.setItem('auth_token', response.data.token);
+          localStorage.setItem('auth_token', response.data.tokens.accessToken);
           set({
             user: response.data.user,
-            token: response.data.token,
+            token: response.data.tokens.accessToken,
             isAuthenticated: true,
             isLoading: false,
           });
