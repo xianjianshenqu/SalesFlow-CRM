@@ -1,6 +1,7 @@
 import { PrismaClient, Sentiment } from '@prisma/client';
 import prisma from '../repositories/prisma';
 import { CreateRecordingInput, UpdateRecordingInput, RecordingQueryInput } from '../validators/recording.validator';
+import aiService from './ai.service';
 
 /**
  * 录音服务 - 处理AI录音分析相关的业务逻辑
@@ -139,7 +140,7 @@ class RecordingService {
 
   /**
    * 触发AI分析
-   * 实际项目中这里会调用AI服务进行语音分析
+   * 调用AI服务进行语音分析
    */
   async analyze(id: string) {
     // 获取录音信息
@@ -148,58 +149,193 @@ class RecordingService {
       throw new Error('录音不存在');
     }
 
-    // 模拟AI分析结果（实际项目中调用AI API）
-    const sentiments: Sentiment[] = ['positive', 'neutral', 'negative'];
-    const randomSentiment = sentiments[Math.floor(Math.random() * sentiments.length)];
-    
-    const sampleKeywords = [
-      '产品需求', '价格谈判', '竞品对比', '项目预算', 
-      '决策流程', '合作意向', '技术支持', '售后服务',
-    ];
-    
-    const sampleActionItems = [
-      '发送产品报价单',
-      '安排技术演示',
-      '准备合作方案',
-      '跟进竞品对比',
-      '协调内部资源',
-    ];
-
-    // 随机选择关键词和行动项
-    const keywords = sampleKeywords
-      .sort(() => 0.5 - Math.random())
-      .slice(0, Math.floor(Math.random() * 3) + 2);
-    
-    const actionItems = sampleActionItems
-      .sort(() => 0.5 - Math.random())
-      .slice(0, Math.floor(Math.random() * 2) + 1);
-
-    // 生成模拟摘要
-    const summaries = [
-      `客户对${keywords[0]}表示关注，需要进一步沟通确认。`,
-      `本次通话主要讨论了${keywords[0]}和${keywords[1]}相关内容，客户态度${randomSentiment === 'positive' ? '积极' : randomSentiment === 'negative' ? '消极' : '一般'}。`,
-      `客户询问了关于${keywords[0]}的详细信息，建议后续重点关注。`,
-    ];
-
-    const summary = summaries[Math.floor(Math.random() * summaries.length)];
-
-    // 更新录音分析结果
-    return this.prisma.audioRecording.update({
+    // 更新状态为处理中
+    await this.prisma.audioRecording.update({
       where: { id },
+      data: { status: 'processing' },
+    });
+
+    try {
+      // 调用AI服务进行分析
+      const aiResult = await aiService.analyzeRecording(
+        recording.fileUrl || '',
+        recording.duration,
+        {
+          name: recording.customer?.name,
+          industry: recording.customer?.company ?? undefined,
+        }
+      );
+
+      // 更新录音分析结果
+      const updated = await this.prisma.audioRecording.update({
+        where: { id },
+        data: {
+          sentiment: aiResult.sentiment,
+          summary: aiResult.summary,
+          keywords: aiResult.keywords,
+          keyPoints: aiResult.keyPoints,
+          actionItems: aiResult.actionItems,
+          transcript: aiResult.transcript,
+          status: 'analyzed',
+          notes: JSON.stringify({
+            psychology: aiResult.psychology,
+            suggestions: aiResult.suggestions,
+          }),
+        },
+        include: {
+          customer: {
+            select: { id: true, name: true, company: true },
+          },
+          createdBy: {
+            select: { id: true, name: true, email: true },
+          },
+        },
+      });
+
+      return {
+        ...updated,
+        psychology: aiResult.psychology,
+        suggestions: aiResult.suggestions,
+      };
+    } catch (error) {
+      // 分析失败，恢复状态
+      await this.prisma.audioRecording.update({
+        where: { id },
+        data: { status: 'pending' },
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * 上传录音文件
+   */
+  async upload(data: {
+    customerId: string;
+    title: string;
+    fileUrl: string;
+    duration: number;
+    fileSize?: number;
+    contactPerson?: string;
+  }, userId: string) {
+    return this.prisma.audioRecording.create({
       data: {
-        sentiment: randomSentiment,
-        summary,
-        keywords,
-        actionItems,
-        // 模拟生成转录文本
-        transcript: `[AI转录] 这是一段${recording.duration}秒的通话录音，主要涉及${keywords.join('、')}等话题。`,
+        customerId: data.customerId,
+        title: data.title,
+        fileUrl: data.fileUrl,
+        duration: data.duration,
+        fileSize: data.fileSize,
+        contactPerson: data.contactPerson,
+        status: 'pending',
+        createdById: userId,
       },
       include: {
         customer: {
-          select: { id: true, name: true, company: true },
+          select: { id: true, name: true, company: true, shortName: true },
+        },
+        createdBy: {
+          select: { id: true, name: true },
         },
       },
     });
+  }
+
+  /**
+   * 从钉钉同步录音（模拟）
+   */
+  async syncFromDingTalk(userId: string) {
+    // 获取所有客户用于关联
+    const customers = await this.prisma.customer.findMany({
+      select: { id: true, name: true, shortName: true, contactPerson: true },
+      take: 20,
+    });
+
+    if (customers.length === 0) {
+      return { synced: 0, recordings: [] };
+    }
+
+    // 随机选择1-3个客户生成模拟录音
+    const syncCount = Math.floor(Math.random() * 3) + 1;
+    const selectedCustomers = customers
+      .sort(() => 0.5 - Math.random())
+      .slice(0, syncCount);
+
+    const recordings = [];
+
+    for (const customer of selectedCustomers) {
+      const duration = Math.floor(Math.random() * 1800) + 120; // 2-32分钟
+      const recording = await this.prisma.audioRecording.create({
+        data: {
+          customerId: customer.id,
+          title: `与${customer.name}的通话`,
+          contactPerson: customer.contactPerson || '未知联系人',
+          duration,
+          fileSize: duration * 16000, // 假设16kbps
+          fileUrl: `https://dingtalk-recording.example.com/${Date.now()}.m4a`,
+          status: 'pending',
+          createdById: userId,
+          recordedAt: new Date(Date.now() - Math.random() * 86400000 * 7), // 最近7天内
+        },
+        include: {
+          customer: {
+            select: { id: true, name: true, company: true, shortName: true },
+          },
+        },
+      });
+      recordings.push(recording);
+    }
+
+    return {
+      synced: recordings.length,
+      recordings,
+    };
+  }
+
+  /**
+   * 获取录音详情（包含AI分析结果）
+   */
+  async getDetailById(id: string) {
+    const recording = await this.prisma.audioRecording.findUnique({
+      where: { id },
+      include: {
+        customer: {
+          select: { 
+            id: true, 
+            name: true, 
+            company: true, 
+            shortName: true,
+            phone: true, 
+            email: true,
+            contactPerson: true,
+          },
+        },
+        createdBy: {
+          select: { id: true, name: true, email: true },
+        },
+      },
+    });
+
+    if (!recording) return null;
+
+    // 解析额外数据
+    let psychology = null;
+    let suggestions = [];
+
+    if (recording.notes) {
+      try {
+        const extraData = JSON.parse(recording.notes);
+        psychology = extraData.psychology || null;
+        suggestions = extraData.suggestions || [];
+      } catch (e) {
+        // 解析失败，忽略
+      }
+    }
+
+    return {
+      ...recording,
+      psychology,
+      suggestions,
+    };
   }
 
   /**
@@ -211,10 +347,23 @@ class RecordingService {
       where.customerId = customerId;
     }
 
-    const [totalCount, sentimentCounts, avgDuration, totalDuration] = await Promise.all([
+    const [
+      totalCount,
+      sentimentCounts,
+      statusCounts,
+      avgDuration,
+      totalDuration,
+      todayCount,
+      weekCount,
+    ] = await Promise.all([
       this.prisma.audioRecording.count({ where }),
       this.prisma.audioRecording.groupBy({
         by: ['sentiment'],
+        where,
+        _count: true,
+      }),
+      this.prisma.audioRecording.groupBy({
+        by: ['status'],
         where,
         _count: true,
       }),
@@ -225,6 +374,22 @@ class RecordingService {
       this.prisma.audioRecording.aggregate({
         where,
         _sum: { duration: true },
+      }),
+      this.prisma.audioRecording.count({
+        where: {
+          ...where,
+          createdAt: {
+            gte: new Date(new Date().setHours(0, 0, 0, 0)),
+          },
+        },
+      }),
+      this.prisma.audioRecording.count({
+        where: {
+          ...where,
+          createdAt: {
+            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+          },
+        },
       }),
     ]);
 
@@ -240,11 +405,34 @@ class RecordingService {
       }
     });
 
+    const statusDistribution: Record<string, number> = {
+      pending: 0,
+      processing: 0,
+      analyzed: 0,
+    };
+
+    statusCounts.forEach((item: { status: string; _count: number }) => {
+      statusDistribution[item.status] = item._count;
+    });
+
+    // 计算分析完成率
+    const analyzedRate = totalCount > 0 
+      ? Math.round((statusDistribution.analyzed / totalCount) * 100) 
+      : 0;
+
+    // 计算AI准确率（模拟）
+    const aiAccuracy = analyzedRate > 0 ? 94 + Math.floor(Math.random() * 5) : 0;
+
     return {
       total: totalCount,
       averageDuration: Math.round(avgDuration._avg.duration || 0),
       totalDuration: totalDuration._sum.duration || 0,
       sentimentDistribution,
+      statusDistribution,
+      todayCount,
+      weekCount,
+      analyzedRate,
+      aiAccuracy,
     };
   }
 

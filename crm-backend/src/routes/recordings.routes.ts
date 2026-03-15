@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import recordingController from '../controllers/recording.controller';
+import recordingController, { uploadMiddleware } from '../controllers/recording.controller';
 import { authMiddleware } from '../middlewares/auth';
 import { validate } from '../middlewares/validate';
 import {
@@ -82,6 +82,75 @@ router.get('/stats', authMiddleware, recordingController.getStats);
 
 /**
  * @swagger
+ * /recordings/overview:
+ *   get:
+ *     summary: 获取录音统计概览
+ *     tags: [Recordings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 成功获取统计概览
+ */
+router.get('/overview', authMiddleware, recordingController.getStats);
+
+/**
+ * @swagger
+ * /recordings/upload:
+ *   post:
+ *     summary: 上传录音文件
+ *     tags: [Recordings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - file
+ *               - customerId
+ *               - title
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *               customerId:
+ *                 type: string
+ *               title:
+ *                 type: string
+ *               contactPerson:
+ *                 type: string
+ *               duration:
+ *                 type: integer
+ *     responses:
+ *       201:
+ *         description: 录音上传成功
+ */
+router.post(
+  '/upload',
+  authMiddleware,
+  uploadMiddleware,
+  recordingController.upload,
+);
+
+/**
+ * @swagger
+ * /recordings/sync:
+ *   post:
+ *     summary: 从钉钉同步录音（模拟）
+ *     tags: [Recordings]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 同步成功
+ */
+router.post('/sync', authMiddleware, recordingController.syncFromDingTalk);
+
+/**
+ * @swagger
  * /recordings:
  *   post:
  *     summary: 创建录音
@@ -157,6 +226,31 @@ router.get(
   authMiddleware,
   validate(recordingIdSchema, 'params'),
   recordingController.getById,
+);
+
+/**
+ * @swagger
+ * /recordings/{id}/detail:
+ *   get:
+ *     summary: 获取录音详情（包含AI分析结果）
+ *     tags: [Recordings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 成功获取录音详情
+ */
+router.get(
+  '/:id/detail',
+  authMiddleware,
+  validate(recordingIdSchema, 'params'),
+  recordingController.getDetail,
 );
 
 /**

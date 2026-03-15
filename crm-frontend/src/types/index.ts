@@ -78,11 +78,58 @@ export interface AudioRecording {
   contactPerson: string;
   duration: number;
   recordedAt: string;
+  title?: string;
   sentiment: Sentiment;
   summary: string;
   keyPoints: string[];
   actionItems: string[];
+  keywords: string[];
+  transcript?: string;
   status: 'analyzed' | 'pending' | 'processing';
+  fileSize?: number;
+  fileUrl?: string;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+  psychology?: CustomerPsychology;
+  suggestions?: AISuggestion[];
+}
+
+// 客户心理分析
+export interface CustomerPsychology {
+  attitude: 'interested' | 'neutral' | 'resistant';
+  purchaseIntent: 'high' | 'medium' | 'low';
+  painPoints: string[];
+  concerns: string[];
+}
+
+// AI建议
+export interface AISuggestion {
+  type: 'email' | 'demo' | 'proposal' | 'follow_up' | 'price';
+  title: string;
+  description: string;
+  priority: 'high' | 'medium' | 'low';
+}
+
+// 录音统计
+export interface RecordingStats {
+  total: number;
+  averageDuration: number;
+  totalDuration: number;
+  sentimentDistribution: {
+    positive: number;
+    neutral: number;
+    negative: number;
+  };
+  statusDistribution: {
+    pending: number;
+    processing: number;
+    analyzed: number;
+  };
+  todayCount: number;
+  weekCount: number;
+  analyzedRate: number;
+  aiAccuracy: number;
 }
 
 // 日程任务接口

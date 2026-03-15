@@ -3,6 +3,8 @@
  * 用于前端与后端API通信
  */
 
+import type { AudioRecording, RecordingStats } from '../types';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api/v1';
 const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000');
 
@@ -227,10 +229,27 @@ export const teamApi = {
 
 // ==================== 录音API ====================
 export const recordingApi = {
-  getAll: (customerId?: string) =>
-    api.get<AudioRecording[]>(`/recordings${customerId ? `?customerId=${customerId}` : ''}`),
+  getAll: (params?: {
+    page?: number;
+    limit?: number;
+    customerId?: string;
+    sentiment?: string;
+    status?: string;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.customerId) query.set('customerId', params.customerId);
+    if (params?.sentiment) query.set('sentiment', params.sentiment);
+    if (params?.status) query.set('status', params.status);
+    if (params?.search) query.set('search', params.search);
+    return api.get<{ data: AudioRecording[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/recordings?${query}`);
+  },
 
   getById: (id: string) => api.get<AudioRecording>(`/recordings/${id}`),
+
+  getDetail: (id: string) => api.get<AudioRecording>(`/recordings/${id}/detail`),
 
   upload: (formData: FormData) =>
     fetch(`${API_BASE_URL}/recordings/upload`, {
@@ -240,6 +259,22 @@ export const recordingApi = {
       },
       body: formData,
     }).then((r) => r.json()),
+
+  create: (data: CreateRecordingInput) => api.post<AudioRecording>('/recordings', data),
+
+  update: (id: string, data: Partial<CreateRecordingInput>) =>
+    api.put<AudioRecording>(`/recordings/${id}`, data),
+
+  delete: (id: string) => api.delete(`/recordings/${id}`),
+
+  analyze: (id: string) => api.post<AudioRecording>(`/recordings/${id}/analyze`),
+
+  syncFromDingTalk: () => api.post<{ synced: number; recordings: AudioRecording[] }>('/recordings/sync'),
+
+  getStats: (customerId?: string) => {
+    const query = customerId ? `?customerId=${customerId}` : '';
+    return api.get<RecordingStats>(`/recordings/stats${query}`);
+  },
 };
 
 // ==================== 类型定义 ====================
@@ -420,18 +455,41 @@ interface TeamActivity {
   createdAt: string;
 }
 
-interface AudioRecording {
-  id: string;
+interface CreateRecordingInput {
   customerId: string;
-  title?: string;
+  title: string;
   duration: number;
-  recordedAt: string;
-  sentiment?: string;
-  summary?: string;
-  keywords?: string[];
-  status: string;
-  fileUrl?: string;
+  fileUrl: string;
+  fileSize?: number;
+  contactPerson?: string;
   transcript?: string;
+  summary?: string;
+  sentiment?: 'positive' | 'neutral' | 'negative';
+  keywords?: string[];
+  actionItems?: string[];
+  notes?: string;
 }
+
+// ==================== 类型导出 ====================
+export type {
+  User,
+  Customer,
+  CreateCustomerInput,
+  CustomerStats,
+  Distribution,
+  Opportunity,
+  CreateOpportunityInput,
+  Payment,
+  CreatePaymentInput,
+  DashboardOverview,
+  SalesTrend,
+  TopCustomer,
+  ScheduleTask,
+  CreateScheduleInput,
+  TeamMember,
+  TeamActivity,
+  AudioRecording,
+  RecordingStats,
+};
 
 export default api;
