@@ -1,0 +1,492 @@
+// Prisma Schema for CRM System
+// Database: MySQL 8.0
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== Enums ====================
+
+enum Sentiment {
+  positive
+  neutral
+  negative
+}
+
+enum TaskType {
+  call
+  meeting
+  email
+  visit
+  follow_up
+  other
+}
+
+enum TaskPriority {
+  high
+  medium
+  low
+}
+
+enum TaskStatus {
+  pending
+  in_progress
+  completed
+  cancelled
+}
+
+enum ProposalStatus {
+  draft
+  sent
+  accepted
+  rejected
+  expired
+}
+
+enum TeamRole {
+  sales
+  manager
+  admin
+  support
+  presales
+}
+
+enum ServiceStatus {
+  pending
+  in_progress
+  completed
+  on_hold
+  cancelled
+}
+
+enum MilestoneStatus {
+  pending
+  in_progress
+  completed
+}
+
+enum ResourceStatus {
+  available
+  busy
+  offline
+}
+
+enum RequestStatus {
+  pending
+  assigned
+  in_progress
+  completed
+  cancelled
+}
+
+enum RequestPriority {
+  high
+  medium
+  low
+}
+
+enum OpportunityStatus {
+  new_lead
+  contacted
+  qualified
+  proposal
+  negotiation
+  won
+  lost
+}
+
+enum PaymentStatus {
+  pending
+  partial
+  paid
+  overdue
+}
+
+// ==================== User & Authentication ====================
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          String   @default("sales") // admin, manager, sales
+  avatar        String?
+  department    String?
+  phone         String?
+  isActive      Boolean  @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  ownedCustomers     Customer[]     @relation("CustomerOwner")
+  createdCustomers   Customer[]     @relation("CustomerCreatedBy")
+  ownedOpportunities Opportunity[]  @relation("OpportunityOwner")
+  createdOpportunities Opportunity[] @relation("OpportunityCreatedBy")
+  ownedProposals     Proposal[]     @relation("ProposalOwner")
+  createdProposals   Proposal[]     @relation("ProposalCreatedBy")
+  assignedTasks      ScheduleTask[] @relation("TaskAssignee")
+  createdTasks       ScheduleTask[] @relation("TaskCreator")
+  teamActivities     TeamActivity[]
+  createdServices    ServiceProject[] @relation("ServiceCreator")
+  presalesRequests   PreSalesRequest[] @relation("UserPreSalesRequests")
+  teamMember         TeamMember?
+  createdRecordings  AudioRecording[] @relation("RecordingCreator")
+  createdPresales    PreSalesRequest[] @relation("PresalesCreator")
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+// ==================== Customer Management ====================
+
+model Customer {
+  id              String   @id @default(uuid())
+  name            String
+  company         String?
+  shortName       String?
+  email           String?
+  stage           String   @default("new") // new, contacted, qualified, proposal, negotiation, won
+  estimatedValue  Decimal  @default(0) @db.Decimal(15, 2)
+  nextFollowUp    DateTime?
+  source          String?  // direct, referral, website, conference, partner
+  priority        String   @default("medium") // high, medium, low
+  contactPerson   String?
+  phone           String?
+  address         String?
+  city            String?
+  province        String?
+  district        String?
+  industry        String?
+  notes           String?  @db.Text
+  lastContactDate DateTime?
+  lat             Float?
+  lng             Float?
+  ownerId         String?
+  createdById     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  owner           User?              @relation("CustomerOwner", fields: [ownerId], references: [id])
+  createdBy       User?              @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  opportunities   Opportunity[]
+  payments        Payment[]
+  recordings      AudioRecording[]
+  scheduleTasks   ScheduleTask[]
+  proposals       Proposal[]
+  serviceProjects ServiceProject[]
+  presalesRequests PreSalesRequest[]
+  teamActivities  TeamActivity[]
+
+  @@index([stage])
+  @@index([priority])
+  @@index([city])
+  @@index([ownerId])
+  @@index([createdById])
+  @@map("customers")
+}
+
+// ==================== Sales Funnel ====================
+
+model Opportunity {
+  id                String   @id @default(uuid())
+  customerId        String
+  title             String
+  stage             String   @default("new_lead")
+  status            String   @default("active") // active, won, lost
+  value             Decimal  @default(0) @db.Decimal(15, 2)
+  probability       Int      @default(0)
+  ownerId           String?
+  priority          String   @default("medium")
+  expectedCloseDate DateTime?
+  lastActivity      DateTime?
+  description       String?  @db.Text
+  nextStep          String?
+  createdById       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relations
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  owner      User?    @relation("OpportunityOwner", fields: [ownerId], references: [id])
+  createdBy  User?    @relation("OpportunityCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([stage])
+  @@index([ownerId])
+  @@index([status])
+  @@map("opportunities")
+}
+
+// ==================== Payments ====================
+
+model Payment {
+  id           String   @id @default(uuid())
+  invoiceId    String   @unique
+  customerId   String
+  totalAmount  Decimal  @db.Decimal(15, 2)
+  paidAmount   Decimal  @default(0) @db.Decimal(15, 2)
+  balance      Decimal  @default(0) @db.Decimal(15, 2)
+  status       String   @default("pending") // paid, partial, pending, overdue
+  planType     String?
+  dueDate      DateTime
+  paidDate     DateTime?
+  lastReminder DateTime?
+  notes        String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([status])
+  @@index([dueDate])
+  @@map("payments")
+}
+
+// ==================== AI Audio Recording ====================
+
+model AudioRecording {
+  id             String    @id @default(uuid())
+  customerId     String
+  title          String?
+  contactPerson  String?
+  duration       Int       @default(0) // seconds
+  fileSize       Int?
+  recordedAt     DateTime  @default(now())
+  sentiment      Sentiment?
+  summary        String?   @db.Text
+  keywords       Json?     // string[]
+  keyPoints      Json?     // string[]
+  actionItems    Json?     // string[]
+  status         String    @default("pending") // analyzed, pending, processing
+  fileUrl        String?
+  transcript     String?   @db.Text
+  notes          String?   @db.Text
+  createdById    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdBy  User?    @relation("RecordingCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([sentiment])
+  @@index([status])
+  @@map("audio_recordings")
+}
+
+// ==================== Schedule ====================
+
+model ScheduleTask {
+  id             String      @id @default(uuid())
+  title          String
+  description    String?     @db.Text
+  dueDate        DateTime
+  type           TaskType    @default(other)
+  priority       TaskPriority @default(medium)
+  status         TaskStatus  @default(pending)
+  customerId     String?
+  location       String?
+  reminder       Boolean     @default(true)
+  reminderMinutes Int?
+  notes          String?     @db.Text
+  assigneeId     String?
+  createdById    String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  // Relations
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  assignee   User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  createdBy  User?     @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([assigneeId])
+  @@index([dueDate])
+  @@index([status])
+  @@map("schedule_tasks")
+}
+
+// ==================== Proposals ====================
+
+model Proposal {
+  id          String   @id @default(uuid())
+  title       String
+  customerId  String
+  value       Decimal  @default(0) @db.Decimal(15, 2)
+  status      ProposalStatus @default(draft)
+  description String?  @db.Text
+  products    Json?    // Product[]
+  terms       String?  @db.Text
+  validUntil  DateTime?
+  sentAt      DateTime?
+  notes       String?  @db.Text
+  ownerId     String?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  owner      User?    @relation("ProposalOwner", fields: [ownerId], references: [id])
+  createdBy  User?    @relation("ProposalCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([status])
+  @@index([ownerId])
+  @@map("proposals")
+}
+
+// ==================== Team ====================
+
+model TeamMember {
+  id           String   @id @default(uuid())
+  userId       String?  @unique
+  name         String
+  email        String?
+  phone        String?
+  avatar       String?
+  role         TeamRole
+  department   String?
+  position     String?
+  targets      Json?    // { revenue, deals, customers }
+  skills       Json?    // string[]
+  bio          String?  @db.Text
+  revenue      Decimal  @default(0) @db.Decimal(15, 2)
+  deals        Int      @default(0)
+  customers    Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user             User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  activities       TeamActivity[]
+  assignedRequests PreSalesRequest[]
+
+  @@index([department])
+  @@index([isActive])
+  @@map("team_members")
+}
+
+model TeamActivity {
+  id                 String   @id @default(uuid())
+  memberId           String?
+  userId             String?
+  type               String   // deal_closed, customer_added, meeting_scheduled, etc.
+  title              String
+  description        String?  @db.Text
+  relatedCustomerId  String?
+  relatedOpportunityId String?
+  metadata           Json?
+  createdAt          DateTime @default(now())
+
+  // Relations
+  member          TeamMember? @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  user            User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  relatedCustomer Customer?   @relation(fields: [relatedCustomerId], references: [id], onDelete: SetNull)
+
+  @@index([memberId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("team_activities")
+}
+
+// ==================== Service Projects ====================
+
+model ServiceProject {
+  id           String   @id @default(uuid())
+  customerId   String
+  name         String
+  description  String?  @db.Text
+  type         String?
+  status       ServiceStatus @default(pending)
+  progress     Int      @default(0)
+  startDate    DateTime?
+  endDate      DateTime?
+  completedAt  DateTime?
+  budget       Decimal? @db.Decimal(15, 2)
+  milestones   Json?    // Milestone[]
+  notes        String?  @db.Text
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  createdBy  User?    @relation("ServiceCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdById])
+  @@map("service_projects")
+}
+
+// ==================== PreSales ====================
+
+model PreSalesResource {
+  id             String   @id @default(uuid())
+  name           String
+  email          String?
+  phone          String?
+  skills         Json?    // string[]
+  experience     Int?
+  certifications Json?    // string[]
+  status         ResourceStatus @default(available)
+  availability   String?
+  location       String?
+  notes          String?  @db.Text
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  assignedRequests PreSalesRequest[]
+
+  @@index([status])
+  @@map("presales_resources")
+}
+
+model PreSalesRequest {
+  id                 String   @id @default(uuid())
+  customerId         String
+  type               String
+  title              String
+  description        String?  @db.Text
+  priority           RequestPriority @default(medium)
+  status             RequestStatus @default(pending)
+  requiredSkills     Json?    // string[]
+  dueDate            DateTime?
+  estimatedDuration  Int?
+  assignedResourceId String?
+  assignedMemberId   String?
+  assignedAt         DateTime?
+  completedAt        DateTime?
+  notes              String?  @db.Text
+  requesterId        String?
+  createdById        String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  customer         Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  assignedResource PreSalesResource? @relation(fields: [assignedResourceId], references: [id], onDelete: SetNull)
+  assignedMember   TeamMember?       @relation(fields: [assignedMemberId], references: [id], onDelete: SetNull)
+  requester        User?             @relation("UserPreSalesRequests", fields: [requesterId], references: [id], onDelete: SetNull)
+  createdBy        User?             @relation("PresalesCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([status])
+  @@index([priority])
+  @@index([assignedResourceId])
+  @@index([assignedMemberId])
+  @@map("presales_requests")
+}
