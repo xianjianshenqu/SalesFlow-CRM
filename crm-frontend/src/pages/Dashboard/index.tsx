@@ -3,6 +3,8 @@ import { mockOpportunities, getStageStats } from '../../data/opportunities';
 import { getPaymentStats } from '../../data/payments';
 import { STAGE_LABELS, type Stage } from '../../types';
 import { FollowUpWidget } from '../../components/AI';
+import { useState, useEffect } from 'react';
+import type { ScoreSummary, ChurnAlert } from '../../types';
 
 // 格式化金额
 function formatCurrency(value: number): string {
@@ -332,6 +334,192 @@ function CustomerMapMini() {
   );
 }
 
+// 商机评分概览组件
+function OpportunityScoreOverview() {
+  const [scoreSummary, setScoreSummary] = useState<ScoreSummary | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const { getScoreSummary } = await import('../../services/aiService');
+        const data = await getScoreSummary();
+        setScoreSummary(data);
+      } catch (err) {
+        console.error('获取评分概览失败:', err);
+        setError('暂无数据');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSummary();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+          <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  // 显示空状态或错误状态
+  if (!scoreSummary || error) {
+    return (
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary">analytics</span>
+            商机评分概览
+          </h3>
+        </div>
+        <div className="text-center py-8">
+          <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600">analytics</span>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">{error || '暂无商机评分数据'}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">请先在销售漏斗中为商机生成评分</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+          <span className="material-symbols-outlined text-primary">analytics</span>
+          商机评分概览
+        </h3>
+        <span className="text-sm text-slate-500 dark:text-slate-400">
+          {scoreSummary.scoredOpportunities}/{scoreSummary.totalOpportunities} 已评分
+        </span>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="text-center">
+          <p className="text-3xl font-bold text-primary">{scoreSummary.averageScore}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">平均评分</p>
+        </div>
+        <div className="text-center">
+          <p className="text-3xl font-bold text-emerald-500">{scoreSummary.highScoreCount}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">高分商机</p>
+        </div>
+        <div className="text-center">
+          <p className="text-2xl font-bold text-amber-500">{formatCurrency(scoreSummary.predictedValue)}</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">预测成交</p>
+        </div>
+      </div>
+
+      {scoreSummary.topOpportunities.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-slate-500 dark:text-slate-400">Top商机</p>
+          {scoreSummary.topOpportunities.slice(0, 3).map((opp) => (
+            <div key={opp.opportunityId} className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span className="font-medium text-slate-900 dark:text-white truncate max-w-[150px]">
+                  {opp.customerName}
+                </span>
+                <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                  opp.overallScore >= 70 ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                  opp.overallScore >= 50 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                  'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                }`}>
+                  {opp.overallScore}分
+                </span>
+              </div>
+              <span className="text-slate-500 dark:text-slate-400">{formatCurrency(opp.value)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 流失预警小组件
+function ChurnAlertWidget() {
+  const [alerts, setAlerts] = useState<ChurnAlert[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const { getChurnAlerts } = await import('../../services/aiService');
+        const data = await getChurnAlerts({ riskLevel: 'high', limit: 5 });
+        setAlerts(data.items);
+      } catch (error) {
+        console.error('获取流失预警失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAlerts();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+        <div className="animate-pulse space-y-4">
+          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3"></div>
+          <div className="h-20 bg-slate-200 dark:bg-slate-700 rounded"></div>
+        </div>
+      </div>
+    );
+  }
+
+  const highRiskCount = alerts.filter(a => a.riskLevel === 'high').length;
+
+  return (
+    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+          <span className="material-symbols-outlined text-amber-500">warning</span>
+          流失预警
+        </h3>
+        {highRiskCount > 0 && (
+          <span className="px-2.5 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 rounded-full text-xs font-medium">
+            {highRiskCount} 个高风险
+          </span>
+        )}
+      </div>
+
+      {alerts.length > 0 ? (
+        <div className="space-y-3">
+          {alerts.slice(0, 3).map((alert) => (
+            <div key={alert.id} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className={`size-2 rounded-full ${
+                  alert.riskLevel === 'high' ? 'bg-red-500' :
+                  alert.riskLevel === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'
+                }`}></div>
+                <div>
+                  <p className="font-medium text-slate-900 dark:text-white text-sm">
+                    {alert.customer?.name || '未知客户'}
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    风险分: {alert.riskScore}
+                  </p>
+                </div>
+              </div>
+              <button className="text-sm text-primary hover:text-primary/80">
+                查看
+              </button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <span className="material-symbols-outlined text-4xl text-emerald-500">check_circle</span>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">暂无流失预警</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   const activeCustomers = getActiveCustomers();
   const paymentStats = getPaymentStats();
@@ -384,6 +572,12 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <FunnelOverview />
         <AIRecordingList />
+      </div>
+
+      {/* AI分析区域 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <OpportunityScoreOverview />
+        <ChurnAlertWidget />
       </div>
 
       {/* 底部区域 */}

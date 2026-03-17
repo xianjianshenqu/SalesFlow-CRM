@@ -5,7 +5,13 @@
 
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../repositories/prisma';
-import { followUpAnalysisService, reportGenerationService } from '../services/ai';
+import {
+  followUpAnalysisService,
+  reportGenerationService,
+  opportunityScoringService,
+  churnAnalysisService,
+  customerInsightService,
+} from '../services/ai';
 
 /**
  * 获取跟进建议列表
@@ -609,6 +615,583 @@ export const updateReport = async (
     res.json({
       success: true,
       data: updatedReport,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ==================== 商机评分 ====================
+
+/**
+ * 计算商机评分
+ */
+export const calculateOpportunityScore = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    // 获取商机详情
+    const opportunity = await prisma.opportunity.findUnique({
+      where: { id },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            industry: true,
+            stage: true,
+          },
+        },
+        score: true,
+      },
+    });
+
+    if (!opportunity) {
+      res.status(404).json({
+        success: false,
+        message: '商机不存在',
+      });
+      return;
+    }
+
+    // 获取相关数据
+    const [recordings, contacts, scheduleTasks] = await Promise.all([
+      prisma.audioRecording.findMany({
+        where: { customerId: opportunity.customerId, status: 'analyzed' },
+        select: { sentiment: true, recordedAt: true },
+        orderBy: { recordedAt: 'desc' },
+        take: 10,
+      }),
+      prisma.contact.findMany({
+        where: { customerId: opportunity.customerId },
+        select: { role: true, isPrimary: true },
+      }),
+      prisma.scheduleTask.findMany({
+        where: { customerId: opportunity.customerId },
+        select: { type: true, status: true },
+      }),
+    ]);
+
+    // 调用评分服务
+    const scoreResult = await opportunityScoringService.analyzeOpportunity({
+      opportunityId: opportunity.id,
+      customerId: opportunity.customerId,
+      customerIndustry: opportunity.customer.industry || undefined,
+      customerStage: opportunity.customer.stage,
+      value: Number(opportunity.value),
+      stage: opportunity.stage,
+      expectedCloseDate: opportunity.expectedCloseDate,
+      lastActivity: opportunity.lastActivity,
+      recordings: recordings.map(r => ({
+        sentiment: r.sentiment || 'neutral',
+        recordedAt: r.recordedAt,
+      })),
+      contacts: contacts.map(c => ({
+        role: c.role,
+        isPrimary: c.isPrimary,
+      })),
+      scheduleTasks: scheduleTasks.map(t => ({
+        type: t.type,
+        status: t.status,
+      })),
+    });
+
+    // 保存评分结果
+    const savedScore = await prisma.opportunityScore.upsert({
+      where: { opportunityId: id },
+      create: {
+        opportunityId: id,
+        overallScore: scoreResult.overallScore,
+        winProbability: scoreResult.winProbability,
+        engagementScore: scoreResult.engagementScore,
+        budgetScore: scoreResult.budgetScore,
+        authorityScore: scoreResult.authorityScore,
+        needScore: scoreResult.needScore,
+        timingScore: scoreResult.timingScore,
+        factors: scoreResult.factors,
+        riskFactors: scoreResult.riskFactors,
+        recommendations: scoreResult.recommendations,
+      },
+      update: {
+        overallScore: scoreResult.overallScore,
+        winProbability: scoreResult.winProbability,
+        engagementScore: scoreResult.engagementScore,
+        budgetScore: scoreResult.budgetScore,
+        authorityScore: scoreResult.authorityScore,
+        needScore: scoreResult.needScore,
+        timingScore: scoreResult.timingScore,
+        factors: scoreResult.factors,
+        riskFactors: scoreResult.riskFactors,
+        recommendations: scoreResult.recommendations,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: savedScore,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 获取商机评分
+ */
+export const getOpportunityScore = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    const score = await prisma.opportunityScore.findUnique({
+      where: { opportunityId: id },
+    });
+
+    if (!score) {
+      res.status(404).json({
+        success: false,
+        message: '评分不存在，请先计算',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: score,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 获取评分概览
+ */
+export const getScoreSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?.id;
+
+    // 获取用户负责的商机评分统计
+    const opportunities = await prisma.opportunity.findMany({
+      where: { ownerId: userId, status: 'active' },
+      include: {
+        score: true,
+        customer: {
+          select: { name: true, shortName: true },
+        },
+      },
+    });
+
+    const scoresWithOpportunities = opportunities
+      .filter(o => o.score)
+      .map(o => ({
+        opportunityId: o.id,
+        title: o.title,
+        customerName: o.customer.name,
+        customerShortName: o.customer.shortName,
+        value: Number(o.value),
+        stage: o.stage,
+        overallScore: o.score!.overallScore,
+        winProbability: o.score!.winProbability,
+      }));
+
+    // 统计数据
+    const summary = {
+      totalOpportunities: opportunities.length,
+      scoredOpportunities: scoresWithOpportunities.length,
+      averageScore: scoresWithOpportunities.length > 0
+        ? Math.round(scoresWithOpportunities.reduce((sum, o) => sum + o.overallScore, 0) / scoresWithOpportunities.length)
+        : 0,
+      highScoreCount: scoresWithOpportunities.filter(o => o.overallScore >= 70).length,
+      predictedValue: scoresWithOpportunities.reduce((sum, o) => sum + o.value * (o.winProbability / 100), 0),
+      topOpportunities: scoresWithOpportunities
+        .sort((a, b) => b.overallScore - a.overallScore)
+        .slice(0, 5),
+    };
+
+    res.json({
+      success: true,
+      data: summary,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ==================== 流失预警 ====================
+
+/**
+ * 分析客户流失风险
+ */
+export const analyzeChurnRisk = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    // 获取客户信息
+    const customer = await prisma.customer.findUnique({
+      where: { id },
+      include: {
+        recordings: {
+          where: { status: 'analyzed' },
+          select: { sentiment: true, recordedAt: true },
+          orderBy: { recordedAt: 'desc' },
+          take: 10,
+        },
+        opportunities: {
+          select: { stage: true, status: true, lastActivity: true },
+        },
+        scheduleTasks: {
+          select: { status: true, dueDate: true },
+        },
+        contacts: {
+          select: { lastContact: true },
+        },
+      },
+    });
+
+    if (!customer) {
+      res.status(404).json({
+        success: false,
+        message: '客户不存在',
+      });
+      return;
+    }
+
+    // 调用流失分析服务
+    const churnResult = await churnAnalysisService.analyzeChurnRisk({
+      customerId: customer.id,
+      customerName: customer.name,
+      stage: customer.stage,
+      lastContactDate: customer.lastContactDate,
+      estimatedValue: Number(customer.estimatedValue),
+      recordings: customer.recordings.map(r => ({
+        sentiment: r.sentiment || 'neutral',
+        recordedAt: r.recordedAt,
+      })),
+      opportunities: customer.opportunities.map(o => ({
+        stage: o.stage,
+        status: o.status,
+        lastActivity: o.lastActivity,
+      })),
+      scheduleTasks: customer.scheduleTasks.map(t => ({
+        status: t.status,
+        dueDate: t.dueDate,
+      })),
+      contacts: customer.contacts.map(c => ({
+        lastContact: c.lastContact,
+      })),
+    });
+
+    // 保存流失预警
+    const savedAlert = await prisma.churnAlert.upsert({
+      where: { customerId: id },
+      create: {
+        customerId: id,
+        riskLevel: churnResult.riskLevel,
+        riskScore: churnResult.riskScore,
+        reasons: churnResult.reasons,
+        signals: churnResult.signals,
+        suggestions: churnResult.suggestions,
+      },
+      update: {
+        riskLevel: churnResult.riskLevel,
+        riskScore: churnResult.riskScore,
+        reasons: churnResult.reasons,
+        signals: churnResult.signals,
+        suggestions: churnResult.suggestions,
+        status: 'active',
+      },
+    });
+
+    // 更新客户风险评分
+    await prisma.customer.update({
+      where: { id },
+      data: { riskScore: churnResult.riskScore },
+    });
+
+    res.json({
+      success: true,
+      data: savedAlert,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 获取客户流失预警
+ */
+export const getChurnAlert = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    const alert = await prisma.churnAlert.findFirst({
+      where: { customerId: id },
+      include: {
+        customer: {
+          select: { name: true, shortName: true, stage: true },
+        },
+      },
+    });
+
+    if (!alert) {
+      res.status(404).json({
+        success: false,
+        message: '预警不存在，请先分析',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: alert,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 获取流失预警列表
+ */
+export const getChurnAlerts = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const userId = req.user?.id;
+    const { riskLevel, status, page = 1, limit = 20 } = req.query;
+
+    const where: any = {};
+    if (riskLevel) {
+      where.riskLevel = riskLevel;
+    }
+    if (status) {
+      where.status = status;
+    }
+    // 筛选当前用户负责的客户
+    where.customer = { ownerId: userId };
+
+    const [alerts, total] = await Promise.all([
+      prisma.churnAlert.findMany({
+        where,
+        include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              shortName: true,
+              stage: true,
+              estimatedValue: true,
+            },
+          },
+        },
+        orderBy: { riskScore: 'desc' },
+        skip: (Number(page) - 1) * Number(limit),
+        take: Number(limit),
+      }),
+      prisma.churnAlert.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: {
+        items: alerts,
+        total,
+        page: Number(page),
+        limit: Number(limit),
+        totalPages: Math.ceil(total / Number(limit)),
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 处理流失预警
+ */
+export const handleChurnAlert = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    const { action } = req.body; // 'handled' or 'ignored'
+
+    if (!['handled', 'ignored'].includes(action)) {
+      res.status(400).json({
+        success: false,
+        message: '无效的操作类型',
+      });
+      return;
+    }
+
+    const alert = await prisma.churnAlert.update({
+      where: { id },
+      data: {
+        status: action,
+        handledAt: new Date(),
+        handledBy: userId,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: alert,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ==================== 客户画像 ====================
+
+/**
+ * 生成客户洞察
+ */
+export const generateCustomerInsights = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    // 获取客户相关数据
+    const customer = await prisma.customer.findUnique({
+      where: { id },
+      include: {
+        recordings: {
+          where: { status: 'analyzed' },
+          select: {
+            transcript: true,
+            summary: true,
+            keywords: true,
+            keyPoints: true,
+          },
+          orderBy: { recordedAt: 'desc' },
+          take: 10,
+        },
+        contacts: {
+          select: {
+            name: true,
+            title: true,
+            department: true,
+            role: true,
+            notes: true,
+          },
+        },
+      },
+    });
+
+    if (!customer) {
+      res.status(404).json({
+        success: false,
+        message: '客户不存在',
+      });
+      return;
+    }
+
+    // 调用客户洞察服务
+    const insightResult = await customerInsightService.extractCustomerInsights({
+      customerId: customer.id,
+      recordings: customer.recordings.map(r => ({
+        transcript: r.transcript || undefined,
+        summary: r.summary || undefined,
+        keywords: r.keywords as string[] | undefined,
+        keyPoints: r.keyPoints as string[] | undefined,
+      })),
+      contacts: customer.contacts.map(c => ({
+        name: c.name,
+        title: c.title || undefined,
+        department: c.department || undefined,
+        role: c.role,
+        notes: c.notes || undefined,
+      })),
+      notes: customer.notes || undefined,
+    });
+
+    // 保存洞察结果
+    const savedInsight = await prisma.customerInsight.upsert({
+      where: { customerId: id },
+      create: {
+        customerId: id,
+        extractedNeeds: insightResult.extractedNeeds,
+        extractedBudget: insightResult.extractedBudget,
+        decisionMakers: insightResult.decisionMakers,
+        painPoints: insightResult.painPoints,
+        competitorInfo: insightResult.competitorInfo,
+        timeline: insightResult.timeline,
+        confidence: insightResult.confidence,
+      },
+      update: {
+        extractedNeeds: insightResult.extractedNeeds,
+        extractedBudget: insightResult.extractedBudget,
+        decisionMakers: insightResult.decisionMakers,
+        painPoints: insightResult.painPoints,
+        competitorInfo: insightResult.competitorInfo,
+        timeline: insightResult.timeline,
+        confidence: insightResult.confidence,
+      },
+    });
+
+    res.json({
+      success: true,
+      data: savedInsight,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * 获取客户洞察
+ */
+export const getCustomerInsights = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const { id } = req.params;
+
+    const insight = await prisma.customerInsight.findUnique({
+      where: { customerId: id },
+    });
+
+    if (!insight) {
+      res.status(404).json({
+        success: false,
+        message: '洞察不存在，请先生成',
+      });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: insight,
     });
   } catch (error) {
     next(error);

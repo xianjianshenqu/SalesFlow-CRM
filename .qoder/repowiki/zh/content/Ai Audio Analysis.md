@@ -1,4 +1,4 @@
-# Ai Audio Analysis
+# AI音频分析
 
 <cite>
 **本文档引用的文件**
@@ -15,19 +15,33 @@
 - [RecordingList.tsx](file://crm-frontend/src/pages/AIAudio/components/RecordingList.tsx)
 - [index.ts](file://crm-frontend/src/types/index.ts)
 - [package.json](file://crm-backend/package.json)
+- [schema.prisma](file://crm-backend/prisma/schema.prisma)
+- [20260317020137_add_ai_features/migration.sql](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql)
+- [20260315081326_init/migration.sql](file://crm-backend/prisma/migrations/20260315081326_init/migration.sql)
+- [20260315135448_add_contacts_and_business_cards/migration.sql](file://crm-backend/prisma/migrations/20260315135448_add_contacts_and_business_cards/migration.sql)
+- [20260315155023_add_cold_visit_records/migration.sql](file://crm-backend/prisma/migrations/20260315155023_add_cold_visit_records/migration.sql)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 新增数据库迁移和AI功能相关组件的详细说明
+- 更新数据模型部分，包含完整的AI功能数据库结构
+- 增加数据库版本管理和迁移流程说明
+- 补充AI分析结果的数据持久化机制
+- 更新前端界面与AI功能的集成说明
 
 ## 目录
 1. [项目概述](#项目概述)
 2. [系统架构](#系统架构)
 3. [核心组件分析](#核心组件分析)
 4. [AI音频分析流程](#ai音频分析流程)
-5. [前端界面设计](#前端界面设计)
-6. [数据模型](#数据模型)
-7. [API接口设计](#api接口设计)
-8. [性能考虑](#性能考虑)
-9. [故障排除指南](#故障排除指南)
-10. [总结](#总结)
+5. [数据库迁移与版本管理](#数据库迁移与版本管理)
+6. [前端界面设计](#前端界面设计)
+7. [数据模型](#数据模型)
+8. [API接口设计](#api接口设计)
+9. [性能考虑](#性能考虑)
+10. [故障排除指南](#故障排除指南)
+11. [总结](#总结)
 
 ## 项目概述
 
@@ -41,6 +55,7 @@
 - **多格式支持**：支持MP3、WAV、M4A等多种音频格式
 - **钉钉集成**：支持从钉钉平台同步录音数据
 - **实时播放**：内置音频播放器支持多种播放控制
+- **AI功能扩展**：支持客户洞察、流失预警、商机评分等AI功能
 
 ## 系统架构
 
@@ -54,6 +69,7 @@ FE2[录音列表组件]
 FE3[音频播放器]
 FE4[AI分析面板]
 FE5[统计概览]
+FE6[智能建议列表]
 end
 subgraph "API层"
 API1[录音路由]
@@ -64,28 +80,35 @@ subgraph "业务逻辑层"
 BL1[录音控制器]
 BL2[录音服务]
 BL3[AI服务]
+BL4[AI分析服务]
 end
 subgraph "数据访问层"
 DA1[Prisma ORM]
-DA2[数据库]
+DA2[MySQL数据库]
+DA3[数据库迁移管理]
 end
 subgraph "外部服务"
 ES1[钉钉API]
 ES2[AI分析服务]
+ES3[文件存储]
 end
 FE1 --> API1
 FE2 --> API1
 FE3 --> API1
 FE4 --> API2
 FE5 --> API3
+FE6 --> API2
 API1 --> BL1
 API2 --> BL1
 API3 --> BL1
 BL1 --> BL2
 BL2 --> BL3
+BL2 --> BL4
 BL2 --> DA1
 DA1 --> DA2
+DA3 --> DA2
 BL3 --> ES2
+BL4 --> ES2
 BL1 --> ES1
 ```
 
@@ -108,7 +131,7 @@ class AIService {
 +extractKeywords(text) Promise~string[]~
 +generateSummary(text, keywords) Promise~string~
 +analyzeCompany(companyName, imageUrl) Promise~CompanyIntelligenceResult~
--callRealAI(audioUrl, duration, customerInfo) Promise~AIAnalysisResult~
++callRealAI(audioUrl, duration, customerInfo) Promise~AIAnalysisResult~
 -mockAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
 -generateMockResult(duration, customerInfo) AIAnalysisResult
 -generateMockCompanyIntelligence(companyName) CompanyIntelligenceResult
@@ -234,6 +257,78 @@ API-->>Frontend : 显示分析结果
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
 - [ai.service.ts:86-98](file://crm-backend/src/services/ai.service.ts#L86-L98)
 
+## 数据库迁移与版本管理
+
+系统采用Prisma进行数据库管理，支持完整的数据库迁移和版本控制。
+
+### 数据库迁移架构
+
+```mermaid
+graph TB
+subgraph "数据库迁移层次"
+M1[20260315081326_init] --> M2[20260315135448_add_contacts_and_business_cards]
+M2 --> M3[20260315155023_add_cold_visit_records]
+M3 --> M4[20260317020137_add_ai_features]
+end
+subgraph "AI功能迁移"
+M4 --> T1[customers表增强]
+T1 --> T2[follow_up_suggestions表]
+T1 --> T3[daily_reports表]
+T1 --> T4[opportunity_scores表]
+T1 --> T5[churn_alerts表]
+T1 --> T6[customer_insights表]
+end
+subgraph "数据模型映射"
+S1[schema.prisma] --> T1
+S1 --> T2
+S1 --> T3
+S1 --> T4
+S1 --> T5
+S1 --> T6
+end
+```
+
+**图表来源**
+- [20260317020137_add_ai_features/migration.sql:1-120](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql#L1-L120)
+- [schema.prisma:189-218](file://crm-backend/prisma/schema.prisma#L189-L218)
+
+### AI功能数据库结构
+
+AI功能相关的数据库结构在`20260317020137_add_ai_features`迁移中得到完善：
+
+#### 客户表增强
+- `engagementScore`：互动活跃度评分 (0-100)
+- `riskScore`：流失风险评分 (0-100)  
+- `lastAnalysisAt`：最后AI分析时间
+
+#### 新增AI分析相关表
+
+**跟进建议表 (follow_up_suggestions)**
+- 存储AI生成的跟进建议
+- 支持不同类型和优先级
+- 包含到期时间和脚本内容
+
+**日常报告表 (daily_reports)**
+- 支持日报和周报功能
+- 存储内容、摘要、重点事项等
+
+**商机评分表 (opportunity_scores)**
+- 客观评分维度：互动活跃度、预算匹配度、决策人接触度、需求明确度、时机成熟度
+- 包含风险因素和改进建议
+
+**客户流失预警表 (churn_alerts)**
+- 流失风险等级和评分
+- 预警信号和挽回建议
+- 处理状态跟踪
+
+**客户洞察表 (customer_insights)**
+- AI提取的客户需求、预算、决策人等信息
+- 置信度和分析来源
+
+**章节来源**
+- [20260317020137_add_ai_features/migration.sql:1-120](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql#L1-L120)
+- [schema.prisma:572-685](file://crm-backend/prisma/schema.prisma#L572-L685)
+
 ## 前端界面设计
 
 前端界面采用现代化的设计理念，提供了直观易用的操作界面。
@@ -250,6 +345,7 @@ D[录音列表]
 E[音频播放器]
 F[AI分析面板]
 G[智能建议列表]
+H[上传录音弹窗]
 end
 subgraph "录音列表组件"
 D1[客户头像]
@@ -363,6 +459,9 @@ string phone
 string email
 string company
 string industry
+datetime lastAnalysisAt
+integer riskScore
+integer engagementScore
 datetime createdAt
 datetime updatedAt
 }
@@ -390,15 +489,100 @@ boolean isAIOptimized
 datetime createdAt
 datetime updatedAt
 }
+FOLLOW_UP_SUGGESTION {
+string id PK
+string customerId FK
+string type
+string priority
+string reason
+datetime suggestedAt
+datetime expiresAt
+string script
+string status
+datetime createdAt
+datetime updatedAt
+}
+DAILY_REPORT {
+string id PK
+string userId FK
+date date
+string type
+string content
+string summary
+string[] highlights
+string[] risks
+string[] nextActions
+datetime createdAt
+datetime updatedAt
+}
+OPPORTUNITY_SCORE {
+string id PK
+string opportunityId FK
+integer overallScore
+integer winProbability
+integer engagementScore
+integer budgetScore
+integer authorityScore
+integer needScore
+integer timingScore
+string[] factors
+string[] riskFactors
+string[] recommendations
+datetime analyzedAt
+datetime createdAt
+datetime updatedAt
+}
+CHURN_ALERT {
+string id PK
+string customerId FK
+string riskLevel
+integer riskScore
+string[] reasons
+string[] signals
+string[] suggestions
+string status
+datetime handledAt
+string handledBy
+datetime createdAt
+datetime updatedAt
+}
+CUSTOMER_INSIGHT {
+string id PK
+string customerId FK
+string[] extractedNeeds
+string extractedBudget
+string[] decisionMakers
+string[] painPoints
+string[] competitorInfo
+string[] timeline
+integer confidence
+string source
+datetime analyzedAt
+datetime createdAt
+datetime updatedAt
+}
+AUDIO_RECORDING ||--o{ FOLLOW_UP_SUGGESTION : generates
+AUDIO_RECORDING ||--o{ CHURN_ALERT : monitors
+AUDIO_RECORDING ||--|| CUSTOMER_INSIGHT : creates
 CUSTOMER ||--o{ AUDIO_RECORDING : has
 USER ||--o{ AUDIO_RECORDING : created_by
 AUDIO_RECORDING ||--o{ SCHEDULE_TASK : generates
+CUSTOMER ||--o{ FOLLOW_UP_SUGGESTION : has
+USER ||--o{ DAILY_REPORT : creates
+CUSTOMER ||--o{ CHURN_ALERT : has
+CUSTOMER ||--|| CUSTOMER_INSIGHT : has
 ```
 
 **图表来源**
 - [index.ts:73-96](file://crm-frontend/src/types/index.ts#L73-L96)
 - [index.ts:19-37](file://crm-frontend/src/types/index.ts#L19-L37)
 - [index.ts:136-150](file://crm-frontend/src/types/index.ts#L136-L150)
+- [schema.prisma:282-311](file://crm-backend/prisma/schema.prisma#L282-L311)
+- [schema.prisma:575-593](file://crm-backend/prisma/schema.prisma#L575-L593)
+- [schema.prisma:596-613](file://crm-backend/prisma/schema.prisma#L596-L613)
+- [schema.prisma:616-641](file://crm-backend/prisma/schema.prisma#L616-L641)
+- [schema.prisma:644-664](file://crm-backend/prisma/schema.prisma#L644-L664)
+- [schema.prisma:667-685](file://crm-backend/prisma/schema.prisma#L667-L685)
 
 ### 关键数据结构
 
@@ -413,8 +597,15 @@ AUDIO_RECORDING ||--o{ SCHEDULE_TASK : generates
 - **关键词提取**：自动识别的重要词汇
 - **心理分析**：客户态度、购买意向、痛点等洞察
 
+#### AI功能扩展模型
+- **跟进建议**：自动化的销售建议和行动项
+- **客户洞察**：AI提取的客户需求和决策信息
+- **流失预警**：客户流失风险评估和预警
+- **商机评分**：多维度的商机价值评估
+
 **章节来源**
 - [index.ts:73-133](file://crm-frontend/src/types/index.ts#L73-L133)
+- [schema.prisma:572-685](file://crm-backend/prisma/schema.prisma#L572-L685)
 
 ## API接口设计
 
@@ -433,6 +624,16 @@ AUDIO_RECORDING ||--o{ SCHEDULE_TASK : generates
 | 获取统计信息 | GET | `/api/v1/recordings/stats` | 获取录音统计信息 |
 | 上传录音文件 | POST | `/api/v1/recordings/upload` | 上传录音文件 |
 | 同步钉钉录音 | POST | `/api/v1/recordings/sync` | 从钉钉同步录音 |
+
+### AI功能扩展API
+
+| 接口 | 方法 | 路径 | 描述 |
+|------|------|------|------|
+| 获取AI分析结果 | GET | `/api/v1/recordings/:id/ai-result` | 获取录音的AI分析结果 |
+| 生成跟进建议 | POST | `/api/v1/follow-up-suggestions` | 生成AI跟进建议 |
+| 获取客户洞察 | GET | `/api/v1/customer-insights/:customerId` | 获取客户洞察信息 |
+| 获取商机评分 | GET | `/api/v1/opportunity-scores/:opportunityId` | 获取商机评分 |
+| 获取流失预警 | GET | `/api/v1/churn-alerts/:customerId` | 获取客户流失预警 |
 
 ### 请求和响应示例
 
@@ -466,7 +667,8 @@ Authorization: Bearer <token>
       "description": "安排30分钟的产品演示会议",
       "priority": "high"
     }
-  ]
+  ],
+  "notes": "{\"psychology\": {...}, \"suggestions\": [...]}"
 }
 ```
 
@@ -485,6 +687,8 @@ Authorization: Bearer <token>
 3. **缓存机制**：模拟AI分析结果，减少重复计算开销
 4. **分页查询**：数据库查询支持分页，避免大数据量查询
 5. **文件上传限制**：设置合理的文件大小限制，防止资源滥用
+6. **数据库索引优化**：为常用查询字段建立索引
+7. **批量操作**：支持批量AI分析和数据处理
 
 ### 性能监控指标
 
@@ -492,6 +696,7 @@ Authorization: Bearer <token>
 - **并发处理能力**：支持多个录音同时分析
 - **内存使用**：合理控制分析结果缓存
 - **数据库查询**：优化查询索引和分页
+- **AI准确率**：模拟准确率94-99%
 
 ## 故障排除指南
 
@@ -536,6 +741,19 @@ Authorization: Bearer <token>
 3. 确认JWT令牌有效性
 4. 刷新页面重试
 
+#### 数据库迁移失败
+**问题描述**：数据库迁移过程中出现问题
+**可能原因**：
+- 数据库连接问题
+- 迁移文件冲突
+- 权限不足
+
+**解决步骤**：
+1. 检查数据库连接配置
+2. 验证迁移文件完整性
+3. 确认数据库权限
+4. 查看迁移日志
+
 **章节来源**
 - [recording.controller.ts:157-190](file://crm-backend/src/controllers/recording.controller.ts#L157-L190)
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
@@ -551,6 +769,8 @@ Authorization: Bearer <token>
 3. **扩展性强**：模块化设计便于功能扩展和维护
 4. **安全性高**：完善的权限控制和数据安全保障
 5. **性能优异**：优化的架构设计支持高并发处理
+6. **数据库管理**：完整的迁移和版本控制机制
+7. **AI功能丰富**：支持多种AI分析和预测功能
 
 ### 技术特色
 
@@ -559,6 +779,8 @@ Authorization: Bearer <token>
 - **实时同步**：与钉钉平台无缝集成
 - **可视化展示**：丰富的图表和数据展示
 - **自动化建议**：基于分析结果生成具体的行动建议
+- **数据库迁移**：完整的数据库版本管理和迁移机制
+- **AI功能扩展**：支持客户洞察、流失预警、商机评分等高级功能
 
 ### 发展前景
 
@@ -569,5 +791,7 @@ Authorization: Bearer <token>
 3. **实时分析**：实现实时语音流分析能力
 4. **移动端优化**：增强移动设备上的使用体验
 5. **集成扩展**：支持更多第三方平台的集成
+6. **数据库优化**：进一步优化数据库性能和查询效率
+7. **AI功能扩展**：开发更多AI驱动的销售辅助功能
 
 该系统为销售团队提供了强大的智能化工具，能够显著提升销售效率和客户服务质量。

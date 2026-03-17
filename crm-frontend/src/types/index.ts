@@ -495,3 +495,177 @@ export interface ConvertFromColdVisitInput {
   phone?: string;
   email?: string;
 }
+
+// ==================== 商机评分相关类型 ====================
+
+// 评分因子
+export interface ScoreFactor {
+  name: string;
+  score: number;
+  impact: 'positive' | 'neutral' | 'negative';
+  description: string;
+}
+
+// 风险因素
+export interface RiskFactor {
+  factor: string;
+  severity: 'high' | 'medium' | 'low';
+  suggestion: string;
+}
+
+// 改进建议
+export interface ScoreRecommendation {
+  action: string;
+  priority: 'high' | 'medium' | 'low';
+  expectedImpact: string;
+}
+
+// 商机评分
+export interface OpportunityScore {
+  id: string;
+  opportunityId: string;
+  overallScore: number;
+  winProbability: number;
+  engagementScore: number;
+  budgetScore: number;
+  authorityScore: number;
+  needScore: number;
+  timingScore: number;
+  factors: ScoreFactor[];
+  riskFactors: RiskFactor[];
+  recommendations: ScoreRecommendation[];
+  analyzedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// 评分概览
+export interface ScoreSummary {
+  totalOpportunities: number;
+  scoredOpportunities: number;
+  averageScore: number;
+  highScoreCount: number;
+  predictedValue: number;
+  topOpportunities: Array<{
+    opportunityId: string;
+    title: string;
+    customerName: string;
+    customerShortName: string;
+    value: number;
+    stage: string;
+    overallScore: number;
+    winProbability: number;
+  }>;
+}
+
+// ==================== 流失预警相关类型 ====================
+
+// 流失原因
+export interface ChurnReason {
+  factor: string;
+  weight: number;
+  evidence: string;
+}
+
+// 预警信号
+export interface ChurnSignal {
+  type: string;
+  description: string;
+  detectedAt: string;
+}
+
+// 挽回建议
+export interface RetentionSuggestion {
+  action: string;
+  priority: 'high' | 'medium' | 'low';
+  expectedOutcome: string;
+}
+
+// 流失预警
+export interface ChurnAlert {
+  id: string;
+  customerId: string;
+  riskLevel: 'high' | 'medium' | 'low';
+  riskScore: number;
+  reasons: ChurnReason[];
+  signals: ChurnSignal[];
+  suggestions: RetentionSuggestion[];
+  status: 'active' | 'handled' | 'ignored';
+  handledAt?: string;
+  handledBy?: string;
+  createdAt: string;
+  updatedAt: string;
+  customer?: {
+    id: string;
+    name: string;
+    shortName: string;
+    stage: string;
+    estimatedValue?: number;
+  };
+}
+
+// ==================== 客户画像相关类型 ====================
+
+// 提取的需求
+export interface ExtractedNeed {
+  need: string;
+  priority: 'high' | 'medium' | 'low';
+  source: string;
+}
+
+// 预算信息
+export interface BudgetInfo {
+  range?: string;
+  currency?: string;
+  timeline?: string;
+  confidence: number;
+}
+
+// 决策人信息
+export interface DecisionMaker {
+  name: string;
+  title?: string;
+  influence: 'high' | 'medium' | 'low';
+  stance: 'supporter' | 'neutral' | 'blocker';
+}
+
+// 痛点信息
+export interface PainPoint {
+  point: string;
+  severity: 'high' | 'medium' | 'low';
+  category: string;
+}
+
+// 竞品信息
+export interface CompetitorInfo {
+  name: string;
+  product?: string;
+  strength?: string;
+  weakness?: string;
+}
+
+// 时间线
+export interface InsightTimeline {
+  decisionDate?: string;
+  implementationDate?: string;
+  milestones: Array<{
+    name: string;
+    date?: string;
+  }>;
+}
+
+// 客户洞察
+export interface CustomerInsight {
+  id: string;
+  customerId: string;
+  extractedNeeds: ExtractedNeed[];
+  extractedBudget: BudgetInfo | null;
+  decisionMakers: DecisionMaker[];
+  painPoints: PainPoint[];
+  competitorInfo: CompetitorInfo[];
+  timeline: InsightTimeline;
+  confidence: number;
+  analyzedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
