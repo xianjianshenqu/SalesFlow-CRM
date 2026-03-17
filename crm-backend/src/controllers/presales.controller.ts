@@ -222,7 +222,7 @@ class PresalesController {
    * 获取资源负载概览
    * @route GET /api/v1/presales/resources/workload
    */
-  async getResourcesWorkloadOverview(req: Request, res: Response, next: NextFunction) {
+  async getResourcesWorkloadOverview(_req: Request, res: Response, next: NextFunction) {
     try {
       const result = await presalesService.getResourcesWorkloadOverview();
       return success(res, result, '获取资源负载概览成功');

@@ -9,6 +9,7 @@ import proposalRoutes from './proposals.routes';
 import teamRoutes from './team.routes';
 import serviceRoutes from './services.routes';
 import presalesRoutes from './presales.routes';
+import presalesActivityRoutes from './presalesActivity.routes';
 import mapRoutes from './map.routes';
 import dashboardRoutes from './dashboard.routes';
 import contactRoutes from './contacts.routes';
@@ -32,6 +33,7 @@ router.use('/proposals', proposalRoutes);
 router.use('/team', teamRoutes);
 router.use('/services', serviceRoutes);
 router.use('/presales', presalesRoutes);
+router.use('/presales', presalesActivityRoutes);  // Presales activity management routes
 router.use('/map', mapRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/', contactRoutes);  // Contact routes include both /customers/:id/contacts and /contacts/:id

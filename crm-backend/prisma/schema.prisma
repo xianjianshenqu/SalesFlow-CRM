@@ -116,6 +116,22 @@ enum ContactRole {
   blocker           // 反对者 - 阻碍项目、不支持你的人
 }
 
+enum ActivityStatus {
+  draft
+  pending_approval
+  approved
+  ongoing
+  completed
+  cancelled
+}
+
+enum ApprovalStatus {
+  none
+  pending
+  approved
+  rejected
+}
+
 // ==================== User & Authentication ====================
 
 model User {
@@ -153,6 +169,8 @@ model User {
   dailyReports       DailyReport[]
   salesPerformances  SalesPerformance[]
   coachingSuggestions CoachingSuggestion[]
+  createdActivities   PresalesActivity[] @relation("ActivityCreator")
+  approvedActivities  PresalesActivity[] @relation("ActivityApprover")
 
   @@index([email])
   @@index([role])
@@ -210,6 +228,9 @@ model Customer {
   followUpSuggestions FollowUpSuggestion[]
   churnAlerts     ChurnAlert[]
   customerInsight CustomerInsight?
+  presalesActivities PresalesActivity[]
+  activitySignIns    ActivitySignIn[]
+  activityQuestions  ActivityQuestion[]
 
   @@index([stage])
   @@index([priority])
@@ -780,4 +801,118 @@ model ResourceMatchRecord {
   @@index([requestId])
   @@index([resourceId])
   @@map("resource_match_records")
+}
+
+// ==================== Presales Activity Management ====================
+
+// 售前活动
+model PresalesActivity {
+  id             String          @id @default(uuid())
+  title          String
+  type           String          // demo/poc/training/seminar
+  description    String?         @db.Text
+  customerId     String?         // 关联客户(可选)
+  location       String?
+  startTime      DateTime
+  endTime        DateTime
+  status         ActivityStatus  @default(draft)
+  approvalStatus ApprovalStatus  @default(none)
+  approvalNotes  String?         @db.Text
+  approvedById   String?
+  approvedAt     DateTime?
+  createdById    String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  // Relations
+  customer   Customer?          @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdBy  User               @relation("ActivityCreator", fields: [createdById], references: [id])
+  approvedBy User?              @relation("ActivityApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+  qrCodes    ActivityQrCode[]
+  signIns    ActivitySignIn[]
+  questions  ActivityQuestion[]
+
+  @@index([type])
+  @@index([status])
+  @@index([approvalStatus])
+  @@index([startTime])
+  @@map("presales_activities")
+}
+
+// 活动二维码
+model ActivityQrCode {
+  id         String   @id @default(uuid())
+  activityId String
+  codeType   String   // exclusive/generic
+  qrCodeUrl  String   // 二维码图片URL
+  qrCodeData String   @db.Text // 二维码数据
+  validFrom  DateTime
+  validUntil DateTime?
+  isActive   Boolean  @default(true)
+  scanCount  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  activity PresalesActivity   @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  signIns  ActivitySignIn[]
+
+  @@index([activityId])
+  @@index([codeType])
+  @@map("activity_qr_codes")
+}
+
+// 活动签到记录
+model ActivitySignIn {
+  id            String   @id @default(uuid())
+  activityId    String
+  qrCodeId      String
+  customerId    String?  // 关联已有客户
+  customerName  String
+  phone         String
+  email         String?
+  company       String?
+  title         String?  // 职位
+  isNewCustomer Boolean  @default(true)
+  notes         String?  @db.Text
+  signedAt      DateTime @default(now())
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  activity  PresalesActivity  @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  qrCode    ActivityQrCode    @relation(fields: [qrCodeId], references: [id])
+  customer  Customer?         @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  questions ActivityQuestion[]
+
+  @@index([activityId])
+  @@index([customerId])
+  @@index([phone])
+  @@map("activity_sign_ins")
+}
+
+// 活动问题
+model ActivityQuestion {
+  id          String   @id @default(uuid())
+  activityId  String
+  signInId    String
+  customerId  String?  // 关联客户
+  question    String   @db.Text
+  category    String?  // product/pricing/technical/implementation/others
+  priority    String?  // high/medium/low
+  aiAnalysis  Json?    // AI分析结果
+  status      String   @default("pending") // pending/answered/closed
+  answer      String?  @db.Text
+  answeredAt  DateTime?
+  answeredBy  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  activity PresalesActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
+  signIn   ActivitySignIn   @relation(fields: [signInId], references: [id], onDelete: Cascade)
+  customer Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([activityId])
+  @@index([signInId])
+  @@index([customerId])
+  @@index([category])
+  @@index([status])
+  @@map("activity_questions")
 }

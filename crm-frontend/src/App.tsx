@@ -13,6 +13,9 @@ import Schedule from './pages/Schedule';
 import Map from './pages/Map';
 import Team from './pages/Team';
 import PreSales from './pages/PreSales';
+import ActivitiesList from './pages/PreSales/Activities';
+import ActivityForm from './pages/PreSales/Activities/ActivityForm';
+import SignInPage from './pages/PreSales/SignIn/SignInPage';
 import Login from './pages/Login';
 import AIAssistant from './pages/AIAssistant';
 
@@ -57,6 +60,11 @@ function App() {
           <Route path="map" element={<Map />} />
           <Route path="team" element={<Team />} />
           <Route path="presales" element={<PreSales />} />
+          <Route path="presales/activities" element={<ActivitiesList />} />
+          <Route path="presales/activities/create" element={<ActivityForm />} />
+          <Route path="presales/activities/:id" element={<ActivityForm />} />
+          <Route path="presales/activities/:id/qrcodes" element={<ActivityForm />} />
+          <Route path="presales/sign-in" element={<SignInPage />} />
           <Route path="ai-assistant" element={<AIAssistant />} />
         </Route>
 

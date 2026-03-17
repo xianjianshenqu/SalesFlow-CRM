@@ -8,11 +8,15 @@
 - [ai.routes.ts](file://crm-backend/src/routes/ai.routes.ts)
 - [opportunityScoring.ts](file://crm-backend/src/services/ai/opportunityScoring.ts)
 - [churnAnalysis.ts](file://crm-backend/src/services/ai/churnAnalysis.ts)
+- [proposalAI.ts](file://crm-backend/src/services/ai/proposalAI.ts)
+- [salesCoach.ts](file://crm-backend/src/services/ai/salesCoach.ts)
+- [resourceMatching.ts](file://crm-backend/src/services/ai/resourceMatching.ts)
 - [types.ts](file://crm-backend/src/services/ai/types.ts)
 - [index.ts](file://crm-backend/src/services/ai/index.ts)
 - [auth.ts](file://crm-backend/src/middlewares/auth.ts)
 - [schema.prisma](file://crm-backend/prisma/schema.prisma)
 - [migration.sql](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql)
+- [migration.sql](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql)
 - [package.json](file://crm-backend/package.json)
 - [OpportunityScoreCard.tsx](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx)
 - [ChurnAlertCard.tsx](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx)
@@ -24,12 +28,12 @@
 
 ## 更新摘要
 **所做更改**
-- 新增机会评分系统，基于BANT模型提供综合评分和成交概率预测
-- 新增客户流失风险分析系统，提供多维度风险评估和挽回建议
-- 新增智能客户洞察生成系统，展示深度客户画像和需求分析
-- 扩展AI服务架构，支持更多专业化的AI分析能力
-- 更新前端组件，提供可视化的工作流界面
-- 完善数据模型，支持新的AI分析结果存储
+- 新增智能报价与提案生成功能，提供基于客户信息的智能报价和完整商务方案生成
+- 新增销售绩效AI教练功能，提供个性化销售培训和改进建议
+- 新增售前资源智能匹配功能，实现多维度资源匹配和最优分配
+- 扩展AI服务架构，支持完整的AI助手生态系统
+- 更新前端组件，提供智能报价、销售教练、资源匹配等新功能界面
+- 完善数据模型，支持新的AI分析结果存储和管理
 
 ## 目录
 1. [简介](#简介)
@@ -45,10 +49,13 @@
 11. [结论](#结论)
 
 ## 简介
-本项目是一个基于AI的销售CRM系统，重点实现了智能AI助手功能，现已扩展为完整的AI分析生态系统，包括：
+本项目是一个基于AI的销售CRM系统，现已发展为完整的AI助手生态系统，重点实现了智能AI助手功能，包括：
 - **机会评分系统**：基于BANT模型的综合评分和成交概率预测
 - **客户流失风险分析系统**：多维度风险评估和挽回建议生成
 - **智能客户洞察生成系统**：深度客户画像和需求分析
+- **智能报价与提案生成系统**：基于客户信息的智能报价和完整商务方案生成
+- **销售绩效AI教练系统**：个性化销售培训和改进建议
+- **售前资源智能匹配系统**：多维度资源匹配和最优分配
 - **跟进建议生成**：基于客户互动数据自动分析并生成跟进策略
 - **话术生成**：根据不同场景自动生成销售沟通话术
 - **智能报告**：自动生成日报/周报，包含重点事项、风险提示和下一步行动
@@ -89,15 +96,19 @@ subgraph "AI功能层"
 V[AI服务层] --> W[机会评分服务]
 V --> X[流失风险分析服务]
 V --> Y[客户洞察服务]
-V --> Z[跟进分析服务]
-Y --> AA[模拟AI分析]
-Y --> AB[真实API调用]
+V --> Z[智能报价服务]
+V --> AA[销售教练服务]
+V --> AB[资源匹配服务]
+V --> AC[跟进分析服务]
+V --> AD[报告生成服务]
 end
 L --> V
 V --> Y
-Y --> Z
-Z --> AA
-Z --> AB
+V --> Z
+V --> AA
+V --> AB
+V --> AC
+V --> AD
 ```
 
 **图表来源**
@@ -122,14 +133,20 @@ Z --> AB
 ### 新增AI分析服务
 1. **机会评分服务 (opportunityScoring.ts)**：基于BANT模型的综合评分
 2. **流失风险分析服务 (churnAnalysis.ts)**：多维度客户流失风险评估
-3. **客户洞察服务 (types.ts)**：深度客户画像分析
+3. **智能报价服务 (proposalAI.ts)**：基于客户信息的智能报价和方案生成
+4. **销售教练服务 (salesCoach.ts)**：个性化销售培训和改进建议
+5. **资源匹配服务 (resourceMatching.ts)**：多维度资源匹配和最优分配
+6. **客户洞察服务 (types.ts)**：深度客户画像分析
 
 ### 前端核心组件
 1. **AI助手页面**：提供智能报告生成功能
 2. **机会评分卡片**：展示综合评分和各维度分析
 3. **流失预警卡片**：显示风险评分和预警信息
 4. **客户洞察面板**：呈现客户画像和需求分析
-5. **录音分析页面**：处理通话录音的AI分析
+5. **智能报价面板**：展示报价建议和方案生成
+6. **销售教练面板**：提供个性化改进建议
+7. **资源匹配面板**：显示资源匹配结果和分配建议
+8. **录音分析页面**：处理通话录音的AI分析
 
 **章节来源**
 - [ai.controller.ts:1-800](file://crm-backend/src/controllers/ai.controller.ts#L1-L800)
@@ -137,6 +154,9 @@ Z --> AB
 - [ai.routes.ts:1-98](file://crm-backend/src/routes/ai.routes.ts#L1-L98)
 - [opportunityScoring.ts:1-613](file://crm-backend/src/services/ai/opportunityScoring.ts#L1-L613)
 - [churnAnalysis.ts:1-517](file://crm-backend/src/services/ai/churnAnalysis.ts#L1-L517)
+- [proposalAI.ts:1-599](file://crm-backend/src/services/ai/proposalAI.ts#L1-L599)
+- [salesCoach.ts:1-780](file://crm-backend/src/services/ai/salesCoach.ts#L1-L780)
+- [resourceMatching.ts:1-692](file://crm-backend/src/services/ai/resourceMatching.ts#L1-L692)
 - [types.ts:124-276](file://crm-backend/src/services/ai/types.ts#L124-L276)
 - [auth.ts:1-69](file://crm-backend/src/middlewares/auth.ts#L1-L69)
 
@@ -149,6 +169,9 @@ subgraph "表现层"
 FE1[React前端]
 FE2[组件库]
 FE3[AI分析面板]
+FE4[报价生成面板]
+FE5[销售教练面板]
+FE6[资源匹配面板]
 end
 subgraph "API网关层"
 GW[Express应用]
@@ -160,6 +183,9 @@ AS[AIService]
 OS[机会评分服务]
 CA[流失风险分析服务]
 CI[客户洞察服务]
+PI[智能报价服务]
+SC[销售教练服务]
+RM[资源匹配服务]
 FA[跟进分析服务]
 RG[报告生成服务]
 end
@@ -174,12 +200,18 @@ end
 FE1 --> GW
 FE2 --> GW
 FE3 --> GW
+FE4 --> GW
+FE5 --> GW
+FE6 --> GW
 GW --> MW
 MW --> AC
 AC --> AS
 AS --> OS
 AS --> CA
 AS --> CI
+AS --> PI
+AS --> SC
+AS --> RM
 AS --> FA
 AS --> RG
 AS --> PRISMA
@@ -239,6 +271,37 @@ class ChurnAnalysisService {
 -generateReasons(input, factors) Reasons[]
 -generateRetentionSuggestions(input, level, factors, reasons) Suggestions[]
 }
+class ProposalAIService {
+-INDUSTRY_PRICING_BENCHMARKS : object
+-PRODUCT_RECOMMENDATIONS : object
++generateSmartQuotation(input) Promise~SmartQuotationResult~
++generateProposalContent(input) Promise~ProposalGenerationResult~
+-analyzePricingFactors(input, benchmark) PricingFactors[]
+-calculateBasePrice(input) number
+-calculateDiscountStrategy(input, price, benchmark) DiscountStrategy
+-generatePricingRecommendations(input, price, discount) Recommendation[]
+}
+class SalesCoachService {
+-INDUSTRY_BENCHMARKS : object
+-SKILL_STANDARDS : object
++analyzePerformance(input) Promise~PerformanceAnalysisResult~
++generateCoachingSuggestions(input) Promise~CoachingSuggestionResult~
++identifySkillGaps(performanceAnalysis, skillAssessment) Promise~SkillGapAnalysisResult~
+-predictPerformanceTrend(historicalData) Promise~PredictionResult~
+-generateSuggestions(input) Suggestions[]
+-generateWeeklyPlan(input) WeeklyPlan[]
+-generateMotivationMessage(input) string
+}
+class ResourceMatchingService {
+-MATCH_WEIGHTS : object
+-RECOMMENDATION_THRESHOLDS : object
+-SKILL_IMPORTANCE_LEVELS : object
++matchResources(input, availableResources) Promise~ResourceMatchingResult~
++generateAssignmentRecommendation(input) Promise~AssignmentRecommendationResult~
+-optimizeResourceAllocation(requests, resources) Promise~AssignmentResult[]~
+-calculateMatchScore(input, resource) MatchResult
+-generateMatchingRecommendations(input, matches) string[]
+}
 class CustomerInsightService {
 -CONFIDENCE_THRESHOLDS : object
 +analyzeCustomerInsights(input) Promise~CustomerInsightResult~
@@ -251,6 +314,9 @@ class CustomerInsightService {
 }
 AIService --> OpportunityScoringService : "使用"
 AIService --> ChurnAnalysisService : "使用"
+AIService --> ProposalAIService : "使用"
+AIService --> SalesCoachService : "使用"
+AIService --> ResourceMatchingService : "使用"
 AIService --> CustomerInsightService : "使用"
 ```
 
@@ -258,6 +324,9 @@ AIService --> CustomerInsightService : "使用"
 - [ai.service.ts:79-564](file://crm-backend/src/services/ai.service.ts#L79-L564)
 - [opportunityScoring.ts:42-105](file://crm-backend/src/services/ai/opportunityScoring.ts#L42-L105)
 - [churnAnalysis.ts:28-65](file://crm-backend/src/services/ai/churnAnalysis.ts#L28-L65)
+- [proposalAI.ts:53-106](file://crm-backend/src/services/ai/proposalAI.ts#L53-L106)
+- [salesCoach.ts:51-82](file://crm-backend/src/services/ai/salesCoach.ts#L51-L82)
+- [resourceMatching.ts:44-92](file://crm-backend/src/services/ai/resourceMatching.ts#L44-L92)
 - [types.ts:219-276](file://crm-backend/src/services/ai/types.ts#L219-L276)
 
 ### 数据模型设计
@@ -270,11 +339,14 @@ USER ||--o{ AUDIO_RECORDING : "创建"
 USER ||--o{ DAILY_REPORT : "生成"
 USER ||--o{ CHURN_ALERT : "创建"
 USER ||--o{ OPPORTUNITY_SCORE : "计算"
+USER ||--o{ SALES_PERFORMANCE : "记录"
+USER ||--o{ COACHING_SUGGESTION : "生成"
 CUSTOMER ||--o{ AUDIO_RECORDING : "拥有"
 CUSTOMER ||--o{ FOLLOW_UP_SUGGESTION : "产生"
 CUSTOMER ||--o{ CONTACT : "包含"
 CUSTOMER ||--o{ CHURN_ALERT : "产生"
 CUSTOMER ||--o{ CUSTOMER_INSIGHT : "产生"
+CUSTOMER ||--o{ PRE_SALES_REQUEST : "发起"
 AUDIO_RECORDING ||--|| SENTIMENT : "情感分析"
 AUDIO_RECORDING ||--|| TASK : "触发行动"
 FOLLOW_UP_SUGGESTION ||--|| CUSTOMER : "关联"
@@ -282,6 +354,12 @@ DAILY_REPORT ||--|| USER : "属于"
 CHURN_ALERT ||--|| CUSTOMER : "关联"
 OPPORTUNITY_SCORE ||--|| CUSTOMER : "关联"
 CUSTOMER_INSIGHT ||--|| CUSTOMER : "关联"
+SALES_PERFORMANCE ||--|| USER : "记录"
+COACHING_SUGGESTION ||--|| USER : "生成"
+PRE_SALES_REQUEST ||--|| CUSTOMER : "关联"
+PRE_SALES_RESOURCE ||--o{ RESOURCE_MATCH_RECORD : "被匹配"
+RESOURCE_MATCH_RECORD ||--|| PRE_SALES_REQUEST : "记录"
+RESOURCE_MATCH_RECORD ||--|| PRE_SALES_RESOURCE : "匹配"
 note for USER "用户表<br/>包含认证信息和角色"
 note for CUSTOMER "客户表<br/>包含客户基本信息和AI字段"
 note for AUDIO_RECORDING "录音表<br/>存储通话录音和分析结果"
@@ -290,6 +368,11 @@ note for DAILY_REPORT "日报表<br/>智能报告内容"
 note for CHURN_ALERT "流失预警表<br/>客户流失风险分析"
 note for OPPORTUNITY_SCORE "商机评分表<br/>BANT模型评分结果"
 note for CUSTOMER_INSIGHT "客户洞察表<br/>深度客户画像分析"
+note for SALES_PERFORMANCE "销售绩效表<br/>销售表现记录"
+note for COACHING_SUGGESTION "教练建议表<br/>AI生成的改进建议"
+note for PRE_SALES_REQUEST "售前需求表<br/>售前资源需求"
+note for PRE_SALES_RESOURCE "售前资源表<br/>售前技术支持人员"
+note for RESOURCE_MATCH_RECORD "资源匹配记录表<br/>资源匹配结果"
 ```
 
 **图表来源**
@@ -329,90 +412,101 @@ Controller-->>Client : 返回JSON响应
 
 ## 新增AI功能详解
 
-### 机会评分系统
-基于BANT模型的综合评分系统，提供全面的商机评估：
+### 智能报价与提案生成系统
+基于客户信息的智能报价和完整商务方案生成系统：
 
-#### 核心评分维度
-- **互动活跃度 (Engagement)**：客户参与度和跟进频率
-- **预算匹配度 (Budget)**：客户预算范围和支付能力
-- **决策人接触 (Authority)**：关键决策者的接触程度
-- **需求明确度 (Need)**：客户需求的清晰程度
-- **时机成熟度 (Timing)**：成交时机的成熟程度
+#### 核心功能模块
+- **智能报价生成**：基于客户信息、历史数据、市场行情生成智能报价建议
+- **方案内容生成**：AI生成完整的商务方案内容，包含执行摘要、问题陈述、解决方案等
+- **竞品分析**：分析竞品定价和优劣势，提供竞争优势分析
+- **折扣策略**：基于客户价值和历史交易计算最优折扣策略
+- **ROI预测**：预测投资回报率和收益情况
 
-#### 成交概率预测
-系统不仅提供静态评分，还能预测不同时间窗口内的成交概率：
-- 30天成交概率
-- 60天成交概率  
-- 90天成交概率
+#### 智能报价算法
+- **行业基准分析**：基于11个行业的定价基准数据
+- **产品推荐**：根据客户行业推荐合适的产品组合
+- **价格范围计算**：提供最低、最高、推荐价格范围
+- **置信度评估**：评估报价结果的可信度
 
-#### 风险因素识别
-自动识别潜在风险并提供改进建议：
-- 互动不足风险
-- 决策人接触风险
-- 时机不成熟风险
-- 负面情感风险
-
-**章节来源**
-- [opportunityScoring.ts:1-613](file://crm-backend/src/services/ai/opportunityScoring.ts#L1-L613)
-- [types.ts:124-172](file://crm-backend/src/services/ai/types.ts#L124-L172)
-
-### 客户流失风险分析系统
-多维度客户流失风险评估和预警机制：
-
-#### 风险因子分析
-- **最近联系时间**：超过30天未联系的高风险
-- **沟通频率变化**：近期沟通明显减少
-- **录音情感趋势**：客户态度转冷的迹象
-- **商机停滞时间**：超过45天无进展
-- **任务完成率**：跟进任务积压严重
-- **联系人活跃度**：关键联系人互动减少
-
-#### 风险等级评估
-- **高风险 (70+)**：需要立即采取行动
-- **中风险 (40-69)**：需要密切关注
-- **低风险 (40-)**：风险可控
-
-#### 挽回建议生成
-基于风险分析自动生成针对性建议：
-- 高价值客户专属服务
-- 立即安排高层拜访
-- 个性化沟通策略
-- 特殊资源支持申请
+#### 方案生成要素
+- **执行摘要**：项目价值和预期收益概述
+- **问题陈述**：客户面临的核心挑战
+- **解决方案**：针对问题的综合解决方案
+- **产品推荐**：基于客户需求的产品组合
+- **实施计划**：详细的项目实施时间线
+- **条款**：合同付款条件和售后服务
+- **服务等级**：技术支持和响应时间承诺
+- **ROI预测**：投资回报率和效益分析
 
 **章节来源**
-- [churnAnalysis.ts:1-517](file://crm-backend/src/services/ai/churnAnalysis.ts#L1-L517)
-- [types.ts:174-217](file://crm-backend/src/services/ai/types.ts#L174-L217)
+- [proposalAI.ts:1-599](file://crm-backend/src/services/ai/proposalAI.ts#L1-L599)
+- [types.ts:278-400](file://crm-backend/src/services/ai/types.ts#L278-L400)
 
-### 智能客户洞察生成系统
-深度客户画像分析和需求挖掘：
+### 销售绩效AI教练系统
+个性化销售培训和改进建议系统：
 
-#### 客户需求分析
-- **提取的需求**：从通话记录中识别的关键需求
-- **需求优先级**：高、中、低三个等级
-- **需求来源**：识别需求的具体场景和上下文
+#### 绩效分析模块
+- **多维度指标**：收入、成交、活动效率、转化率等综合分析
+- **趋势分析**：历史数据趋势预测和改进方向
+- **优势识别**：自动识别销售优势和成功因素
+- **弱点分析**：识别需要改进的薄弱环节
+- **总体评分**：基于各项指标的综合评分
 
-#### 预算信息提取
-- **预算范围**：客户可接受的价格区间
-- **支付时间线**：客户的付款计划和时间安排
-- **置信度评估**：分析结果的可信度
+#### 个性化建议模块
+- **改进建议**：基于弱点分析的针对性建议
+- **技能差距分析**：识别沟通、谈判、产品知识等技能差距
+- **训练推荐**：推荐相关的培训课程和学习资源
+- **行动计划**：4周改进行动计划和预期成果
+- **激励消息**：个性化的鼓励和激励信息
 
-#### 决策人分析
-- **决策者识别**：关键决策者的姓名和职位
-- **影响力评估**：高、中、低三个等级
-- **支持度分析**：支持、中立、反对三种态度
+#### 技能评估标准
+- **沟通能力**：基于录音情感分析和客户反馈
+- **谈判技巧**：基于价格谈判成功率和异议处理
+- **产品知识**：基于产品演示评分和技术问答
+- **时间管理**：基于任务完成率和日程规划
 
-#### 痛点识别
-- **痛点分类**：按严重程度和类型分类
-- **影响范围**：对业务的影响程度
-- **解决建议**：针对性的解决方案
-
-#### 竞品分析
-- **竞争对手信息**：主要竞品的优势和劣势
-- **市场定位**：竞品的市场策略和定位
-- **差异化建议**：突出自身优势的策略
+#### 绩效预测
+- **趋势预测**：基于历史数据预测未来表现
+- **目标设定**：设定合理的改进目标和时间框架
+- **风险评估**：识别可能影响绩效的风险因素
 
 **章节来源**
-- [types.ts:219-276](file://crm-backend/src/services/ai/types.ts#L219-L276)
+- [salesCoach.ts:1-780](file://crm-backend/src/services/ai/salesCoach.ts#L1-L780)
+- [types.ts:402-561](file://crm-backend/src/services/ai/types.ts#L402-L561)
+
+### 售前资源智能匹配系统
+多维度资源匹配和最优分配系统：
+
+#### 匹配算法
+- **技能匹配度**：40%权重，基于技能关键词匹配
+- **经验匹配度**：20%权重，基于项目经验和成功率
+- **地理位置**：15%权重，基于同城或同省支持
+- **工作负载**：15%权重，基于当前工作量和可用性
+- **历史成功率**：10%权重，基于过往项目成功率
+
+#### 资源评估维度
+- **技能评估**：关键技能匹配程度和重要性级别
+- **经验评估**：项目经验年限和相关性
+- **可用性评估**：当前工作负载和可用时间窗口
+- **成功率评估**：历史项目成功率和完成度
+- **成本评估**：资源成本和性价比分析
+
+#### 分配建议
+- **最佳匹配**：综合评分最高的资源推荐
+- **备选方案**：提供2-3个备选资源及其权衡
+- **风险评估**：识别分配风险和缓解措施
+- **时间安排**：估计项目开始时间和持续时间
+- **交接说明**：详细的资源交接和注意事项
+
+#### 全局优化
+- **多请求优化**：考虑多个项目时的全局最优分配
+- **工作负载平衡**：避免资源过度集中或闲置
+- **优先级考虑**：根据项目紧急程度调整分配
+- **资源池管理**：动态管理可用资源和释放时机
+
+**章节来源**
+- [resourceMatching.ts:1-692](file://crm-backend/src/services/ai/resourceMatching.ts#L1-L692)
+- [types.ts:563-657](file://crm-backend/src/services/ai/types.ts#L563-L657)
 
 ## 前端组件架构
 前端采用组件化设计，提供直观的AI助手界面，现已扩展为多组件架构：
@@ -444,6 +538,24 @@ DEC[决策人分析]
 PAIN[痛点识别]
 COMP[竞品分析]
 end
+subgraph "智能报价组件"
+QPC[智能报价卡片]
+QUOT[报价建议]
+PROPOSAL[方案生成]
+COMPETE[竞品分析]
+end
+subgraph "销售教练组件"
+SCP[销售教练面板]
+PERF[绩效分析]
+SUGG[改进建议]
+PLAN[行动计划]
+end
+subgraph "资源匹配组件"
+RMC[资源匹配卡片]
+MATCH[匹配结果]
+ASSIGN[分配建议]
+OPT[优化方案]
+end
 subgraph "录音分析页面"
 AP[AIAudio页面]
 RL2[录音列表]
@@ -457,6 +569,9 @@ AA --> GR
 AA --> OSC
 AA --> CAC
 AA --> CIP
+AA --> QPC
+AA --> SCP
+AA --> RMC
 OSC --> SS
 OSC --> RS
 OSC --> REC
@@ -467,6 +582,15 @@ CIP --> NEED
 CIP --> DEC
 CIP --> PAIN
 CIP --> COMP
+QPC --> QUOT
+QPC --> PROPOSAL
+QPC --> COMPETE
+SCP --> PERF
+SCP --> SUGG
+SCP --> PLAN
+RMC --> MATCH
+RMC --> ASSIGN
+RMC --> OPT
 AP --> RL2
 AP --> PL
 AP --> AI
@@ -537,6 +661,63 @@ AP --> SL
 **章节来源**
 - [CustomerInsightPanel.tsx:1-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L1-L381)
 
+### 智能报价卡片组件
+提供智能报价建议和方案生成：
+
+#### 功能特性
+- **报价建议展示**：推荐价格、价格范围、折扣策略
+- **定价因子分析**：详细分析影响定价的各种因素
+- **竞品比较**：与竞品的价格对比和优势分析
+- **方案生成**：完整商务方案内容生成
+- **ROI预测**：投资回报率和效益分析
+
+#### 用户交互
+- **报价调整**：根据客户反馈调整报价
+- **方案定制**：定制化方案内容
+- **建议采纳**：直接采纳AI建议
+- **详细分析**：查看详细的定价分析
+
+**章节来源**
+- [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
+
+### 销售教练面板组件
+提供个性化销售培训和改进建议：
+
+#### 功能特性
+- **绩效分析**：综合销售表现分析
+- **改进建议**：针对性的改进建议
+- **技能差距分析**：识别技能短板
+- **训练推荐**：推荐相关培训资源
+- **行动计划**：4周改进行动计划
+
+#### 用户交互
+- **进度跟踪**：跟踪改进进度
+- **建议采纳**：采纳教练建议
+- **资源学习**：访问推荐的学习资源
+- **定期评估**：定期重新评估绩效
+
+**章节来源**
+- [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
+
+### 资源匹配卡片组件
+提供售前资源匹配和分配建议：
+
+#### 功能特性
+- **匹配结果展示**：最佳匹配资源和评分
+- **备选方案**：提供多个备选资源
+- **权衡分析**：详细分析各方案的权衡
+- **风险评估**：识别分配风险和缓解措施
+- **时间安排**：估计项目开始时间和持续时间
+
+#### 用户交互
+- **方案比较**：比较不同匹配方案
+- **资源选择**：选择最适合的资源
+- **风险评估**：评估分配风险
+- **详细信息**：查看资源详细信息
+
+**章节来源**
+- [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
+
 **章节来源**
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 - [AIAudio/index.tsx:1-441](file://crm-frontend/src/pages/AIAudio/index.tsx#L1-L441)
@@ -560,6 +741,9 @@ ENDPOINT --> AI[AI服务]
 AI --> OPENAI[OpenAI SDK]
 AI --> TENCENT[Tencent AI]
 AI --> BAIDU[Baidu AI]
+AI --> PROPOSAL[智能报价服务]
+AI --> COACH[销售教练服务]
+AI --> MATCH[资源匹配服务]
 end
 subgraph "AI依赖"
 BCRYPT[bcryptjs] --> PASS[密码加密]
@@ -658,6 +842,15 @@ APP --> ENDPOINT
 3. 优化AI模型参数
 4. 实施AI分析缓存策略
 
+### 新功能集成问题
+**症状**：智能报价、销售教练、资源匹配功能无法使用
+**原因**：相关API接口未正确配置
+**解决方案**：
+1. 检查新增的AI路由配置
+2. 验证相关服务是否正确导入
+3. 确认数据库迁移已完成
+4. 检查前端组件的API调用
+
 ### 前端组件渲染问题
 **症状**：AI分析组件渲染异常
 **原因**：数据格式不匹配或组件状态异常
@@ -682,6 +875,7 @@ APP --> ENDPOINT
 - **完整生态**：从前端到后端的全栈AI解决方案
 - **数据驱动**：基于客户数据的智能分析和建议
 - **实时监控**：多维度的客户状态实时跟踪
+- **智能决策**：从报价到资源分配的业务智能决策支持
 
 ### 应用价值
 - **提升效率**：自动化生成跟进策略和销售话术
@@ -690,11 +884,17 @@ APP --> ENDPOINT
 - **流程优化**：标准化销售流程和工作习惯
 - **风险控制**：提前识别和预防客户流失
 - **决策支持**：提供数据驱动的业务决策依据
+- **成本优化**：智能报价和资源匹配降低成本
+- **能力提升**：个性化销售培训和技能改进
 
 ### 功能特色
 - **机会评分**：基于BANT模型的综合评估
 - **流失预警**：多维度风险监控和预警
 - **客户洞察**：深度客户画像和需求分析
+- **智能报价**：基于客户信息的智能定价
+- **方案生成**：完整商务方案内容生成
+- **销售教练**：个性化培训和改进建议
+- **资源匹配**：多维度资源最优分配
 - **智能建议**：针对性的改进建议和行动方案
 - **可视化展示**：直观的数据展示和分析界面
 
@@ -705,5 +905,6 @@ APP --> ENDPOINT
 4. **移动端优化**：提供更好的移动用户体验
 5. **实时协作**：支持团队协作和知识共享
 6. **预测分析**：提供更精准的业务预测能力
+7. **自动化决策**：实现更高级别的业务自动化
 
 该系统为销售团队提供了强大的AI助手，能够显著提升销售效率和客户服务质量，是现代CRM系统的重要发展方向。

@@ -663,6 +663,241 @@ export const coldVisitApi = {
   delete: (id: string) => api.delete(`/cold-visit/${id}`),
 };
 
+// ==================== 售前活动API ====================
+// 活动类型
+type ActivityType = 'demo' | 'poc' | 'training' | 'seminar' | 'other';
+type ActivityStatus = 'draft' | 'pending_approval' | 'approved' | 'ongoing' | 'completed' | 'cancelled';
+type ApprovalStatus = 'none' | 'pending' | 'approved' | 'rejected';
+
+// 售前活动接口
+interface PresalesActivity {
+  id: string;
+  title: string;
+  type: ActivityType;
+  description?: string;
+  customerId?: string;
+  location?: string;
+  startTime: string;
+  endTime: string;
+  status: ActivityStatus;
+  approvalStatus: ApprovalStatus;
+  approvalNotes?: string;
+  approvedById?: string;
+  approvedAt?: string;
+  createdById: string;
+  createdAt: string;
+  updatedAt: string;
+  customer?: {
+    id: string;
+    name: string;
+    company?: string;
+  };
+  createdBy: {
+    id: string;
+    name: string;
+  };
+  approvedBy?: {
+    id: string;
+    name: string;
+  };
+  _count?: {
+    qrCodes: number;
+    signIns: number;
+    questions: number;
+  };
+}
+
+interface CreatePresalesActivityInput {
+  title: string;
+  type: ActivityType;
+  description?: string;
+  customerId?: string;
+  location?: string;
+  startTime: string;
+  endTime: string;
+}
+
+interface UpdatePresalesActivityInput {
+  title?: string;
+  type?: ActivityType;
+  description?: string;
+  customerId?: string;
+  location?: string;
+  startTime?: string;
+  endTime?: string;
+}
+
+// 活动二维码
+interface ActivityQrCode {
+  id: string;
+  activityId: string;
+  codeType: 'exclusive' | 'generic';
+  qrCodeUrl: string;
+  qrCodeData: string;
+  validFrom: string;
+  validUntil?: string;
+  isActive: boolean;
+  scanCount: number;
+  createdAt: string;
+}
+
+interface CreateQrCodeInput {
+  codeType: 'exclusive' | 'generic';
+  validFrom?: string;
+  validUntil?: string;
+}
+
+// 活动签到
+interface ActivitySignIn {
+  id: string;
+  activityId: string;
+  qrCodeId: string;
+  customerId?: string;
+  customerName: string;
+  phone: string;
+  email?: string;
+  company?: string;
+  title?: string;
+  isNewCustomer: boolean;
+  notes?: string;
+  signedAt: string;
+  customer?: {
+    id: string;
+    name: string;
+    company?: string;
+  };
+  questions?: ActivityQuestion[];
+}
+
+interface SignInInput {
+  qrCodeId: string;
+  customerName: string;
+  phone: string;
+  email?: string;
+  company?: string;
+  title?: string;
+  notes?: string;
+}
+
+// 活动问题
+interface ActivityQuestion {
+  id: string;
+  activityId: string;
+  signInId: string;
+  customerId?: string;
+  question: string;
+  category?: string;
+  priority?: string;
+  aiAnalysis?: {
+    category: string;
+    priority: string;
+    keywords: string[];
+    suggestedAnswer?: string;
+  };
+  status: 'pending' | 'answered' | 'closed';
+  answer?: string;
+  answeredAt?: string;
+  answeredBy?: string;
+  createdAt: string;
+}
+
+interface CreateQuestionInput {
+  question: string;
+}
+
+interface UpdateQuestionInput {
+  status?: 'pending' | 'answered' | 'closed';
+  answer?: string;
+}
+
+// AI问题分类结果
+interface QuestionClassification {
+  category: string;
+  priority: string;
+  keywords: string[];
+  suggestedAnswer?: string;
+}
+
+// 售前活动API
+export const presalesActivityApi = {
+  // 活动管理
+  getAll: (params?: {
+    page?: number;
+    pageSize?: number;
+    status?: ActivityStatus;
+    type?: ActivityType;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.pageSize) query.set('pageSize', String(params.pageSize));
+    if (params?.status) query.set('status', params.status);
+    if (params?.type) query.set('type', params.type);
+    if (params?.search) query.set('search', params.search);
+    return api.get<{ items: PresalesActivity[]; total: number }>(`/presales/activities?${query}`);
+  },
+
+  getById: (id: string) => api.get<PresalesActivity>(`/presales/activities/${id}`),
+
+  create: (data: CreatePresalesActivityInput) =>
+    api.post<PresalesActivity>('/presales/activities', data),
+
+  update: (id: string, data: UpdatePresalesActivityInput) =>
+    api.put<PresalesActivity>(`/presales/activities/${id}`, data),
+
+  delete: (id: string) => api.delete(`/presales/activities/${id}`),
+
+  updateStatus: (id: string, status: ActivityStatus) =>
+    api.patch<PresalesActivity>(`/presales/activities/${id}/status`, { status }),
+
+  // 审批流程
+  submitApproval: (id: string) =>
+    api.post<PresalesActivity>(`/presales/activities/${id}/submit-approval`),
+
+  approve: (id: string, approvalNotes?: string) =>
+    api.post<PresalesActivity>(`/presales/activities/${id}/approve`, { approvalNotes }),
+
+  reject: (id: string, approvalNotes: string) =>
+    api.post<PresalesActivity>(`/presales/activities/${id}/reject`, { approvalNotes }),
+
+  // 二维码管理
+  createQrCode: (activityId: string, data: CreateQrCodeInput) =>
+    api.post<ActivityQrCode>(`/presales/activities/${activityId}/qrcodes`, data),
+
+  getQrCodes: (activityId: string) =>
+    api.get<ActivityQrCode[]>(`/presales/activities/${activityId}/qrcodes`),
+
+  getQrCode: (qrCodeId: string) =>
+    api.get<ActivityQrCode>(`/presales/qrcodes/${qrCodeId}`),
+
+  // 签到功能
+  signIn: (data: SignInInput) =>
+    api.post<ActivitySignIn>('/presales/sign-in', data),
+
+  getSignIns: (activityId: string) =>
+    api.get<ActivitySignIn[]>(`/presales/activities/${activityId}/sign-ins`),
+
+  getSignIn: (signInId: string) =>
+    api.get<ActivitySignIn>(`/presales/sign-ins/${signInId}`),
+
+  // 问题管理
+  createQuestion: (signInId: string, data: CreateQuestionInput) =>
+    api.post<ActivityQuestion>(`/presales/sign-ins/${signInId}/questions`, data),
+
+  getQuestions: (activityId: string) =>
+    api.get<ActivityQuestion[]>(`/presales/activities/${activityId}/questions`),
+
+  updateQuestion: (questionId: string, data: UpdateQuestionInput) =>
+    api.patch<ActivityQuestion>(`/presales/questions/${questionId}`, data),
+
+  answerQuestion: (questionId: string, answer: string) =>
+    api.post<ActivityQuestion>(`/presales/questions/${questionId}/answer`, { answer }),
+
+  // AI分类
+  classifyQuestion: (question: string) =>
+    api.post<QuestionClassification>('/presales/questions/classify', { question }),
+};
+
 // ==================== 类型导出 ====================
 export type {
   User,
@@ -700,6 +935,21 @@ export type {
   ColdVisitRecord,
   AnalyzeCompanyInput,
   ConvertFromColdVisitInput,
+  // 售前活动相关类型
+  ActivityType,
+  ActivityStatus,
+  ApprovalStatus,
+  PresalesActivity,
+  CreatePresalesActivityInput,
+  UpdatePresalesActivityInput,
+  ActivityQrCode,
+  CreateQrCodeInput,
+  ActivitySignIn,
+  SignInInput,
+  ActivityQuestion,
+  CreateQuestionInput,
+  UpdateQuestionInput,
+  QuestionClassification,
 };
 
 export default api;
