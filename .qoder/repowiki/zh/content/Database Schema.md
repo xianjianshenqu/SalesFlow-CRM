@@ -8,6 +8,11 @@
 - [20260315155023_add_cold_visit_records/migration.sql](file://crm-backend/prisma/migrations/20260315155023_add_cold_visit_records/migration.sql)
 - [20260317020137_add_ai_features/migration.sql](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql)
 - [20260317051358_add_sales_performance_and_coaching/migration.sql](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql)
+- [20260317083220_add_presales_activity_management/migration.sql](file://crm-backend/prisma/migrations/20260317083220_add_presales_activity_management/migration.sql)
+- [presalesActivity.controller.ts](file://crm-backend/src/controllers/presalesActivity.controller.ts)
+- [presalesActivity.service.ts](file://crm-backend/src/services/presalesActivity.service.ts)
+- [presalesActivity.routes.ts](file://crm-backend/src/routes/presalesActivity.routes.ts)
+- [presalesActivity.validator.ts](file://crm-backend/src/validators/presalesActivity.validator.ts)
 - [customer.controller.ts](file://crm-backend/src/controllers/customer.controller.ts)
 - [contact.controller.ts](file://crm-backend/src/controllers/contact.controller.ts)
 - [opportunity.controller.ts](file://crm-backend/src/controllers/opportunity.controller.ts)
@@ -19,6 +24,13 @@
 - [payment.service.ts](file://crm-backend/src/services/payment.service.ts)
 - [schedule.service.ts](file://crm-backend/src/services/schedule.service.ts)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 新增预销售活动管理模块的四个核心数据表
+- 新增活动状态和审批状态枚举类型
+- 新增完整的API接口和业务逻辑实现
+- 更新数据库关系图以反映新的实体关系
 
 ## 目录
 1. [简介](#简介)
@@ -33,7 +45,7 @@
 
 ## 简介
 
-这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析等多个业务模块。
+这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**等多个业务模块。
 
 系统的核心特点包括：
 - 全面的客户关系管理功能
@@ -41,6 +53,7 @@
 - 完整的销售生命周期跟踪
 - 实时的团队协作和绩效监控
 - 智能的资源匹配和预销售支持
+- **完整的预销售活动管理功能**，包括活动创建、二维码签到、问题收集和统计分析
 
 ## 项目结构
 
@@ -69,11 +82,11 @@ FRONTEND --> CONTROLLERS
 ```
 
 **图表来源**
-- [schema.prisma:1-783](file://crm-backend/prisma/schema.prisma#L1-L783)
+- [schema.prisma:1-918](file://crm-backend/prisma/schema.prisma#L1-L918)
 - [app.ts](file://crm-backend/src/app.ts)
 
 **章节来源**
-- [schema.prisma:1-783](file://crm-backend/prisma/schema.prisma#L1-L783)
+- [schema.prisma:1-918](file://crm-backend/prisma/schema.prisma#L1-L918)
 - [20260315081326_init/migration.sql:1-381](file://crm-backend/prisma/migrations/20260315081326_init/migration.sql#L1-L381)
 
 ## 核心组件
@@ -132,16 +145,84 @@ datetime dueDate
 datetime createdAt
 datetime updatedAt
 }
+PRESALES_ACTIVITIES {
+varchar id PK
+varchar title
+varchar type
+varchar description
+varchar customerId FK
+varchar location
+datetime startTime
+datetime endTime
+enum status
+enum approvalStatus
+varchar approvalNotes
+varchar approvedById FK
+datetime approvedAt
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+ACTIVITY_QR_CODES {
+varchar id PK
+varchar activityId FK
+varchar codeType
+varchar qrCodeUrl
+text qrCodeData
+datetime validFrom
+datetime validUntil
+boolean isActive
+int scanCount
+datetime createdAt
+}
+ACTIVITY_SIGN_INS {
+varchar id PK
+varchar activityId FK
+varchar qrCodeId FK
+varchar customerId FK
+varchar customerName
+varchar phone
+varchar email
+varchar company
+varchar title
+boolean isNewCustomer
+text notes
+datetime signedAt
+varchar createdById FK
+datetime createdAt
+}
+ACTIVITY_QUESTIONS {
+varchar id PK
+varchar activityId FK
+varchar signInId FK
+varchar customerId FK
+text question
+varchar category
+varchar priority
+json aiAnalysis
+varchar status
+text answer
+datetime answeredAt
+varchar answeredBy FK
+datetime createdAt
+datetime updatedAt
+}
 USERS ||--o{ CUSTOMERS : "拥有"
 CUSTOMERS ||--o{ OPPORTUNITIES : "包含"
 CUSTOMERS ||--o{ PAYMENTS : "支付"
 OPPORTUNITIES ||--|| PAYMENTS : "关联"
+USERS ||--o{ PRESALES_ACTIVITIES : "创建"
+PRESALES_ACTIVITIES ||--o{ ACTIVITY_QR_CODES : "包含"
+PRESALES_ACTIVITIES ||--o{ ACTIVITY_SIGN_INS : "包含"
+PRESALES_ACTIVITIES ||--o{ ACTIVITY_QUESTIONS : "包含"
+ACTIVITY_QR_CODES ||--o{ ACTIVITY_SIGN_INS : "被使用"
+ACTIVITY_SIGN_INS ||--o{ ACTIVITY_QUESTIONS : "产生"
 ```
 
 **图表来源**
 - [schema.prisma:121-220](file://crm-backend/prisma/schema.prisma#L121-L220)
-- [schema.prisma:224-253](file://crm-backend/prisma/schema.prisma#L224-L253)
-- [schema.prisma:257-280](file://crm-backend/prisma/schema.prisma#L257-L280)
+- [schema.prisma:224-280](file://crm-backend/prisma/schema.prisma#L224-L280)
+- [schema.prisma:809-918](file://crm-backend/prisma/schema.prisma#L809-L918)
 
 ### 枚举类型系统
 
@@ -183,13 +264,28 @@ class PaymentStatus {
 +paid
 +overdue
 }
+class ActivityStatus {
++draft
++pending_approval
++approved
++ongoing
++completed
++cancelled
+}
+class ApprovalStatus {
++none
++pending
++approved
++rejected
+}
 ```
 
 **图表来源**
 - [schema.prisma:15-117](file://crm-backend/prisma/schema.prisma#L15-L117)
+- [schema.prisma:119-133](file://crm-backend/prisma/schema.prisma#L119-L133)
 
 **章节来源**
-- [schema.prisma:13-117](file://crm-backend/prisma/schema.prisma#L13-L117)
+- [schema.prisma:13-133](file://crm-backend/prisma/schema.prisma#L13-L133)
 
 ## 架构概览
 
@@ -252,6 +348,12 @@ SALES_PERFORMANCES[Sales Performances]
 COACHING_SUGGESTIONS[Coaching Suggestions]
 RESOURCE_MATCH_RECORDS[Resource Match Records]
 end
+subgraph "预销售活动管理"
+PRESALES_ACTIVITIES[Presales Activities]
+ACTIVITY_QR_CODES[Activity QR Codes]
+ACTIVITY_SIGN_INS[Activity Sign Ins]
+ACTIVITY_QUESTIONS[Activity Questions]
+end
 USERS --> CUSTOMERS
 USERS --> TEAM_MEMBERS
 USERS --> SCHEDULE_TASKS
@@ -265,6 +367,7 @@ USERS --> SERVICE_PROJECTS
 USERS --> PRESALES_REQUESTS
 USERS --> SALES_PERFORMANCES
 USERS --> COACHING_SUGGESTIONS
+USERS --> PRESALES_ACTIVITIES
 CUSTOMERS --> CONTACTS
 CUSTOMERS --> BUSINESS_CARDS
 CUSTOMERS --> AUDIO_RECORDINGS
@@ -275,6 +378,7 @@ CUSTOMERS --> PRESALES_REQUESTS
 CUSTOMERS --> FOLLOW_UP_SUGGESTIONS
 CUSTOMERS --> CHURN_ALERTS
 CUSTOMERS --> CUSTOMER_INSIGHTS
+CUSTOMERS --> PRESALES_ACTIVITIES
 OPPORTUNITIES --> PROPOSALS
 OPPORTUNITIES --> OPPORTUNITY_SCORES
 OPPORTUNITIES --> PAYMENTS
@@ -285,10 +389,15 @@ CONTACTS --> CUSTOMERS
 SERVICE_PROJECTS --> CUSTOMERS
 PRESALES_REQUESTS --> CUSTOMERS
 PRESALES_REQUESTS --> PRESALES_RESOURCES
+PRESALES_ACTIVITIES --> ACTIVITY_QR_CODES
+PRESALES_ACTIVITIES --> ACTIVITY_SIGN_INS
+PRESALES_ACTIVITIES --> ACTIVITY_QUESTIONS
+ACTIVITY_QR_CODES --> ACTIVITY_SIGN_INS
+ACTIVITY_SIGN_INS --> ACTIVITY_QUESTIONS
 ```
 
 **图表来源**
-- [schema.prisma:121-783](file://crm-backend/prisma/schema.prisma#L121-L783)
+- [schema.prisma:121-918](file://crm-backend/prisma/schema.prisma#L121-L918)
 
 ## 详细组件分析
 
@@ -482,6 +591,68 @@ GenerateReport --> End([预测完成])
 **章节来源**
 - [payment.service.ts:1-178](file://crm-backend/src/services/payment.service.ts#L1-L178)
 
+### 预销售活动管理
+
+**新增** 预销售活动管理模块提供完整的售前活动生命周期管理，包括活动创建、二维码签到、问题收集和统计分析。
+
+#### 活动生命周期管理
+
+```mermaid
+stateDiagram-v2
+[*] --> 草稿
+草稿 --> 待审批 : 提交审批
+待审批 --> 已批准 : 审批通过
+待审批 --> 草稿 : 审批拒绝
+已批准 --> 进行中 : 活动开始
+进行中 --> 已完成 : 活动结束
+进行中 --> 取消 : 活动取消
+已完成 --> [*]
+取消 --> [*]
+```
+
+#### 二维码签到流程
+
+```mermaid
+sequenceDiagram
+participant Attendee as 参会者
+participant QRCode as 二维码
+participant System as 系统
+participant CustomerDB as 客户库
+Attendee->>QRCode : 扫描二维码
+QRCode->>System : 验证二维码
+System->>System : 检查活动状态
+System->>CustomerDB : 查找客户信息
+CustomerDB-->>System : 返回客户信息
+System->>System : 创建签到记录
+System->>System : 更新扫描次数
+System-->>Attendee : 返回签到结果
+```
+
+#### 问题收集与分析
+
+```mermaid
+flowchart TD
+Start([问题提交]) --> Validate[验证问题内容]
+Validate --> CreateQuestion[创建问题记录]
+CreateQuestion --> AutoClassify[自动分类]
+AutoClassify --> AssignPriority[分配优先级]
+AssignPriority --> StoreQuestion[存储问题]
+StoreQuestion --> Notify[通知相关人员]
+Notify --> WaitAnswer[等待回答]
+WaitAnswer --> Answer[问题回答]
+Answer --> Close[关闭问题]
+Close --> Analytics[统计分析]
+Analytics --> End([分析完成])
+```
+
+**图表来源**
+- [presalesActivity.service.ts:409-489](file://crm-backend/src/services/presalesActivity.service.ts#L409-L489)
+- [presalesActivity.service.ts:566-673](file://crm-backend/src/services/presalesActivity.service.ts#L566-L673)
+
+**章节来源**
+- [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
+- [presalesActivity.service.ts:1-766](file://crm-backend/src/services/presalesActivity.service.ts#L1-L766)
+
 ### AI智能分析
 
 AI智能分析模块提供客户洞察、流失预警、跟进建议和销售教练等智能化功能。
@@ -526,7 +697,7 @@ Monitor --> End
 - [schema.prisma:671-689](file://crm-backend/prisma/schema.prisma#L671-L689)
 
 **章节来源**
-- [schema.prisma:576-783](file://crm-backend/prisma/schema.prisma#L576-L783)
+- [schema.prisma:576-918](file://crm-backend/prisma/schema.prisma#L576-L918)
 
 ### 团队协作与绩效
 
@@ -583,6 +754,12 @@ OpportunityScores[Opportunity Scores]
 ChurnAlerts[Churn Alerts]
 CustomerInsights[Customer Insights]
 end
+subgraph "预销售活动"
+PresalesActivities[Presales Activities]
+ActivityQrCodes[Activity QR Codes]
+ActivitySignIns[Activity Sign Ins]
+ActivityQuestions[Activity Questions]
+end
 Users --> Customers
 Users --> Teams
 Users --> ScheduleTasks
@@ -602,10 +779,15 @@ Opportunities --> Proposals
 Opportunities --> Payments
 Opportunities --> OpportunityScores
 ScheduleTasks --> Customers
+PresalesActivities --> ActivityQrCodes
+PresalesActivities --> ActivitySignIns
+PresalesActivities --> ActivityQuestions
+ActivityQrCodes --> ActivitySignIns
+ActivitySignIns --> ActivityQuestions
 ```
 
 **图表来源**
-- [schema.prisma:121-783](file://crm-backend/prisma/schema.prisma#L121-L783)
+- [schema.prisma:121-918](file://crm-backend/prisma/schema.prisma#L121-L918)
 
 ### 控制器-服务层依赖
 
@@ -661,11 +843,34 @@ class ScheduleController {
 +getStats()
 +getAISuggestions()
 }
+class PresalesActivityController {
++createActivity()
++getActivities()
++getActivityById()
++updateActivity()
++deleteActivity()
++updateActivityStatus()
++submitForApproval()
++approveActivity()
++rejectActivity()
++createQrCode()
++getQrCodes()
++getQrCodeById()
++signIn()
++getSignIns()
++getSignInById()
++createQuestion()
++getQuestions()
++updateQuestion()
++answerQuestion()
++getActivityStats()
+}
 CustomerController --> CustomerService
 ContactController --> ContactService
 OpportunityController --> OpportunityService
 PaymentController --> PaymentService
 ScheduleController --> ScheduleService
+PresalesActivityController --> PresalesActivityService
 ```
 
 **图表来源**
@@ -674,6 +879,7 @@ ScheduleController --> ScheduleService
 - [opportunity.controller.ts:5-59](file://crm-backend/src/controllers/opportunity.controller.ts#L5-L59)
 - [payment.controller.ts:5-60](file://crm-backend/src/controllers/payment.controller.ts#L5-L60)
 - [schedule.controller.ts:9-153](file://crm-backend/src/controllers/schedule.controller.ts#L9-L153)
+- [presalesActivity.controller.ts:9-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L9-L338)
 
 **章节来源**
 - [customer.controller.ts:1-58](file://crm-backend/src/controllers/customer.controller.ts#L1-L58)
@@ -681,6 +887,7 @@ ScheduleController --> ScheduleService
 - [opportunity.controller.ts:1-59](file://crm-backend/src/controllers/opportunity.controller.ts#L1-L59)
 - [payment.controller.ts:1-60](file://crm-backend/src/controllers/payment.controller.ts#L1-L60)
 - [schedule.controller.ts:1-153](file://crm-backend/src/controllers/schedule.controller.ts#L1-L153)
+- [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
 
 ## 性能考虑
 
@@ -693,6 +900,10 @@ ScheduleController --> ScheduleService
 - **机会表**: customerId, stage, ownerId, status
 - **支付表**: customerId, status, dueDate(唯一索引)
 - **音频记录表**: customerId, sentiment, status
+- **预销售活动表**: type, status, approvalStatus, startTime(复合索引)
+- **二维码表**: activityId, codeType(复合索引)
+- **签到表**: activityId, customerId, phone(复合索引)
+- **问题表**: activityId, signInId, customerId, category, status(复合索引)
 
 ### 查询优化
 
@@ -700,6 +911,7 @@ ScheduleController --> ScheduleService
 2. **条件过滤**: 支持多维度条件过滤，减少不必要的数据传输
 3. **关联查询**: 使用include选项进行必要的关联数据加载
 4. **聚合查询**: 使用groupBy和aggregate函数进行高效的数据统计
+5. **批量操作**: 支持批量分类和批量更新操作
 
 ### 缓存策略
 
@@ -707,6 +919,7 @@ ScheduleController --> ScheduleService
 - 对于频繁访问的统计数据使用Redis缓存
 - 对于静态配置数据进行内存缓存
 - 对于复杂的聚合查询结果进行定期缓存更新
+- 对于二维码验证结果进行短期缓存
 
 ## 故障排除指南
 
@@ -721,11 +934,13 @@ ScheduleController --> ScheduleService
 - 查看具体的SQL错误信息
 - 确认MySQL版本兼容性
 - 检查是否有重复的索引或约束
+- **新增**: 检查预销售活动相关的新表是否正确创建
 
 #### 查询超时
 - 分析慢查询日志
 - 检查WHERE条件是否使用了合适的索引
 - 考虑添加复合索引优化复杂查询
+- **新增**: 检查预销售活动相关查询的索引使用情况
 
 ### 错误处理机制
 
@@ -750,14 +965,23 @@ ErrorHandler --> Response[标准化错误响应]
 
 该销售AI CRM系统的数据库架构设计合理，具有以下优势：
 
-1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期
+1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了预销售活动管理模块**
 2. **灵活的扩展性**: 基于Prisma的Schema设计便于后续功能扩展
 3. **强大的AI集成**: 内置的智能分析功能提升了系统的自动化水平
 4. **良好的性能设计**: 合理的索引策略和查询优化保证了系统的响应速度
 5. **清晰的架构分离**: 控制器-服务层-数据层的职责分离提高了代码的可维护性
+6. **完整的API支持**: **新增了预销售活动管理的完整RESTful API接口**
+
+**新增功能优势**:
+- **活动生命周期管理**: 从创建到结束的完整流程控制
+- **二维码签到系统**: 支持多种类型的二维码和签到验证
+- **问题收集与分析**: 自动分类和优先级管理
+- **实时统计分析**: 多维度的活动效果评估
 
 建议的改进方向：
 - 实施更完善的缓存策略以提升查询性能
 - 添加数据备份和恢复机制
 - 考虑引入审计日志功能
 - 优化大数据量场景下的查询性能
+- **新增**: 扩展预销售活动的移动端支持
+- **新增**: 增强AI分析功能以支持更多业务场景

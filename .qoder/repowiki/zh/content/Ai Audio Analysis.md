@@ -9,6 +9,7 @@
 - [resourceMatching.ts](file://crm-backend/src/services/ai/resourceMatching.ts)
 - [salesCoach.ts](file://crm-backend/src/services/ai/salesCoach.ts)
 - [proposalAI.ts](file://crm-backend/src/services/ai/proposalAI.ts)
+- [questionClassification.service.ts](file://crm-backend/src/services/ai/questionClassification.service.ts)
 - [index.ts](file://crm-backend/src/services/ai/index.ts)
 - [recording.controller.ts](file://crm-backend/src/controllers/recording.controller.ts)
 - [recording.service.ts](file://crm-backend/src/services/recording.service.ts)
@@ -36,10 +37,11 @@
 ## 更新摘要
 **变更内容**
 - 新增AI智能分析功能：智能报价与提案生成、销售绩效AI教练、售前资源智能匹配三大AI功能模块
-- 扩展AI服务架构，增加报价生成、方案设计、教练建议、资源匹配等高级AI分析功能
+- 新增AI问题分类服务，集成智能分类功能，支持对客户咨询问题进行自动分类和情感分析
+- 扩展AI服务架构，增加报价生成、方案设计、教练建议、资源匹配、问题分类等高级AI分析功能
 - 更新数据库迁移和AI功能相关组件的详细说明，新增销售绩效、教练建议、资源匹配记录表
 - 增强AI分析结果的数据持久化机制，支持完整的AI助手功能集合
-- 更新前端界面与AI功能的集成说明，支持智能报价、AI教练、资源匹配等功能
+- 更新前端界面与AI功能的集成说明，支持智能报价、AI教练、资源匹配、问题分类等功能
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -47,13 +49,14 @@
 3. [核心组件分析](#核心组件分析)
 4. [AI音频分析流程](#ai音频分析流程)
 5. [AI智能分析功能](#ai智能分析功能)
-6. [数据库迁移与版本管理](#数据库迁移与版本管理)
-7. [前端界面设计](#前端界面设计)
-8. [数据模型](#数据模型)
-9. [API接口设计](#api接口设计)
-10. [性能考虑](#性能考虑)
-11. [故障排除指南](#故障排除指南)
-12. [总结](#总结)
+6. [AI问题分类服务](#ai问题分类服务)
+7. [数据库迁移与版本管理](#数据库迁移与版本管理)
+8. [前端界面设计](#前端界面设计)
+9. [数据模型](#数据模型)
+10. [API接口设计](#api接口设计)
+11. [性能考虑](#性能考虑)
+12. [故障排除指南](#故障排除指南)
+13. [总结](#总结)
 
 ## 项目概述
 
@@ -72,6 +75,7 @@
 - **智能报价生成**：基于客户信息和市场行情生成智能报价建议
 - **AI教练建议**：提供个性化的销售绩效改进指导
 - **资源智能匹配**：自动匹配最适合的售前资源和专家团队
+- **智能问题分类**：支持对客户咨询问题进行自动分类和情感分析
 
 ## 系统架构
 
@@ -92,6 +96,7 @@ FE9[客户洞察面板]
 FE10[智能报价生成器]
 FE11[销售AI教练]
 FE12[资源智能匹配器]
+FE13[问题分类分析器]
 end
 subgraph "API层"
 API1[录音路由]
@@ -101,6 +106,7 @@ API4[AI分析路由]
 API5[报价路由]
 API6[教练路由]
 API7[资源匹配路由]
+API8[问题分类路由]
 end
 subgraph "业务逻辑层"
 BL1[录音控制器]
@@ -113,6 +119,7 @@ BL7[客户洞察服务]
 BL8[智能报价服务]
 BL9[销售教练服务]
 BL10[资源匹配服务]
+BL11[问题分类服务]
 end
 subgraph "数据访问层"
 DA1[Prisma ORM]
@@ -137,6 +144,7 @@ FE9 --> API4
 FE10 --> API5
 FE11 --> API6
 FE12 --> API7
+FE13 --> API8
 API1 --> BL1
 API2 --> BL1
 API3 --> BL1
@@ -146,6 +154,7 @@ API4 --> BL7
 API5 --> BL8
 API6 --> BL9
 API7 --> BL10
+API8 --> BL11
 BL1 --> BL2
 BL2 --> BL3
 BL2 --> BL4
@@ -155,6 +164,7 @@ BL7 --> BL3
 BL8 --> BL3
 BL9 --> BL3
 BL10 --> BL3
+BL11 --> BL3
 BL2 --> DA1
 DA1 --> DA2
 DA3 --> DA2
@@ -166,6 +176,7 @@ BL7 --> ES4
 BL8 --> ES4
 BL9 --> ES4
 BL10 --> ES4
+BL11 --> ES2
 BL1 --> ES1
 ```
 
@@ -249,11 +260,24 @@ class ResourceMatchingService {
 -calculateWorkloadFit(resource) ScoreDetails
 -calculateSuccessHistory(resource) ScoreDetails
 }
+class QuestionClassificationService {
++classifyQuestion(question) Promise~QuestionClassification~
++classifyQuestions(questions) Promise~BatchClassificationResult[]~
++summarizeQuestions(questions) Promise~string~
++suggestAnswer(question, category, context) Promise~string~
++analyzeTrends(questions) Promise~TrendAnalysisResult~
+-validateCategory(category) QuestionClassification['category']
+-validatePriority(priority) QuestionClassification['priority']
+-validateConfidence(confidence) number
+-validateSentiment(sentiment) QuestionClassification['sentiment']
+-getDefaultClassification(question) QuestionClassification
+}
 AIService --> AIAnalysisResult
 AIService --> CompanyIntelligenceResult
 ProposalAIService --> AIAnalysisResult
 SalesCoachService --> AIAnalysisResult
 ResourceMatchingService --> AIAnalysisResult
+QuestionClassificationService --> AIAnalysisResult
 ```
 
 **图表来源**
@@ -261,6 +285,7 @@ ResourceMatchingService --> AIAnalysisResult
 - [proposalAI.ts:53-154](file://crm-backend/src/services/ai/proposalAI.ts#L53-L154)
 - [salesCoach.ts:51-138](file://crm-backend/src/services/ai/salesCoach.ts#L51-L138)
 - [resourceMatching.ts:44-92](file://crm-backend/src/services/ai/resourceMatching.ts#L44-L92)
+- [questionClassification.service.ts:25-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L25-L372)
 
 ### 录音服务组件
 
@@ -361,7 +386,7 @@ API-->>Frontend : 显示分析结果
 
 ## AI智能分析功能
 
-系统新增了三大核心AI智能分析功能，提供更全面的销售智能分析能力。
+系统新增了四大核心AI智能分析功能，提供更全面的销售智能分析能力。
 
 ### 智能报价与提案生成
 
@@ -472,6 +497,75 @@ PredictedAvailability --> End([匹配完成])
 - [salesCoach.ts:51-780](file://crm-backend/src/services/ai/salesCoach.ts#L51-L780)
 - [resourceMatching.ts:44-692](file://crm-backend/src/services/ai/resourceMatching.ts#L44-L692)
 
+## AI问题分类服务
+
+系统新增了AI问题分类服务，专门处理客户咨询问题的智能分类和分析功能。
+
+### 问题分类核心功能
+
+AI问题分类服务使用先进的自然语言处理技术，对客户咨询问题进行自动分类、情感分析和优先级评估。
+
+```mermaid
+flowchart TD
+Start([问题分类开始]) --> Extract[提取问题内容]
+Extract --> Keyword[关键词提取]
+Keyword --> Category[分类判断]
+Keyword --> Priority[优先级评估]
+Keyword --> Sentiment[情感分析]
+Category --> Confidence[置信度评估]
+Priority --> Confidence
+Sentiment --> Confidence
+Confidence --> Result[生成分类结果]
+Result --> Answer[建议回答方向]
+Result --> Summary[生成摘要]
+Result --> Trend[趋势分析]
+Answer --> End([分类完成])
+Summary --> End
+Trend --> End
+```
+
+**图表来源**
+- [questionClassification.service.ts:105-159](file://crm-backend/src/services/ai/questionClassification.service.ts#L105-L159)
+- [questionClassification.service.ts:164-181](file://crm-backend/src/services/ai/questionClassification.service.ts#L164-L181)
+- [questionClassification.service.ts:216-237](file://crm-backend/src/services/ai/questionClassification.service.ts#L216-L237)
+
+### 问题分类标准
+
+系统支持五种主要的问题分类类型：
+
+- **产品相关 (product)**：关于产品功能、特性、对比等问题
+- **价格相关 (pricing)**：关于价格、折扣、付款方式等问题  
+- **技术相关 (technical)**：关于技术架构、集成、性能等问题
+- **实施相关 (implementation)**：关于项目实施、交付、培训等问题
+- **其他 (others)**：不属于上述类型的其他问题
+
+### 优先级评估
+
+系统根据问题的紧急程度和重要性进行优先级分类：
+
+- **高优先级 (high)**：紧急、影响决策、涉及核心功能
+- **中优先级 (medium)**：一般咨询、需要进一步了解
+- **低优先级 (low)**：简单咨询、信息确认类
+
+### 情感分析
+
+系统自动分析客户的情绪状态：
+
+- **积极 (positive)**：客户对产品或服务表示满意
+- **中性 (neutral)**：客户情绪平和，无明显倾向
+- **消极 (negative)**：客户表达不满或担忧
+
+### 批量处理能力
+
+系统支持批量问题分类处理，采用分批处理策略：
+
+- **批量大小**：每批最多5个问题
+- **并发处理**：使用Promise.all并行处理多个问题
+- **错误处理**：单个问题失败不影响整体处理结果
+
+**章节来源**
+- [questionClassification.service.ts:25-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L25-L372)
+
 ## 数据库迁移与版本管理
 
 系统采用Prisma进行数据库管理，支持完整的数据库迁移和版本控制。
@@ -485,6 +579,7 @@ M1[20260315081326_init] --> M2[20260315135448_add_contacts_and_business_cards]
 M2 --> M3[20260315155023_add_cold_visit_records]
 M3 --> M4[20260317020137_add_ai_features]
 M4 --> M5[20260317051358_add_sales_performance_and_coaching]
+M5 --> M6[20260317083220_add_presales_activity_management]
 end
 subgraph "AI功能迁移"
 M4 --> T1[customers表增强]
@@ -499,6 +594,10 @@ M5 --> T7[sales_performances表]
 T7 --> T8[coaching_suggestions表]
 T7 --> T9[resource_match_records表]
 end
+subgraph "新增预销售功能迁移"
+M6 --> T10[presales_activities表]
+T10 --> T11[presales_questions表]
+end
 subgraph "数据模型映射"
 S1[schema.prisma] --> T1
 S1 --> T2
@@ -509,6 +608,8 @@ S1 --> T6
 S1 --> T7
 S1 --> T8
 S1 --> T9
+S1 --> T10
+S1 --> T11
 end
 ```
 
@@ -567,6 +668,18 @@ AI功能相关的数据库结构在多个迁移中得到完善：
 - 存储匹配分数、技能匹配详情、匹配因子等
 - 支持AI推荐标记和创建时间
 
+#### 新增预销售功能
+
+**预销售活动表 (presales_activities)**
+- 记录预销售活动的详细信息
+- 包括活动类型、状态、参与人员等
+- 支持活动跟踪和管理
+
+**预销售问题表 (presales_questions)**
+- 存储预销售过程中的客户问题
+- 支持问题分类、优先级评估、情感分析
+- 包含问题摘要和建议回答
+
 **章节来源**
 - [20260317020137_add_ai_features/migration.sql:1-120](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql#L1-L120)
 - [20260317051358_add_sales_performance_and_coaching/migration.sql:1-71](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql#L1-L71)
@@ -601,6 +714,8 @@ N[资源智能匹配器]
 O[销售绩效分析]
 P[教练建议管理]
 Q[资源匹配记录]
+R[问题分类分析器]
+S[预销售问题管理]
 end
 subgraph "录音列表组件"
 D1[客户头像]
@@ -645,6 +760,8 @@ N --> N1
 O --> O1
 P --> P1
 Q --> Q1
+R --> R1
+S --> S1
 ```
 
 **图表来源**
@@ -679,12 +796,16 @@ ShowAIComponents --> CustomerInsight[客户洞察面板]
 ShowAIComponents --> SmartQuotation[智能报价生成器]
 ShowAIComponents --> SalesCoach[销售AI教练]
 ShowAIComponents --> ResourceMatching[资源智能匹配器]
+ShowAIComponents --> QuestionClassification[问题分类分析器]
+ShowAIComponents --> PresalesQuestions[预销售问题管理]
 OpportunityScore --> AddToSchedule{添加到日程?}
 ChurnAlert --> HandleAlert{处理预警?}
 CustomerInsight --> GenerateInsight{生成洞察?}
 SmartQuotation --> GenerateProposal{生成报价?}
 SalesCoach --> ViewSuggestions{查看建议?}
 ResourceMatching --> AssignResource{分配资源?}
+QuestionClassification --> AnalyzeQuestion{分析问题?}
+PresalesQuestions --> ManageQuestions{管理问题?}
 AddToSchedule --> |是| CreateTask[创建日程任务]
 AddToSchedule --> |否| End
 HandleAlert --> |是| MarkHandled[标记已处理]
@@ -697,13 +818,20 @@ ViewSuggestions --> |是| TrackProgress[跟踪进度]
 ViewSuggestions --> |否| End
 AssignResource --> |是| ConfirmAssignment[确认分配]
 AssignResource --> |否| End
+AnalyzeQuestion --> |是| ClassifyQuestion[分类问题]
+AnalyzeQuestion --> |否| End
+ManageQuestions --> |是| AddQuestion[添加问题]
+ManageQuestions --> |否| End
+ClassifyQuestion --> ShowClassification[显示分类结果]
+ShowClassification --> End
+AddQuestion --> End
 CreateTask --> End
 MarkHandled --> End
 RefreshInsight --> End
 SaveProposal --> End
 TrackProgress --> End
 ConfirmAssignment --> End
-Wait --> End
+End
 ```
 
 **图表来源**
@@ -809,6 +937,33 @@ boolean aiRecommendation
 json factors
 datetime createdAt
 }
+PRESALES_ACTIVITY {
+string id PK
+string title
+string description
+string type
+string status
+string ownerId
+datetime scheduledAt
+datetime completedAt
+string customerId
+string customerName
+datetime createdAt
+datetime updatedAt
+}
+PRESALES_QUESTION {
+string id PK
+string activityId FK
+string question
+string category
+string priority
+string sentiment
+string suggestedAnswer
+json keywords
+number confidence
+datetime createdAt
+datetime updatedAt
+}
 SCHEDULE_TASK {
 string id PK
 string title
@@ -910,6 +1065,7 @@ CUSTOMER ||--o{ FOLLOW_UP_SUGGESTION : has
 USER ||--o{ DAILY_REPORT : creates
 CUSTOMER ||--o{ CHURN_ALERT : has
 CUSTOMER ||--|| CUSTOMER_INSIGHT : has
+PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 ```
 
 **图表来源**
@@ -945,6 +1101,8 @@ CUSTOMER ||--|| CUSTOMER_INSIGHT : has
 - **销售绩效**：销售人员的每日工作表现
 - **教练建议**：个性化的改进指导和行动步骤
 - **资源匹配**：售前资源的最佳分配建议
+- **预销售问题**：客户咨询问题的分类和管理
+- **问题分类**：客户问题的自动分类和情感分析
 
 **章节来源**
 - [index.ts:73-133](file://crm-frontend/src/types/index.ts#L73-L133)
@@ -992,6 +1150,30 @@ CUSTOMER ||--|| CUSTOMER_INSIGHT : has
 | 生成分配建议 | POST | `/api/v1/resource-matching/generate-assignment` | 生成资源分配建议 |
 | 预测资源可用性 | POST | `/api/v1/resource-matching/predict-availability` | 预测资源可用性 |
 | 优化资源分配 | POST | `/api/v1/resource-matching/optimize-allocation` | 优化资源分配 |
+
+### AI问题分类API
+
+| 接口 | 方法 | 路径 | 描述 |
+|------|------|------|------|
+| 分类单个问题 | POST | `/api/v1/question-classification/classify` | 分类单个客户问题 |
+| 批量分类问题 | POST | `/api/v1/question-classification/batch-classify` | 批量分类客户问题 |
+| 生成问题摘要 | POST | `/api/v1/question-classification/summarize` | 生成问题摘要报告 |
+| 建议回答方向 | POST | `/api/v1/question-classification/suggest-answer` | 生成问题建议回答 |
+| 分析问题趋势 | POST | `/api/v1/question-classification/analyze-trends` | 分析问题趋势和模式 |
+
+### 预销售管理API
+
+| 接口 | 方法 | 路径 | 描述 |
+|------|------|------|------|
+| 创建预销售活动 | POST | `/api/v1/presales/activities` | 创建预销售活动 |
+| 获取预销售活动列表 | GET | `/api/v1/presales/activities` | 获取预销售活动列表 |
+| 获取预销售活动详情 | GET | `/api/v1/presales/activities/:id` | 获取预销售活动详情 |
+| 更新预销售活动 | PUT | `/api/v1/presales/activities/:id` | 更新预销售活动 |
+| 删除预销售活动 | DELETE | `/api/v1/presales/activities/:id` | 删除预销售活动 |
+| 添加问题到活动 | POST | `/api/v1/presales/activities/:id/questions` | 向活动添加问题 |
+| 获取活动问题列表 | GET | `/api/v1/presales/activities/:id/questions` | 获取活动问题列表 |
+| 更新活动问题 | PUT | `/api/v1/presales/activities/:id/questions/:questionId` | 更新活动问题 |
+| 删除活动问题 | DELETE | `/api/v1/presales/activities/:id/questions/:questionId` | 删除活动问题 |
 
 ### 请求和响应示例
 
@@ -1196,6 +1378,18 @@ Authorization: Bearer <token>
 }
 ```
 
+**问题分类响应**
+```json
+{
+  "category": "product",
+  "priority": "high",
+  "confidence": 0.95,
+  "keywords": ["功能", "特性", "支持"],
+  "suggestedAnswer": "针对产品相关问题，建议详细说明产品功能特性和技术支持方案",
+  "sentiment": "neutral"
+}
+```
+
 **章节来源**
 - [recordings.routes.ts:14-355](file://crm-backend/src/routes/recordings.routes.ts#L14-L355)
 - [recording.validator.ts:11-62](file://crm-backend/src/validators/recording.validator.ts#L11-L62)
@@ -1216,6 +1410,8 @@ Authorization: Bearer <token>
 8. **AI服务池化**：多个AI分析服务共享资源，提高利用率
 9. **延迟模拟**：合理的处理延迟模拟，避免过快响应影响用户体验
 10. **内存管理**：优化AI分析结果缓存，控制内存使用
+11. **问题分类批处理**：批量处理多个问题，提高处理效率
+12. **预销售活动管理**：优化活动和问题的关联查询性能
 
 ### 性能监控指标
 
@@ -1228,6 +1424,9 @@ Authorization: Bearer <token>
 - **报价生成响应**：智能报价生成约800-1500ms
 - **教练建议响应**：销售教练分析约1000-1800ms
 - **资源匹配响应**：资源匹配约600-1200ms
+- **问题分类响应**：单个问题分类约300-800ms
+- **批量分类响应**：批量处理每个问题约200-500ms
+- **预销售活动响应**：活动管理约500-1000ms
 
 ## 故障排除指南
 
@@ -1337,6 +1536,32 @@ Authorization: Bearer <token>
 3. 确认资源状态和可用性数据
 4. 查看资源匹配日志
 
+#### 问题分类服务异常
+**问题描述**：AI问题分类服务无法正常工作
+**可能原因**：
+- 自然语言处理服务异常
+- 关键词提取算法问题
+- 分类模型配置错误
+
+**解决步骤**：
+1. 检查NLP服务的可用性和响应时间
+2. 验证关键词提取算法的准确性
+3. 确认分类模型的配置和训练状态
+4. 查看问题分类的日志和错误信息
+
+#### 预销售活动管理异常
+**问题描述**：预销售活动或问题管理功能异常
+**可能原因**：
+- 活动与问题关联查询失败
+- 数据一致性检查错误
+- 权限验证问题
+
+**解决步骤**：
+1. 检查活动与问题的外键关联是否正确
+2. 验证数据的一致性和完整性约束
+3. 确认用户权限和访问控制
+4. 查看预销售管理的日志和错误信息
+
 **章节来源**
 - [recording.controller.ts:157-190](file://crm-backend/src/controllers/recording.controller.ts#L157-L190)
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
@@ -1358,6 +1583,8 @@ Authorization: Bearer <token>
 9. **智能报价生成**：基于客户信息和市场行情生成智能报价建议
 10. **AI教练建议**：提供个性化的销售绩效改进指导
 11. **资源智能匹配**：自动匹配最适合的售前资源和专家团队
+12. **智能问题分类**：支持对客户咨询问题进行自动分类和情感分析
+13. **预销售管理**：提供完整的预销售活动和问题管理功能
 
 ### 技术特色
 
@@ -1372,6 +1599,8 @@ Authorization: Bearer <token>
 - **智能报价系统**：提供基于行业基准和客户特征的智能报价建议
 - **销售教练系统**：提供个性化的销售绩效分析和改进建议
 - **资源匹配系统**：提供多维度的售前资源智能匹配和分配建议
+- **问题分类系统**：提供智能的问题分类、情感分析和优先级评估
+- **预销售管理系统**：提供完整的预销售活动和问题跟踪管理
 
 ### 发展前景
 
@@ -1388,6 +1617,7 @@ Authorization: Bearer <token>
 9. **智能报价优化**：提升报价准确性和个性化程度
 10. **教练系统智能化**：增强个性化建议的针对性和有效性
 11. **资源匹配算法**：优化匹配精度和分配效率
-12. **数据驱动决策**：提供更全面的销售洞察和预测分析
+12. **问题分类智能化**：提升问题分类的准确性和处理效率
+13. **预销售流程优化**：提供更高效的预销售活动管理体验
 
 该系统为销售团队提供了强大的智能化工具，能够显著提升销售效率和客户服务质量。
