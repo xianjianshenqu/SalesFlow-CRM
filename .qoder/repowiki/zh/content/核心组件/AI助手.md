@@ -6,18 +6,30 @@
 - [ai.controller.ts](file://crm-backend/src/controllers/ai.controller.ts)
 - [ai.service.ts](file://crm-backend/src/services/ai.service.ts)
 - [ai.routes.ts](file://crm-backend/src/routes/ai.routes.ts)
-- [followUpAnalysis.ts](file://crm-backend/src/services/ai/followUpAnalysis.ts)
-- [reportGeneration.ts](file://crm-backend/src/services/ai/reportGeneration.ts)
+- [opportunityScoring.ts](file://crm-backend/src/services/ai/opportunityScoring.ts)
+- [churnAnalysis.ts](file://crm-backend/src/services/ai/churnAnalysis.ts)
 - [types.ts](file://crm-backend/src/services/ai/types.ts)
+- [index.ts](file://crm-backend/src/services/ai/index.ts)
 - [auth.ts](file://crm-backend/src/middlewares/auth.ts)
 - [schema.prisma](file://crm-backend/prisma/schema.prisma)
+- [migration.sql](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql)
 - [package.json](file://crm-backend/package.json)
-- [FollowUpWidget.tsx](file://crm-frontend/src/components/AI/FollowUpWidget.tsx)
-- [ScriptGenerator.tsx](file://crm-frontend/src/components/AI/ScriptGenerator.tsx)
+- [OpportunityScoreCard.tsx](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx)
+- [ChurnAlertCard.tsx](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx)
+- [CustomerInsightPanel.tsx](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx)
 - [AIAssistant/index.tsx](file://crm-frontend/src/pages/AIAssistant/index.tsx)
 - [AIAudio/index.tsx](file://crm-frontend/src/pages/AIAudio/index.tsx)
 - [package.json](file://crm-frontend/package.json)
 </cite>
+
+## 更新摘要
+**所做更改**
+- 新增机会评分系统，基于BANT模型提供综合评分和成交概率预测
+- 新增客户流失风险分析系统，提供多维度风险评估和挽回建议
+- 新增智能客户洞察生成系统，展示深度客户画像和需求分析
+- 扩展AI服务架构，支持更多专业化的AI分析能力
+- 更新前端组件，提供可视化的工作流界面
+- 完善数据模型，支持新的AI分析结果存储
 
 ## 目录
 1. [简介](#简介)
@@ -25,23 +37,28 @@
 3. [核心组件](#核心组件)
 4. [架构总览](#架构总览)
 5. [详细组件分析](#详细组件分析)
-6. [依赖关系分析](#依赖关系分析)
-7. [性能考虑](#性能考虑)
-8. [故障排除指南](#故障排除指南)
-9. [结论](#结论)
+6. [新增AI功能详解](#新增ai功能详解)
+7. [前端组件架构](#前端组件架构)
+8. [依赖关系分析](#依赖关系分析)
+9. [性能考虑](#性能考虑)
+10. [故障排除指南](#故障排除指南)
+11. [结论](#结论)
 
 ## 简介
-本项目是一个基于AI的销售CRM系统，重点实现了智能AI助手功能，包括：
-- 跟进建议生成：基于客户互动数据自动分析并生成跟进策略
-- 话术生成：根据不同场景自动生成销售沟通话术
-- 智能报告：自动生成日报/周报，包含重点事项、风险提示和下一步行动
-- 录音AI分析：对通话录音进行情感分析、关键词提取和行动建议生成
-- 陌生拜访助手：基于企业信息生成销售话术和建议
+本项目是一个基于AI的销售CRM系统，重点实现了智能AI助手功能，现已扩展为完整的AI分析生态系统，包括：
+- **机会评分系统**：基于BANT模型的综合评分和成交概率预测
+- **客户流失风险分析系统**：多维度风险评估和挽回建议生成
+- **智能客户洞察生成系统**：深度客户画像和需求分析
+- **跟进建议生成**：基于客户互动数据自动分析并生成跟进策略
+- **话术生成**：根据不同场景自动生成销售沟通话术
+- **智能报告**：自动生成日报/周报，包含重点事项、风险提示和下一步行动
+- **录音AI分析**：对通话录音进行情感分析、关键词提取和行动建议生成
+- **陌生拜访助手**：基于企业信息生成销售话术和建议
 
-系统采用前后端分离架构，后端使用Node.js + Express + Prisma，前端使用React + TypeScript。
+系统采用前后端分离架构，后端使用Node.js + Express + Prisma，前端使用React + TypeScript，现已发展为功能完备的AI销售助手平台。
 
 ## 项目结构
-项目采用标准的前后端分离架构，包含以下主要目录：
+项目采用标准的前后端分离架构，现已扩展为多层AI分析架构：
 
 ```mermaid
 graph TB
@@ -68,53 +85,70 @@ O --> S[services/]
 O --> T[stores/]
 O --> U[hooks/]
 end
-subgraph "AI功能"
-V[AI服务层] --> W[模拟AI分析]
-V --> X[真实API调用]
-Y[前端组件] --> Z[API交互]
+subgraph "AI功能层"
+V[AI服务层] --> W[机会评分服务]
+V --> X[流失风险分析服务]
+V --> Y[客户洞察服务]
+V --> Z[跟进分析服务]
+Y --> AA[模拟AI分析]
+Y --> AB[真实API调用]
 end
 L --> V
 V --> Y
 Y --> Z
+Z --> AA
+Z --> AB
 ```
 
 **图表来源**
 - [app.ts:1-88](file://crm-backend/src/app.ts#L1-L88)
-- [schema.prisma:1-709](file://crm-backend/prisma/schema.prisma#L1-L709)
+- [schema.prisma:1-783](file://crm-backend/prisma/schema.prisma#L1-L783)
+- [index.ts:1-57](file://crm-backend/src/services/ai/index.ts#L1-L57)
 
 **章节来源**
 - [app.ts:1-88](file://crm-backend/src/app.ts#L1-L88)
 - [package.json:1-52](file://crm-backend/package.json#L1-L52)
 
 ## 核心组件
-系统的核心AI助手功能由以下关键组件构成：
+系统的AI助手功能现已扩展为多层次的专业分析组件：
 
 ### 后端核心组件
 1. **AI控制器 (ai.controller.ts)**：处理所有AI相关的HTTP请求
 2. **AI服务层**：封装AI分析逻辑，支持模拟和真实API调用
 3. **路由层 (ai.routes.ts)**：定义AI功能的REST API接口
 4. **中间件 (auth.ts)**：提供JWT认证和权限控制
+5. **AI服务模块 (ai/index.ts)**：统一管理所有AI服务
+
+### 新增AI分析服务
+1. **机会评分服务 (opportunityScoring.ts)**：基于BANT模型的综合评分
+2. **流失风险分析服务 (churnAnalysis.ts)**：多维度客户流失风险评估
+3. **客户洞察服务 (types.ts)**：深度客户画像分析
 
 ### 前端核心组件
 1. **AI助手页面**：提供智能报告生成功能
-2. **跟进建议小组件**：显示AI生成的跟进建议
-3. **话术生成对话框**：生成销售沟通话术
-4. **录音分析页面**：处理通话录音的AI分析
+2. **机会评分卡片**：展示综合评分和各维度分析
+3. **流失预警卡片**：显示风险评分和预警信息
+4. **客户洞察面板**：呈现客户画像和需求分析
+5. **录音分析页面**：处理通话录音的AI分析
 
 **章节来源**
-- [ai.controller.ts:1-616](file://crm-backend/src/controllers/ai.controller.ts#L1-L616)
+- [ai.controller.ts:1-800](file://crm-backend/src/controllers/ai.controller.ts#L1-L800)
 - [ai.service.ts:1-564](file://crm-backend/src/services/ai.service.ts#L1-L564)
-- [ai.routes.ts:1-53](file://crm-backend/src/routes/ai.routes.ts#L1-L53)
+- [ai.routes.ts:1-98](file://crm-backend/src/routes/ai.routes.ts#L1-L98)
+- [opportunityScoring.ts:1-613](file://crm-backend/src/services/ai/opportunityScoring.ts#L1-L613)
+- [churnAnalysis.ts:1-517](file://crm-backend/src/services/ai/churnAnalysis.ts#L1-L517)
+- [types.ts:124-276](file://crm-backend/src/services/ai/types.ts#L124-L276)
 - [auth.ts:1-69](file://crm-backend/src/middlewares/auth.ts#L1-L69)
 
 ## 架构总览
-系统采用分层架构设计，确保AI功能的模块化和可扩展性：
+系统采用分层架构设计，现已扩展为多层AI分析架构：
 
 ```mermaid
 graph TB
 subgraph "表现层"
 FE1[React前端]
 FE2[组件库]
+FE3[AI分析面板]
 end
 subgraph "API网关层"
 GW[Express应用]
@@ -123,6 +157,9 @@ end
 subgraph "业务逻辑层"
 AC[AI控制器]
 AS[AIService]
+OS[机会评分服务]
+CA[流失风险分析服务]
+CI[客户洞察服务]
 FA[跟进分析服务]
 RG[报告生成服务]
 end
@@ -136,9 +173,13 @@ REAL[真实AI API]
 end
 FE1 --> GW
 FE2 --> GW
+FE3 --> GW
 GW --> MW
 MW --> AC
 AC --> AS
+AS --> OS
+AS --> CA
+AS --> CI
 AS --> FA
 AS --> RG
 AS --> PRISMA
@@ -151,11 +192,12 @@ AS --> REAL
 - [app.ts:10-88](file://crm-backend/src/app.ts#L10-L88)
 - [ai.controller.ts:6-8](file://crm-backend/src/controllers/ai.controller.ts#L6-L8)
 - [ai.service.ts:79-564](file://crm-backend/src/services/ai.service.ts#L79-L564)
+- [index.ts:37-55](file://crm-backend/src/services/ai/index.ts#L37-L55)
 
 ## 详细组件分析
 
 ### AI服务架构
-AI服务采用策略模式，支持模拟和真实AI分析：
+AI服务采用策略模式，现已扩展为多服务架构：
 
 ```mermaid
 classDiagram
@@ -171,57 +213,90 @@ class AIService {
 -mockAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
 -generateMockResult(duration, customerInfo) AIAnalysisResult
 }
-class FollowUpAnalysisService {
--AI_CONFIG : object
-+analyzeFollowUpTiming(input) Promise~FollowUpSuggestionResult~
-+generateScript(input) Promise~ScriptGenerationResult~
--callRealAnalysis(input) Promise~FollowUpSuggestionResult~
--mockAnalysis(input) Promise~FollowUpSuggestionResult~
--generateMockSuggestion(input) FollowUpSuggestionResult
+class OpportunityScoringService {
+-SCORING_WEIGHTS : object
++analyzeOpportunity(input) Promise~OpportunityScoringResult~
++predictWinProbability(input) Promise~WinProbabilityResult~
+-calculateEngagementScore(input) number
+-calculateBudgetScore(input) number
+-calculateAuthorityScore(input) number
+-calculateNeedScore(input) number
+-calculateTimingScore(input) number
+-generateFactors(input, scores) Factors[]
+-generateRecommendations(input, scores, risks) Recommendations[]
 }
-class ReportGenerationService {
--AI_CONFIG : object
-+generateReport(input) Promise~DailyReportResult~
--callRealGeneration(input) Promise~DailyReportResult~
--mockGeneration(input) Promise~DailyReportResult~
--generateMockReport(input) DailyReportResult
+class ChurnAnalysisService {
+-RISK_WEIGHTS : object
+-RISK_THRESHOLDS : object
++analyzeChurnRisk(input) Promise~ChurnAnalysisResult~
+-calculateRiskFactors(input) RiskFactors
+-calculateLastContactRisk(input) number
+-calculateCommunicationTrendRisk(input) number
+-calculateSentimentTrendRisk(input) number
+-calculateOpportunityStagnationRisk(input) number
+-calculateTaskCompletionRisk(input) number
+-calculateContactActivityRisk(input) number
+-generateReasons(input, factors) Reasons[]
+-generateRetentionSuggestions(input, level, factors, reasons) Suggestions[]
 }
-AIService --> FollowUpAnalysisService : "使用"
-AIService --> ReportGenerationService : "使用"
+class CustomerInsightService {
+-CONFIDENCE_THRESHOLDS : object
++analyzeCustomerInsights(input) Promise~CustomerInsightResult~
+-extractNeeds(input) Needs[]
+-extractBudget(input) BudgetInfo
+-analyzeDecisionMakers(input) DecisionMakers[]
+-analyzePainPoints(input) PainPoints[]
+-analyzeCompetitorInfo(input) CompetitorInfo[]
+-generateTimeline(input) Timeline
+}
+AIService --> OpportunityScoringService : "使用"
+AIService --> ChurnAnalysisService : "使用"
+AIService --> CustomerInsightService : "使用"
 ```
 
 **图表来源**
 - [ai.service.ts:79-564](file://crm-backend/src/services/ai.service.ts#L79-L564)
-- [followUpAnalysis.ts:21-336](file://crm-backend/src/services/ai/followUpAnalysis.ts#L21-L336)
-- [reportGeneration.ts:16-301](file://crm-backend/src/services/ai/reportGeneration.ts#L16-L301)
+- [opportunityScoring.ts:42-105](file://crm-backend/src/services/ai/opportunityScoring.ts#L42-L105)
+- [churnAnalysis.ts:28-65](file://crm-backend/src/services/ai/churnAnalysis.ts#L28-L65)
+- [types.ts:219-276](file://crm-backend/src/services/ai/types.ts#L219-L276)
 
 ### 数据模型设计
-系统使用Prisma定义了完整的AI功能数据模型：
+系统使用Prisma定义了完整的AI功能数据模型，现已扩展：
 
 ```mermaid
 erDiagram
 USER ||--o{ CUSTOMER : "拥有"
 USER ||--o{ AUDIO_RECORDING : "创建"
 USER ||--o{ DAILY_REPORT : "生成"
+USER ||--o{ CHURN_ALERT : "创建"
+USER ||--o{ OPPORTUNITY_SCORE : "计算"
 CUSTOMER ||--o{ AUDIO_RECORDING : "拥有"
 CUSTOMER ||--o{ FOLLOW_UP_SUGGESTION : "产生"
 CUSTOMER ||--o{ CONTACT : "包含"
+CUSTOMER ||--o{ CHURN_ALERT : "产生"
+CUSTOMER ||--o{ CUSTOMER_INSIGHT : "产生"
 AUDIO_RECORDING ||--|| SENTIMENT : "情感分析"
 AUDIO_RECORDING ||--|| TASK : "触发行动"
 FOLLOW_UP_SUGGESTION ||--|| CUSTOMER : "关联"
 DAILY_REPORT ||--|| USER : "属于"
+CHURN_ALERT ||--|| CUSTOMER : "关联"
+OPPORTUNITY_SCORE ||--|| CUSTOMER : "关联"
+CUSTOMER_INSIGHT ||--|| CUSTOMER : "关联"
 note for USER "用户表<br/>包含认证信息和角色"
 note for CUSTOMER "客户表<br/>包含客户基本信息和AI字段"
 note for AUDIO_RECORDING "录音表<br/>存储通话录音和分析结果"
 note for FOLLOW_UP_SUGGESTION "跟进建议表<br/>AI生成的跟进策略"
 note for DAILY_REPORT "日报表<br/>智能报告内容"
+note for CHURN_ALERT "流失预警表<br/>客户流失风险分析"
+note for OPPORTUNITY_SCORE "商机评分表<br/>BANT模型评分结果"
+note for CUSTOMER_INSIGHT "客户洞察表<br/>深度客户画像分析"
 ```
 
 **图表来源**
-- [schema.prisma:121-709](file://crm-backend/prisma/schema.prisma#L121-L709)
+- [schema.prisma:572-613](file://crm-backend/prisma/schema.prisma#L572-L613)
 
 ### API接口设计
-AI功能提供了完整的REST API接口：
+AI功能提供了完整的REST API接口，现已扩展为多服务架构：
 
 ```mermaid
 sequenceDiagram
@@ -244,16 +319,103 @@ Controller-->>Client : 返回JSON响应
 ```
 
 **图表来源**
-- [ai.routes.ts:20-52](file://crm-backend/src/routes/ai.routes.ts#L20-L52)
+- [ai.routes.ts:32-98](file://crm-backend/src/routes/ai.routes.ts#L32-L98)
 - [ai.controller.ts:13-191](file://crm-backend/src/controllers/ai.controller.ts#L13-L191)
 
 **章节来源**
-- [ai.controller.ts:1-616](file://crm-backend/src/controllers/ai.controller.ts#L1-L616)
-- [ai.routes.ts:1-53](file://crm-backend/src/routes/ai.routes.ts#L1-L53)
+- [ai.controller.ts:1-800](file://crm-backend/src/controllers/ai.controller.ts#L1-L800)
+- [ai.routes.ts:1-98](file://crm-backend/src/routes/ai.routes.ts#L1-L98)
 - [schema.prisma:572-613](file://crm-backend/prisma/schema.prisma#L572-L613)
 
-### 前端组件架构
-前端采用组件化设计，提供直观的AI助手界面：
+## 新增AI功能详解
+
+### 机会评分系统
+基于BANT模型的综合评分系统，提供全面的商机评估：
+
+#### 核心评分维度
+- **互动活跃度 (Engagement)**：客户参与度和跟进频率
+- **预算匹配度 (Budget)**：客户预算范围和支付能力
+- **决策人接触 (Authority)**：关键决策者的接触程度
+- **需求明确度 (Need)**：客户需求的清晰程度
+- **时机成熟度 (Timing)**：成交时机的成熟程度
+
+#### 成交概率预测
+系统不仅提供静态评分，还能预测不同时间窗口内的成交概率：
+- 30天成交概率
+- 60天成交概率  
+- 90天成交概率
+
+#### 风险因素识别
+自动识别潜在风险并提供改进建议：
+- 互动不足风险
+- 决策人接触风险
+- 时机不成熟风险
+- 负面情感风险
+
+**章节来源**
+- [opportunityScoring.ts:1-613](file://crm-backend/src/services/ai/opportunityScoring.ts#L1-L613)
+- [types.ts:124-172](file://crm-backend/src/services/ai/types.ts#L124-L172)
+
+### 客户流失风险分析系统
+多维度客户流失风险评估和预警机制：
+
+#### 风险因子分析
+- **最近联系时间**：超过30天未联系的高风险
+- **沟通频率变化**：近期沟通明显减少
+- **录音情感趋势**：客户态度转冷的迹象
+- **商机停滞时间**：超过45天无进展
+- **任务完成率**：跟进任务积压严重
+- **联系人活跃度**：关键联系人互动减少
+
+#### 风险等级评估
+- **高风险 (70+)**：需要立即采取行动
+- **中风险 (40-69)**：需要密切关注
+- **低风险 (40-)**：风险可控
+
+#### 挽回建议生成
+基于风险分析自动生成针对性建议：
+- 高价值客户专属服务
+- 立即安排高层拜访
+- 个性化沟通策略
+- 特殊资源支持申请
+
+**章节来源**
+- [churnAnalysis.ts:1-517](file://crm-backend/src/services/ai/churnAnalysis.ts#L1-L517)
+- [types.ts:174-217](file://crm-backend/src/services/ai/types.ts#L174-L217)
+
+### 智能客户洞察生成系统
+深度客户画像分析和需求挖掘：
+
+#### 客户需求分析
+- **提取的需求**：从通话记录中识别的关键需求
+- **需求优先级**：高、中、低三个等级
+- **需求来源**：识别需求的具体场景和上下文
+
+#### 预算信息提取
+- **预算范围**：客户可接受的价格区间
+- **支付时间线**：客户的付款计划和时间安排
+- **置信度评估**：分析结果的可信度
+
+#### 决策人分析
+- **决策者识别**：关键决策者的姓名和职位
+- **影响力评估**：高、中、低三个等级
+- **支持度分析**：支持、中立、反对三种态度
+
+#### 痛点识别
+- **痛点分类**：按严重程度和类型分类
+- **影响范围**：对业务的影响程度
+- **解决建议**：针对性的解决方案
+
+#### 竞品分析
+- **竞争对手信息**：主要竞品的优势和劣势
+- **市场定位**：竞品的市场策略和定位
+- **差异化建议**：突出自身优势的策略
+
+**章节来源**
+- [types.ts:219-276](file://crm-backend/src/services/ai/types.ts#L219-L276)
+
+## 前端组件架构
+前端采用组件化设计，提供直观的AI助手界面，现已扩展为多组件架构：
 
 ```mermaid
 graph TB
@@ -263,16 +425,24 @@ RL[报告列表]
 RD[报告详情]
 GR[生成报告卡片]
 end
-subgraph "跟进建议组件"
-FW[跟进建议小组件]
-SC[状态更新]
-CL[点击事件]
+subgraph "机会分析组件"
+OSC[机会评分卡片]
+SS[评分概览]
+RS[风险因素]
+REC[改进建议]
 end
-subgraph "话术生成组件"
-SG[话术生成对话框]
-CT[联系方式选择]
-PU[沟通目的选择]
-CG[生成按钮]
+subgraph "流失预警组件"
+CAC[流失预警卡片]
+SIG[预警信号]
+REAS[风险原因]
+SUG[挽回建议]
+end
+subgraph "客户洞察组件"
+CIP[客户洞察面板]
+NEED[需求分析]
+DEC[决策人分析]
+PAIN[痛点识别]
+COMP[竞品分析]
 end
 subgraph "录音分析页面"
 AP[AIAudio页面]
@@ -284,11 +454,19 @@ end
 AA --> RL
 AA --> RD
 AA --> GR
-FW --> SC
-FW --> CL
-SG --> CT
-SG --> PU
-SG --> CG
+AA --> OSC
+AA --> CAC
+AA --> CIP
+OSC --> SS
+OSC --> RS
+OSC --> REC
+CAC --> SIG
+CAC --> REAS
+CAC --> SUG
+CIP --> NEED
+CIP --> DEC
+CIP --> PAIN
+CIP --> COMP
 AP --> RL2
 AP --> PL
 AP --> AI
@@ -297,18 +475,74 @@ AP --> SL
 
 **图表来源**
 - [AIAssistant/index.tsx:50-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L50-L376)
-- [FollowUpWidget.tsx:59-208](file://crm-frontend/src/components/AI/FollowUpWidget.tsx#L59-L208)
-- [ScriptGenerator.tsx:35-270](file://crm-frontend/src/components/AI/ScriptGenerator.tsx#L35-L270)
+- [OpportunityScoreCard.tsx:54-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L336)
+- [ChurnAlertCard.tsx:62-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L326)
+- [CustomerInsightPanel.tsx:80-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L80-L381)
 - [AIAudio/index.tsx:27-441](file://crm-frontend/src/pages/AIAudio/index.tsx#L27-L441)
 
+### 机会评分卡片组件
+提供可视化的商机评分展示和分析：
+
+#### 功能特性
+- **综合评分展示**：圆形仪表盘显示整体评分
+- **成交概率预测**：30/60/90天概率对比
+- **维度评分分析**：五个维度的详细评分
+- **风险因素识别**：自动识别的潜在风险
+- **改进建议**：针对性的优化建议
+
+#### 用户交互
+- **实时刷新**：支持手动刷新数据
+- **详细分析**：切换到详细分析视图
+- **建议执行**：直接跳转到相关操作
+
 **章节来源**
-- [FollowUpWidget.tsx:1-208](file://crm-frontend/src/components/AI/FollowUpWidget.tsx#L1-L208)
-- [ScriptGenerator.tsx:1-270](file://crm-frontend/src/components/AI/ScriptGenerator.tsx#L1-L270)
+- [OpportunityScoreCard.tsx:1-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L1-L336)
+
+### 流失预警卡片组件
+提供客户流失风险的实时监控和预警：
+
+#### 功能特性
+- **风险评分展示**：圆形仪表盘显示风险等级
+- **预警信号识别**：自动检测的风险信号
+- **风险原因分析**：详细的原因分析和证据
+- **挽回建议**：针对性的挽留策略
+- **状态管理**：预警处理状态跟踪
+
+#### 用户交互
+- **风险等级标识**：颜色编码的风险等级
+- **处理操作**：标记已处理或忽略
+- **详细分析**：查看详细的风险分析
+- **快速行动**：一键跳转到相关功能
+
+**章节来源**
+- [ChurnAlertCard.tsx:1-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L1-L326)
+
+### 客户洞察面板组件
+提供深度的客户画像分析和需求洞察：
+
+#### 功能特性
+- **需求分析**：提取和分类客户需求
+- **预算信息**：识别客户预算和时间线
+- **决策人分析**：识别关键决策者和支持度
+- **痛点识别**：发现客户的核心痛点
+- **竞品分析**：了解竞争对手情况
+- **时间线预测**：预测关键决策时间
+
+#### 用户交互
+- **标签页切换**：在不同分析维度间切换
+- **置信度评估**：显示分析结果的可信度
+- **详细信息**：查看具体的分析证据
+- **快速行动**：基于洞察采取相应行动
+
+**章节来源**
+- [CustomerInsightPanel.tsx:1-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L1-L381)
+
+**章节来源**
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 - [AIAudio/index.tsx:1-441](file://crm-frontend/src/pages/AIAudio/index.tsx#L1-L441)
 
 ## 依赖关系分析
-系统依赖关系清晰，采用模块化设计：
+系统依赖关系清晰，现已扩展为多层架构：
 
 ```mermaid
 graph TB
@@ -319,6 +553,13 @@ JWT[jsonwebtoken] --> AUTH[认证]
 SWAGGER[swagger-ui-express] --> DOC[API文档]
 HELMET[helmet] --> SEC[安全]
 CORS[cors] --> NET[网络]
+ENDPOINT[express-rate-limit] --> THROTTLE[限流]
+MORGAN[morgan] --> LOG[日志]
+WINSTON[winston] --> LOG
+ENDPOINT --> AI[AI服务]
+AI --> OPENAI[OpenAI SDK]
+AI --> TENCENT[Tencent AI]
+AI --> BAIDU[Baidu AI]
 end
 subgraph "AI依赖"
 BCRYPT[bcryptjs] --> PASS[密码加密]
@@ -331,6 +572,10 @@ REACT[react] --> UI[用户界面]
 ROUTER[react-router-dom] --> NAV[导航]
 ZUSTAND[zustand] --> STATE[状态管理]
 TAILWIND[tailwindcss] --> STYLE[样式]
+REACT_QUERY[react-query] --> CACHE[缓存]
+REACT_HOOK_FORM[react-hook-form] --> VALIDATION[表单验证]
+MATERIAL[mui/material] --> COMPONENTS[UI组件]
+MATERIAL_ICONS[material-icons] --> ICONS[图标]
 end
 APP --> EX
 APP --> PRISMA
@@ -338,6 +583,7 @@ APP --> JWT
 APP --> SWAGGER
 APP --> HELMET
 APP --> CORS
+APP --> ENDPOINT
 ```
 
 **图表来源**
@@ -349,22 +595,31 @@ APP --> CORS
 - [package.json:1-38](file://crm-frontend/package.json#L1-L38)
 
 ## 性能考虑
-系统在设计时充分考虑了性能优化：
+系统在设计时充分考虑了性能优化，现已针对多AI服务进行优化：
 
 ### 缓存策略
-- AI分析结果缓存：避免重复计算相同数据
-- 前端组件缓存：减少重复渲染
-- 数据库查询优化：使用索引和分页
+- **AI分析结果缓存**：避免重复计算相同数据
+- **前端组件缓存**：减少重复渲染
+- **数据库查询优化**：使用索引和分页
+- **API响应缓存**：热点数据缓存
 
 ### 并发处理
-- Promise并行执行：同时获取多个数据源
-- 异步处理：非阻塞的AI分析
-- 连接池管理：数据库连接复用
+- **Promise并行执行**：同时获取多个数据源
+- **异步处理**：非阻塞的AI分析
+- **连接池管理**：数据库连接复用
+- **AI服务并发控制**：防止AI服务过载
 
 ### 资源优化
-- 图片懒加载：减少初始加载时间
-- 组件按需加载：提高首屏速度
-- 压缩传输：减少网络开销
+- **图片懒加载**：减少初始加载时间
+- **组件按需加载**：提高首屏速度
+- **压缩传输**：减少网络开销
+- **AI模型优化**：使用轻量级模型
+
+### 性能监控
+- **AI服务性能监控**：分析AI分析耗时
+- **数据库查询监控**：识别慢查询
+- **前端性能监控**：组件渲染性能
+- **API响应时间监控**：接口性能跟踪
 
 ## 故障排除指南
 常见问题及解决方案：
@@ -384,6 +639,7 @@ APP --> CORS
 1. 设置环境变量：TENCENT_SECRET_ID, TENCENT_SECRET_KEY
 2. 配置正确的API区域
 3. 检查网络连接
+4. 验证AI服务可用性
 
 ### 数据库连接问题
 **症状**：查询超时或连接失败
@@ -393,30 +649,61 @@ APP --> CORS
 2. 确认数据库服务运行正常
 3. 验证网络连通性
 
+### AI服务性能问题
+**症状**：AI分析响应缓慢
+**原因**：AI服务过载或配置不当
+**解决方案**：
+1. 检查AI服务实例数量
+2. 配置适当的并发限制
+3. 优化AI模型参数
+4. 实施AI分析缓存策略
+
+### 前端组件渲染问题
+**症状**：AI分析组件渲染异常
+**原因**：数据格式不匹配或组件状态异常
+**解决方案**：
+1. 检查API响应数据格式
+2. 验证组件props传递
+3. 查看浏览器控制台错误
+4. 确认组件依赖版本兼容
+
 **章节来源**
 - [auth.ts:13-33](file://crm-backend/src/middlewares/auth.ts#L13-L33)
 - [ai.service.ts:66-73](file://crm-backend/src/services/ai.service.ts#L66-L73)
 - [schema.prisma:8-11](file://crm-backend/prisma/schema.prisma#L8-L11)
 
 ## 结论
-本AI助手系统通过模块化设计和分层架构，成功实现了销售场景下的智能化功能。系统具备以下特点：
+本AI助手系统现已发展为功能完备的智能销售分析平台，通过模块化设计和分层架构，成功实现了销售场景下的全方位智能化功能。系统具备以下特点：
 
 ### 技术优势
 - **模块化设计**：AI功能独立封装，易于维护和扩展
+- **多层架构**：从基础分析到高级洞察的完整AI生态系统
 - **双模式支持**：既支持模拟AI分析，又可接入真实AI服务
 - **完整生态**：从前端到后端的全栈AI解决方案
 - **数据驱动**：基于客户数据的智能分析和建议
+- **实时监控**：多维度的客户状态实时跟踪
 
 ### 应用价值
 - **提升效率**：自动化生成跟进策略和销售话术
 - **降低门槛**：无需专业知识即可使用AI功能
 - **数据洞察**：提供深度的客户行为分析
 - **流程优化**：标准化销售流程和工作习惯
+- **风险控制**：提前识别和预防客户流失
+- **决策支持**：提供数据驱动的业务决策依据
+
+### 功能特色
+- **机会评分**：基于BANT模型的综合评估
+- **流失预警**：多维度风险监控和预警
+- **客户洞察**：深度客户画像和需求分析
+- **智能建议**：针对性的改进建议和行动方案
+- **可视化展示**：直观的数据展示和分析界面
 
 ### 发展方向
 1. **AI能力增强**：集成更多AI模型和算法
 2. **个性化定制**：支持企业特定的销售流程
 3. **多语言支持**：扩展国际化能力
 4. **移动端优化**：提供更好的移动用户体验
+5. **实时协作**：支持团队协作和知识共享
+6. **预测分析**：提供更精准的业务预测能力
 
-该系统为销售团队提供了强大的AI助手，能够显著提升销售效率和客户服务质量。
+该系统为销售团队提供了强大的AI助手，能够显著提升销售效率和客户服务质量，是现代CRM系统的重要发展方向。

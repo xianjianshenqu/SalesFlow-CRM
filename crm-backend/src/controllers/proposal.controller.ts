@@ -128,6 +128,48 @@ class ProposalController {
   }
 
   /**
+   * AI智能生成完整方案
+   * @route POST /api/v1/proposals/:id/smart-generate
+   */
+  async generateSmartProposal(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await proposalService.generateSmartProposal(id);
+      return success(res, result, 'AI智能方案生成成功');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * 获取智能定价策略
+   * @route GET /api/v1/proposals/:id/pricing-strategy
+   */
+  async getPricingStrategy(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await proposalService.getPricingStrategy(id);
+      return success(res, result, '获取定价策略成功');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * 获取推荐产品组合
+   * @route GET /api/v1/proposals/:id/recommend-products
+   */
+  async getRecommendedProducts(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await proposalService.getRecommendedProducts(id);
+      return success(res, result, '获取产品推荐成功');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * 获取方案统计
    * @route GET /api/v1/proposals/stats
    */

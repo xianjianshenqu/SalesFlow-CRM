@@ -15,6 +15,7 @@ import contactRoutes from './contacts.routes';
 import businessCardRoutes from './businessCards.routes';
 import coldVisitRoutes from './coldVisit.routes';
 import aiRoutes from './ai.routes';
+import performanceRoutes from './performance.routes';
 
 const router = Router();
 
@@ -37,5 +38,6 @@ router.use('/', contactRoutes);  // Contact routes include both /customers/:id/c
 router.use('/', businessCardRoutes);  // Business card routes
 router.use('/cold-visit', coldVisitRoutes);  // Cold visit AI assistant routes
 router.use('/ai', aiRoutes);  // AI feature routes
+router.use('/performance', performanceRoutes);  // Sales performance routes
 
 export default router;

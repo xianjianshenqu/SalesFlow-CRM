@@ -530,7 +530,7 @@ class OpportunityScoringService {
     scores: { engagement: number; budget: number; authority: number; need: number; timing: number },
     riskFactors: OpportunityScoringResult['riskFactors']
   ): OpportunityScoringResult['recommendations'] {
-    const recommendations: OpportunityScordingResult['recommendations'] = [];
+    const recommendations: OpportunityScoringResult['recommendations'] = [];
 
     // 基于评分最低维度给出建议
     const sortedScores = Object.entries(scores).sort((a, b) => a[1] - b[1]);

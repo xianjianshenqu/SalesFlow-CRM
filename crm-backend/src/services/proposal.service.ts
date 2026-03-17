@@ -1,6 +1,8 @@
 import { PrismaClient, ProposalStatus } from '@prisma/client';
 import prisma from '../repositories/prisma';
 import { CreateProposalInput, UpdateProposalInput, UpdateProposalStatusInput, ProposalQueryInput } from '../validators/proposal.validator';
+import { proposalAIService } from './ai';
+import { SmartQuotationResult, ProposalGenerationResult } from './ai/types';
 
 /**
  * 商务方案服务 - 处理商务方案相关的业务逻辑
@@ -311,6 +313,203 @@ ${Array.isArray(proposal.products) && proposal.products.length > 0
       include: {
         customer: {
           select: { id: true, name: true, company: true, email: true },
+        },
+      },
+    });
+  }
+
+  // ==================== AI增强功能 ====================
+
+  /**
+   * 智能生成完整方案
+   * 基于客户信息AI生成方案内容
+   */
+  async generateSmartProposal(id: string): Promise<ProposalGenerationResult> {
+    const proposal = await this.getById(id);
+    if (!proposal) {
+      throw new Error('方案不存在');
+    }
+
+    // 获取客户详细信息
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: proposal.customerId },
+      select: {
+        id: true,
+        name: true,
+        company: true,
+        industry: true,
+        notes: true,
+      },
+    });
+
+    // 获取客户洞察（如果有）- 使用类型断言
+    const customerInsight = await (this.prisma as any).customerInsight?.findUnique?.({
+      where: { customerId: proposal.customerId },
+    });
+
+    // 构建AI输入
+    const aiInput = {
+      customerId: proposal.customerId,
+      customerName: customer?.name ?? customer?.company ?? undefined,
+      industry: customer?.industry ?? undefined,
+      company: customer?.company ?? customer?.name ?? undefined,
+      title: proposal.title,
+      value: Number(proposal.value),
+      description: proposal.description ?? undefined,
+      products: proposal.products as Array<{ name: string; quantity: number; unitPrice: number; totalPrice: number }> || [],
+      customerNeeds: (customerInsight?.extractedNeeds as string[]) ?? undefined,
+      painPoints: ((customerInsight?.painPoints as Array<{ point: string }>)?.map(p => p.point)) ?? undefined,
+    };
+
+    // 调用AI服务生成方案
+    const generatedProposal = await proposalAIService.generateProposalContent(aiInput);
+
+    // 更新方案内容
+    await this.prisma.proposal.update({
+      where: { id },
+      data: {
+        terms: generatedProposal.terms,
+        products: generatedProposal.productRecommendations.map(p => ({
+          name: p.name,
+          quantity: p.quantity,
+          unitPrice: p.unitPrice,
+          totalPrice: p.totalPrice,
+        })),
+        description: generatedProposal.executiveSummary,
+      },
+    });
+
+    return generatedProposal;
+  }
+
+  /**
+   * 获取智能定价策略
+   */
+  async getPricingStrategy(id: string): Promise<SmartQuotationResult> {
+    const proposal = await this.getById(id);
+    if (!proposal) {
+      throw new Error('方案不存在');
+    }
+
+    // 获取客户详细信息
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: proposal.customerId },
+      select: {
+        id: true,
+        name: true,
+        company: true,
+        industry: true,
+        estimatedValue: true,
+      },
+    });
+
+    // 获取客户历史交易
+    const previousDeals = await this.prisma.proposal.findMany({
+      where: {
+        customerId: proposal.customerId,
+        status: 'accepted',
+      },
+      select: { value: true, products: true, createdAt: true },
+      take: 5,
+    });
+
+    // 构建AI输入
+    const aiInput = {
+      customerId: proposal.customerId,
+      customerName: customer?.name ?? customer?.company ?? undefined,
+      industry: customer?.industry ?? undefined,
+      company: customer?.company ?? customer?.name ?? undefined,
+      estimatedValue: Number(proposal.value),
+      products: (proposal.products as Array<{ name: string; quantity: number; unitPrice?: number }>) || [],
+      previousDeals: previousDeals.map(d => ({
+        value: Number(d.value),
+        products: (d.products as string[]) || [],
+        date: d.createdAt,
+      })),
+    };
+
+    // 调用AI服务获取定价策略
+    return proposalAIService.generateSmartQuotation(aiInput);
+  }
+
+  /**
+   * 获取推荐产品组合
+   */
+  async getRecommendedProducts(id: string): Promise<Array<{
+    name: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    benefit: string;
+    priority: 'essential' | 'recommended' | 'optional';
+  }>> {
+    const proposal = await this.getById(id);
+    if (!proposal) {
+      throw new Error('方案不存在');
+    }
+
+    // 获取客户信息
+    const customer = await this.prisma.customer.findUnique({
+      where: { id: proposal.customerId },
+      select: {
+        id: true,
+        name: true,
+        company: true,
+        industry: true,
+      },
+    });
+
+    // 调用AI生成方案，提取产品推荐
+    const generatedProposal = await proposalAIService.generateProposalContent({
+      customerId: proposal.customerId,
+      customerName: customer?.name ?? customer?.company ?? undefined,
+      industry: customer?.industry ?? undefined,
+      company: customer?.company ?? customer?.name ?? undefined,
+      title: proposal.title,
+      value: Number(proposal.value),
+      description: proposal.description ?? undefined,
+    });
+
+    return generatedProposal.productRecommendations;
+  }
+
+  /**
+   * AI生成方案（增强版）
+   * 结合客户洞察和历史数据生成更智能的方案
+   */
+  async generateWithAIEnhanced(id: string) {
+    const proposal = await this.getById(id);
+    if (!proposal) {
+      throw new Error('方案不存在');
+    }
+
+    // 同时获取定价策略和方案内容
+    const [pricingStrategy, generatedContent] = await Promise.all([
+      this.getPricingStrategy(id),
+      this.generateSmartProposal(id),
+    ]);
+
+    // 应用定价策略
+    const finalValue = pricingStrategy.recommendedPrice;
+
+    // 更新方案
+    return this.prisma.proposal.update({
+      where: { id },
+      data: {
+        value: finalValue,
+        terms: generatedContent.terms,
+        products: generatedContent.productRecommendations.map(p => ({
+          name: p.name,
+          quantity: p.quantity,
+          unitPrice: p.unitPrice,
+          totalPrice: p.totalPrice,
+        })),
+        description: generatedContent.executiveSummary,
+      },
+      include: {
+        customer: {
+          select: { id: true, name: true, company: true },
         },
       },
     });

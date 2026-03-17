@@ -53,7 +53,7 @@ class ChurnAnalysisService {
     const signals = this.identifySignals(input, riskFactors);
 
     // 生成挽回建议
-    const suggestions = this.generateRetentionSuggestions(input, riskLevel, riskFactors, reasons);
+    const suggestions = await this.generateRetentionSuggestions(input, riskLevel, riskFactors, reasons);
 
     return {
       riskLevel,

@@ -3,6 +3,12 @@
 <cite>
 **本文档引用的文件**
 - [ai.service.ts](file://crm-backend/src/services/ai.service.ts)
+- [opportunityScoring.ts](file://crm-backend/src/services/ai/opportunityScoring.ts)
+- [churnAnalysis.ts](file://crm-backend/src/services/ai/churnAnalysis.ts)
+- [reportGeneration.ts](file://crm-backend/src/services/ai/reportGeneration.ts)
+- [resourceMatching.ts](file://crm-backend/src/services/ai/resourceMatching.ts)
+- [salesCoach.ts](file://crm-backend/src/services/ai/salesCoach.ts)
+- [index.ts](file://crm-backend/src/services/ai/index.ts)
 - [recording.controller.ts](file://crm-backend/src/controllers/recording.controller.ts)
 - [recording.service.ts](file://crm-backend/src/services/recording.service.ts)
 - [recordings.routes.ts](file://crm-backend/src/routes/recordings.routes.ts)
@@ -13,6 +19,9 @@
 - [AIAnalysisPanel.tsx](file://crm-frontend/src/pages/AIAudio/components/AIAnalysisPanel.tsx)
 - [AudioPlayer.tsx](file://crm-frontend/src/pages/AIAudio/components/AudioPlayer.tsx)
 - [RecordingList.tsx](file://crm-frontend/src/pages/AIAudio/components/RecordingList.tsx)
+- [OpportunityScoreCard.tsx](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx)
+- [ChurnAlertCard.tsx](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx)
+- [CustomerInsightPanel.tsx](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx)
 - [index.ts](file://crm-frontend/src/types/index.ts)
 - [package.json](file://crm-backend/package.json)
 - [schema.prisma](file://crm-backend/prisma/schema.prisma)
@@ -24,10 +33,10 @@
 
 ## 更新摘要
 **变更内容**
-- 新增数据库迁移和AI功能相关组件的详细说明
-- 更新数据模型部分，包含完整的AI功能数据库结构
-- 增加数据库版本管理和迁移流程说明
-- 补充AI分析结果的数据持久化机制
+- 新增AI智能分析功能：机会评分系统、客户流失预警系统、智能客户洞察生成系统
+- 扩展AI服务架构，增加商机评分、流失预警、客户洞察等高级AI分析功能
+- 更新数据库迁移和AI功能相关组件的详细说明
+- 增加AI分析结果的数据持久化机制
 - 更新前端界面与AI功能的集成说明
 
 ## 目录
@@ -35,13 +44,14 @@
 2. [系统架构](#系统架构)
 3. [核心组件分析](#核心组件分析)
 4. [AI音频分析流程](#ai音频分析流程)
-5. [数据库迁移与版本管理](#数据库迁移与版本管理)
-6. [前端界面设计](#前端界面设计)
-7. [数据模型](#数据模型)
-8. [API接口设计](#api接口设计)
-9. [性能考虑](#性能考虑)
-10. [故障排除指南](#故障排除指南)
-11. [总结](#总结)
+5. [AI智能分析功能](#ai智能分析功能)
+6. [数据库迁移与版本管理](#数据库迁移与版本管理)
+7. [前端界面设计](#前端界面设计)
+8. [数据模型](#数据模型)
+9. [API接口设计](#api接口设计)
+10. [性能考虑](#性能考虑)
+11. [故障排除指南](#故障排除指南)
+12. [总结](#总结)
 
 ## 项目概述
 
@@ -56,6 +66,7 @@
 - **钉钉集成**：支持从钉钉平台同步录音数据
 - **实时播放**：内置音频播放器支持多种播放控制
 - **AI功能扩展**：支持客户洞察、流失预警、商机评分等AI功能
+- **智能分析系统**：提供机会评分、客户流失预警、智能客户洞察等高级AI分析功能
 
 ## 系统架构
 
@@ -70,17 +81,24 @@ FE3[音频播放器]
 FE4[AI分析面板]
 FE5[统计概览]
 FE6[智能建议列表]
+FE7[商机评分卡片]
+FE8[流失预警卡片]
+FE9[客户洞察面板]
 end
 subgraph "API层"
 API1[录音路由]
 API2[分析路由]
 API3[统计路由]
+API4[AI分析路由]
 end
 subgraph "业务逻辑层"
 BL1[录音控制器]
 BL2[录音服务]
 BL3[AI服务]
 BL4[AI分析服务]
+BL5[机会评分服务]
+BL6[流失预警服务]
+BL7[客户洞察服务]
 end
 subgraph "数据访问层"
 DA1[Prisma ORM]
@@ -91,6 +109,7 @@ subgraph "外部服务"
 ES1[钉钉API]
 ES2[AI分析服务]
 ES3[文件存储]
+ES4[Tencent Cloud API]
 end
 FE1 --> API1
 FE2 --> API1
@@ -98,23 +117,36 @@ FE3 --> API1
 FE4 --> API2
 FE5 --> API3
 FE6 --> API2
+FE7 --> API4
+FE8 --> API4
+FE9 --> API4
 API1 --> BL1
 API2 --> BL1
 API3 --> BL1
+API4 --> BL5
+API4 --> BL6
+API4 --> BL7
 BL1 --> BL2
 BL2 --> BL3
 BL2 --> BL4
+BL5 --> BL3
+BL6 --> BL3
+BL7 --> BL3
 BL2 --> DA1
 DA1 --> DA2
 DA3 --> DA2
 BL3 --> ES2
 BL4 --> ES2
+BL5 --> ES4
+BL6 --> ES4
+BL7 --> ES4
 BL1 --> ES1
 ```
 
 **图表来源**
 - [app.ts:74-78](file://crm-backend/src/app.ts#L74-L78)
 - [recordings.routes.ts:12-355](file://crm-backend/src/routes/recordings.routes.ts#L12-L355)
+- [index.ts:37-55](file://crm-backend/src/services/ai/index.ts#L37-L55)
 
 ## 核心组件分析
 
@@ -257,6 +289,99 @@ API-->>Frontend : 显示分析结果
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
 - [ai.service.ts:86-98](file://crm-backend/src/services/ai.service.ts#L86-L98)
 
+## AI智能分析功能
+
+系统新增了三大核心AI智能分析功能，提供更全面的销售智能分析能力。
+
+### 商机评分系统
+
+商机评分系统基于BANT模型（Budget预算、Authority决策权、Need需求、Timeline时机）对销售商机进行全面评估。
+
+```mermaid
+flowchart TD
+Start([商机评分开始]) --> Collect[收集商机数据]
+Collect --> Engagement[计算互动活跃度]
+Collect --> Budget[计算预算匹配度]
+Collect --> Authority[计算决策人接触度]
+Collect --> Need[计算需求明确度]
+Collect --> Timing[计算时机成熟度]
+Engagement --> Weight[加权计算]
+Budget --> Weight
+Authority --> Weight
+Need --> Weight
+Timing --> Weight
+Weight --> Score[生成综合评分]
+Score --> Probability[计算成交概率]
+Probability --> Factors[生成评分因子]
+Factors --> Risks[识别风险因素]
+Risks --> Recommendations[生成改进建议]
+Recommendations --> End([评分完成])
+```
+
+**图表来源**
+- [opportunityScoring.ts:46-105](file://crm-backend/src/services/ai/opportunityScoring.ts#L46-L105)
+
+### 客户流失预警系统
+
+客户流失预警系统通过多维度指标分析客户流失风险，提供预警信号和挽回建议。
+
+```mermaid
+flowchart TD
+Start([流失预警开始]) --> Data[收集客户数据]
+Data --> RiskFactors[计算风险因子]
+RiskFactors --> LastContact[最近联系时间]
+RiskFactors --> Communication[沟通频率变化]
+RiskFactors --> Sentiment[情感趋势]
+RiskFactors --> Opportunity[商机停滞]
+RiskFactors --> TaskCompletion[任务完成率]
+RiskFactors --> ContactActivity[联系人活跃度]
+LastContact --> RiskScore[计算风险分数]
+Communication --> RiskScore
+Sentiment --> RiskScore
+Opportunity --> RiskScore
+TaskCompletion --> RiskScore
+ContactActivity --> RiskScore
+RiskScore --> RiskLevel[确定风险等级]
+RiskLevel --> Reasons[生成流失原因]
+Reasons --> Signals[识别预警信号]
+Signals --> Suggestions[生成挽回建议]
+Suggestions --> End([预警完成])
+```
+
+**图表来源**
+- [churnAnalysis.ts:32-65](file://crm-backend/src/services/ai/churnAnalysis.ts#L32-L65)
+
+### 智能客户洞察生成系统
+
+智能客户洞察系统从录音和客户数据中提取关键洞察信息，包括需求、预算、决策人等。
+
+```mermaid
+flowchart TD
+Start([客户洞察开始]) --> Input[输入客户数据]
+Input --> Extract[提取需求信息]
+Input --> Budget[提取预算信息]
+Input --> Decision[识别决策人]
+Input --> PainPoints[分析痛点]
+Input --> Timeline[提取时间线]
+Extract --> Confidence[计算置信度]
+Budget --> Confidence
+Decision --> Confidence
+PainPoints --> Confidence
+Timeline --> Confidence
+Confidence --> Insights[生成洞察报告]
+Insights --> End([洞察完成])
+```
+
+**图表来源**
+- [customerInsight.ts](file://crm-backend/src/services/ai/customerInsight.ts)
+
+**章节来源**
+- [opportunityScoring.ts:42-611](file://crm-backend/src/services/ai/opportunityScoring.ts#L42-L611)
+- [churnAnalysis.ts:28-517](file://crm-backend/src/services/ai/churnAnalysis.ts#L28-L517)
+- [reportGeneration.ts:16-301](file://crm-backend/src/services/ai/reportGeneration.ts#L16-L301)
+- [resourceMatching.ts:44-692](file://crm-backend/src/services/ai/resourceMatching.ts#L44-L692)
+- [salesCoach.ts:51-780](file://crm-backend/src/services/ai/salesCoach.ts#L51-L780)
+
 ## 数据库迁移与版本管理
 
 系统采用Prisma进行数据库管理，支持完整的数据库迁移和版本控制。
@@ -347,6 +472,14 @@ F[AI分析面板]
 G[智能建议列表]
 H[上传录音弹窗]
 end
+subgraph "AI智能分析组件"
+I[商机评分卡片]
+J[流失预警卡片]
+K[客户洞察面板]
+L[销售绩效分析]
+M[资源智能匹配]
+N[AI教练建议]
+end
 subgraph "录音列表组件"
 D1[客户头像]
 D2[录音信息]
@@ -381,6 +514,9 @@ E --> E1
 E --> E2
 E --> E3
 E --> E4
+I --> I1
+J --> J1
+K --> K1
 ```
 
 **图表来源**
@@ -388,6 +524,9 @@ E --> E4
 - [AIAnalysisPanel.tsx:46-224](file://crm-frontend/src/pages/AIAudio/components/AIAnalysisPanel.tsx#L46-L224)
 - [AudioPlayer.tsx:9-165](file://crm-frontend/src/pages/AIAudio/components/AudioPlayer.tsx#L9-L165)
 - [RecordingList.tsx:41-158](file://crm-frontend/src/pages/AIAudio/components/RecordingList.tsx#L41-L158)
+- [OpportunityScoreCard.tsx:54-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L336)
+- [ChurnAlertCard.tsx:62-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L326)
+- [CustomerInsightPanel.tsx:80-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L80-L381)
 
 ### 界面交互流程
 
@@ -405,10 +544,22 @@ AnalyzeButton --> |否| End[结束]
 StartAnalysis --> ShowProgress[显示分析进度]
 ShowProgress --> AnalysisComplete[分析完成]
 AnalysisComplete --> ShowResults[显示分析结果]
-ShowResults --> AddToSchedule{添加到日程?}
+ShowResults --> ShowAIComponents[显示AI智能分析组件]
+ShowAIComponents --> OpportunityScore[商机评分卡片]
+ShowAIComponents --> ChurnAlert[流失预警卡片]
+ShowAIComponents --> CustomerInsight[客户洞察面板]
+OpportunityScore --> AddToSchedule{添加到日程?}
+ChurnAlert --> HandleAlert{处理预警?}
+CustomerInsight --> GenerateInsight{生成洞察?}
 AddToSchedule --> |是| CreateTask[创建日程任务]
 AddToSchedule --> |否| End
+HandleAlert --> |是| MarkHandled[标记已处理]
+HandleAlert --> |否| End
+GenerateInsight --> |是| RefreshInsight[刷新洞察]
+GenerateInsight --> |否| End
 CreateTask --> End
+MarkHandled --> End
+RefreshInsight --> End
 Wait --> End
 ```
 
@@ -421,6 +572,9 @@ Wait --> End
 - [AIAnalysisPanel.tsx:46-224](file://crm-frontend/src/pages/AIAudio/components/AIAnalysisPanel.tsx#L46-L224)
 - [AudioPlayer.tsx:9-165](file://crm-frontend/src/pages/AIAudio/components/AudioPlayer.tsx#L9-L165)
 - [RecordingList.tsx:41-158](file://crm-frontend/src/pages/AIAudio/components/RecordingList.tsx#L41-L158)
+- [OpportunityScoreCard.tsx:54-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L336)
+- [ChurnAlertCard.tsx:62-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L326)
+- [CustomerInsightPanel.tsx:80-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L80-L381)
 
 ## 数据模型
 
@@ -625,7 +779,7 @@ CUSTOMER ||--|| CUSTOMER_INSIGHT : has
 | 上传录音文件 | POST | `/api/v1/recordings/upload` | 上传录音文件 |
 | 同步钉钉录音 | POST | `/api/v1/recordings/sync` | 从钉钉同步录音 |
 
-### AI功能扩展API
+### AI智能分析API
 
 | 接口 | 方法 | 路径 | 描述 |
 |------|------|------|------|
@@ -634,6 +788,9 @@ CUSTOMER ||--|| CUSTOMER_INSIGHT : has
 | 获取客户洞察 | GET | `/api/v1/customer-insights/:customerId` | 获取客户洞察信息 |
 | 获取商机评分 | GET | `/api/v1/opportunity-scores/:opportunityId` | 获取商机评分 |
 | 获取流失预警 | GET | `/api/v1/churn-alerts/:customerId` | 获取客户流失预警 |
+| 分析流失风险 | POST | `/api/v1/churn-analysis/:customerId` | 分析客户流失风险 |
+| 计算商机评分 | POST | `/api/v1/opportunity-scoring/:opportunityId` | 计算商机评分 |
+| 生成客户洞察 | POST | `/api/v1/customer-insights/generate/:customerId` | 生成客户洞察 |
 
 ### 请求和响应示例
 
@@ -672,6 +829,43 @@ Authorization: Bearer <token>
 }
 ```
 
+**商机评分响应**
+```json
+{
+  "id": "score-id",
+  "opportunityId": "opportunity-id",
+  "overallScore": 85,
+  "winProbability": 75,
+  "engagementScore": 90,
+  "budgetScore": 80,
+  "authorityScore": 75,
+  "needScore": 85,
+  "timingScore": 90,
+  "factors": [
+    {
+      "name": "互动活跃度",
+      "score": 90,
+      "impact": "positive",
+      "description": "客户互动频繁，跟进及时"
+    }
+  ],
+  "riskFactors": [
+    {
+      "factor": "互动不足",
+      "severity": "medium",
+      "suggestion": "增加跟进频率，保持客户关注度"
+    }
+  ],
+  "recommendations": [
+    {
+      "action": "安排客户拜访或深度沟通",
+      "priority": "high",
+      "expectedImpact": "提升客户关注度，加速决策进程"
+    }
+  ]
+}
+```
+
 **章节来源**
 - [recordings.routes.ts:14-355](file://crm-backend/src/routes/recordings.routes.ts#L14-L355)
 - [recording.validator.ts:11-62](file://crm-backend/src/validators/recording.validator.ts#L11-L62)
@@ -689,6 +883,7 @@ Authorization: Bearer <token>
 5. **文件上传限制**：设置合理的文件大小限制，防止资源滥用
 6. **数据库索引优化**：为常用查询字段建立索引
 7. **批量操作**：支持批量AI分析和数据处理
+8. **AI服务池化**：多个AI分析服务共享资源，提高利用率
 
 ### 性能监控指标
 
@@ -697,6 +892,7 @@ Authorization: Bearer <token>
 - **内存使用**：合理控制分析结果缓存
 - **数据库查询**：优化查询索引和分页
 - **AI准确率**：模拟准确率94-99%
+- **AI服务吞吐量**：支持每秒处理多个分析请求
 
 ## 故障排除指南
 
@@ -754,6 +950,19 @@ Authorization: Bearer <token>
 3. 确认数据库权限
 4. 查看迁移日志
 
+#### AI智能分析功能异常
+**问题描述**：商机评分、流失预警、客户洞察等功能异常
+**可能原因**：
+- AI服务配置问题
+- 数据格式不正确
+- 依赖服务不可用
+
+**解决步骤**：
+1. 检查AI服务配置和密钥
+2. 验证输入数据格式
+3. 确认依赖服务状态
+4. 查看AI服务日志
+
 **章节来源**
 - [recording.controller.ts:157-190](file://crm-backend/src/controllers/recording.controller.ts#L157-L190)
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
@@ -771,6 +980,7 @@ Authorization: Bearer <token>
 5. **性能优异**：优化的架构设计支持高并发处理
 6. **数据库管理**：完整的迁移和版本控制机制
 7. **AI功能丰富**：支持多种AI分析和预测功能
+8. **智能分析全面**：提供机会评分、流失预警、客户洞察等高级AI分析功能
 
 ### 技术特色
 
@@ -781,6 +991,7 @@ Authorization: Bearer <token>
 - **自动化建议**：基于分析结果生成具体的行动建议
 - **数据库迁移**：完整的数据库版本管理和迁移机制
 - **AI功能扩展**：支持客户洞察、流失预警、商机评分等高级功能
+- **智能分析系统**：提供机会评分、客户流失预警、智能客户洞察等AI智能分析功能
 
 ### 发展前景
 
@@ -793,5 +1004,6 @@ Authorization: Bearer <token>
 5. **集成扩展**：支持更多第三方平台的集成
 6. **数据库优化**：进一步优化数据库性能和查询效率
 7. **AI功能扩展**：开发更多AI驱动的销售辅助功能
+8. **智能分析深化**：提供更精准的商机预测和客户行为分析
 
 该系统为销售团队提供了强大的智能化工具，能够显著提升销售效率和客户服务质量。

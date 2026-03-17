@@ -11,7 +11,9 @@
 - [customer.validator.ts](file://crm-backend/src/validators/customer.validator.ts)
 - [index.ts](file://crm-backend/src/types/index.ts)
 - [customers.routes.ts](file://crm-backend/src/routes/customers.routes.ts)
-- [api.ts](file://crm-frontend/src/services/api.ts)
+- [ai.controller.ts](file://crm-backend/src/controllers/ai.controller.ts)
+- [ai.routes.ts](file://crm-backend/src/routes/ai.routes.ts)
+- [aiService.ts](file://crm-frontend/src/services/aiService.ts)
 - [index.ts](file://crm-frontend/src/types/index.ts)
 - [customerStore.ts](file://crm-frontend/src/stores/customerStore.ts)
 - [main.tsx](file://crm-frontend/src/main.tsx)
@@ -24,6 +26,9 @@
 - [AIAudioAnalysis.tsx](file://crm-frontend/src/pages/AIAudio/index.tsx)
 - [DailySchedule.tsx](file://crm-frontend/src/pages/Schedule/index.tsx)
 - [MapMiniView.tsx](file://crm-frontend/src/pages/Map/index.tsx)
+- [OpportunityScoreCard.tsx](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx)
+- [ChurnAlertCard.tsx](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx)
+- [CustomerInsightPanel.tsx](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx)
 - [package.json](file://crm-frontend/package.json)
 - [tsconfig.app.json](file://crm-frontend/tsconfig.app.json)
 - [vite.config.ts](file://crm-frontend/vite.config.ts)
@@ -150,6 +155,33 @@ ResponseUtil-->>Client : 200 OK
 **章节来源**
 - [customer.controller.ts:5-56](file://crm-backend/src/controllers/customer.controller.ts#L5-L56)
 
+### AI控制器层 (AIController)
+新增AI智能分析API接口，扩展了原有的AI音频分析功能：
+
+#### 商机评分API
+| 方法 | HTTP方法 | 路径 | 功能 | 鉴权 |
+|------|----------|------|------|------|
+| calculateOpportunityScore | POST | `/ai/opportunities/:id/score` | 计算商机评分 | ✅ |
+| getOpportunityScore | GET | `/ai/opportunities/:id/score` | 获取商机评分 | ✅ |
+| getScoreSummary | GET | `/ai/opportunities/score-summary` | 获取评分概览 | ✅ |
+
+#### 流失预警API
+| 方法 | HTTP方法 | 路径 | 功能 | 鉴权 |
+|------|----------|------|------|------|
+| analyzeChurnRisk | POST | `/ai/customers/:id/churn-analysis` | 分析客户流失风险 | ✅ |
+| getChurnAlert | GET | `/ai/customers/:id/churn-alert` | 获取客户流失预警 | ✅ |
+| getChurnAlerts | GET | `/ai/churn-alerts` | 获取流失预警列表 | ✅ |
+| handleChurnAlert | PATCH | `/ai/churn-alerts/:id/handle` | 处理流失预警 | ✅ |
+
+#### 客户洞察API
+| 方法 | HTTP方法 | 路径 | 功能 | 鉴权 |
+|------|----------|------|------|------|
+| generateCustomerInsights | POST | `/ai/customers/:id/insights` | 生成客户洞察 | ✅ |
+| getCustomerInsights | GET | `/ai/customers/:id/insights` | 获取客户洞察 | ✅ |
+
+**章节来源**
+- [ai.controller.ts:624-1199](file://crm-backend/src/controllers/ai.controller.ts#L624-L1199)
+
 ## 验证器与中间件
 系统使用Zod进行数据验证，结合自定义中间件实现请求预处理。
 
@@ -226,40 +258,71 @@ GROUP_BY --> RETURN7["返回分布数据"]
 **图表来源**
 - [customer.service.ts:5-179](file://crm-backend/src/services/customer.service.ts#L5-L179)
 
+### AI服务层架构
+新增AI智能分析服务，扩展了原有的音频分析功能：
+
+#### 商机评分服务 (OpportunityScoringService)
+基于BANT模型进行商机评分和成交概率预测，包含以下核心功能：
+- 互动活跃度评分计算
+- 预算匹配度评分计算
+- 决策人接触度评分计算
+- 需求明确度评分计算
+- 时机成熟度评分计算
+- 成交概率预测
+- 风险因素识别
+- 改进建议生成
+
+#### 流失预警服务 (ChurnAnalysisService)
+基于多维度指标分析客户流失风险并生成挽回建议，包含以下核心功能：
+- 最近联系时间风险计算
+- 沟通频率变化风险计算
+- 录音情感趋势风险计算
+- 商机停滞时间风险计算
+- 任务完成率风险计算
+- 联系人活跃度风险计算
+- 风险等级确定
+- 预警信号识别
+- 挽回建议生成
+
 **章节来源**
 - [customer.service.ts:5-179](file://crm-backend/src/services/customer.service.ts#L5-L179)
+- [opportunityScoring.ts:42-613](file://crm-backend/src/services/ai/opportunityScoring.ts#L42-L613)
+- [churnAnalysis.ts:28-517](file://crm-backend/src/services/ai/churnAnalysis.ts#L28-L517)
 
 ## 前端API调用层
 前端使用封装的API服务层与后端进行通信，提供类型安全的接口调用。
 
-### API服务架构
-```mermaid
-graph TB
-subgraph "前端应用"
-STORES["状态管理<br/>Zustand"]
-COMPONENTS["React组件"]
-API_SERVICE["API服务层<br/>api.ts"]
-end
-subgraph "网络层"
-FETCH["Fetch API"]
-AUTH["认证拦截器"]
-TIMEOUT["超时控制"]
-end
-subgraph "后端API"
-BASE_URL["http://localhost:3001/api/v1"]
-ENDPOINTS["各种API端点"]
-end
-COMPONENTS --> API_SERVICE
-STORES --> API_SERVICE
-API_SERVICE --> FETCH
-FETCH --> AUTH
-AUTH --> TIMEOUT
-TIMEOUT --> BASE_URL
-BASE_URL --> ENDPOINTS
-```
+### AI服务API接口
+新增AI智能分析API接口，扩展了原有的音频分析功能：
 
-**图表来源**
-- [api.ts:23-99](file://crm-frontend/src/services/api.ts#L23-L99)
+#### 商机评分API
+| 接口 | 方法 | URL | 功能 | 参数 |
+|------|------|-----|------|------|
+| calculateOpportunityScore | POST | `/ai/opportunities/:id/score` | 计算商机评分 | id |
+| getOpportunityScore | GET | `/ai/opportunities/:id/score` | 获取商机评分 | id |
+| getScoreSummary | GET | `/ai/opportunities/score-summary` | 获取评分概览 | 无 |
+
+#### 流失预警API
+| 接口 | 方法 | URL | 功能 | 参数 |
+|------|------|-----|------|------|
+| analyzeChurnRisk | POST | `/ai/customers/:id/churn-analysis` | 分析客户流失风险 | customerId |
+| getChurnAlert | GET | `/ai/customers/:id/churn-alert` | 获取客户流失预警 | customerId |
+| getChurnAlerts | GET | `/ai/churn-alerts` | 获取流失预警列表 | riskLevel, status, page, limit |
+| handleChurnAlert | PATCH | `/ai/churn-alerts/:id/handle` | 处理流失预警 | alertId, action |
+
+#### 客户洞察API
+| 接口 | 方法 | URL | 功能 | 参数 |
+|------|------|-----|------|------|
+| generateCustomerInsights | POST | `/ai/customers/:id/insights` | 生成客户洞察 | customerId |
+| getCustomerInsights | GET | `/ai/customers/:id/insights` | 获取客户洞察 | customerId |
+
+#### 综合分析API
+| 接口 | 方法 | URL | 功能 | 参数 |
+|------|------|-----|------|------|
+| getAIDashboardData | GET | `/ai/dashboard` | 获取AI仪表盘数据 | 无 |
+
+**章节来源**
+- [aiService.ts:48-154](file://crm-frontend/src/services/aiService.ts#L48-L154)
 
 ### 认证API接口
 提供完整的用户认证和授权功能：
@@ -306,6 +369,7 @@ B --> G["pages/SalesFunnel/index.tsx<br/>销售漏斗"]
 B --> H["pages/AIAudio/index.tsx<br/>AI音频分析"]
 B --> I["pages/Schedule/index.tsx<br/>日程安排"]
 B --> J["pages/Map/index.tsx<br/>客户地图"]
+B --> K["components/AI/<br/>AI智能分析组件"]
 ```
 
 **图表来源**
@@ -339,6 +403,9 @@ B --> J["pages/Map/index.tsx<br/>客户地图"]
   - AIAudioAnalysis：AI音频分析结果列表，按情绪分类展示。
   - DailySchedule：当日日程时间轴，支持添加任务。
   - MapMiniView：客户位置小地图占位，显示标记点与跳转按钮。
+  - OpportunityScoreCard：商机评分卡片，显示综合评分和各维度评分。
+  - ChurnAlertCard：流失预警卡片，显示客户流失风险评分和预警信息。
+  - CustomerInsightPanel：客户洞察面板，展示客户画像分析结果。
 
 - Props接口与类型
   - Sidebar.NavItemProps
@@ -405,6 +472,22 @@ B --> J["pages/Map/index.tsx<br/>客户地图"]
       - 关闭：onClick
     - 使用示例
       - 参考路径：[AIBanner.tsx:3-47](file://crm-frontend/src/components/ColdVisitAssistant.tsx#L3-L47)
+  - OpportunityScoreCard.OpportunityScoreCardProps
+    - 属性
+      - opportunityId: string
+      - onScoreUpdate?: (score: OpportunityScore) => void
+    - 使用示例
+      - 参考路径：[OpportunityScoreCard.tsx:54-84](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L84)
+  - ChurnAlertCard.ChurnAlertCardProps
+    - 属性
+      - customerId: string
+      - onAlertUpdate?: (alert: ChurnAlert) => void
+    - 使用示例
+      - 参考路径：[ChurnAlertCard.tsx:62-104](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L104)
+  - CustomerInsightPanel
+    - 属性：无（内部包含客户洞察分析结果）
+    - 事件
+      - 无（当前实现为只读展示）
 
 - 方法签名与返回值
   - 所有组件均为函数式组件，不包含类方法或生命周期钩子；返回JSX元素。
@@ -432,6 +515,9 @@ B --> J["pages/Map/index.tsx<br/>客户地图"]
 - [DailySchedule.tsx:3-24](file://crm-frontend/src/pages/Schedule/index.tsx#L3-L24)
 - [MapMiniView.tsx:3-58](file://crm-frontend/src/pages/Map/index.tsx#L3-L58)
 - [AIBanner.tsx:3-47](file://crm-frontend/src/components/ColdVisitAssistant.tsx#L3-L47)
+- [OpportunityScoreCard.tsx:9-12](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L9-L12)
+- [ChurnAlertCard.tsx:9-12](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L9-L12)
+- [CustomerInsightPanel.tsx:1-11](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L1-L11)
 
 ## 架构总览
 整体采用"容器组件 + 展示组件"的分层设计：App负责布局与数据聚合，各功能组件负责独立视图与交互。
@@ -453,6 +539,11 @@ AUDIOANALYSIS["pages/AIAudio/index.tsx"]
 DAILYSCHEDULE["pages/Schedule/index.tsx"]
 MAPMINIVIEW["pages/Map/index.tsx"]
 end
+subgraph "AI智能分析组件"
+OPPORTUNITYSCORE["components/AI/OpportunityScoreCard.tsx"]
+CHURNALERT["components/AI/ChurnAlertCard.tsx"]
+CUSTOMERINSIGHT["components/AI/CustomerInsightPanel.tsx"]
+end
 APP --> SIDEBAR
 APP --> HEADER
 APP --> STATSCARDS
@@ -461,6 +552,9 @@ APP --> SALESFUNNEL
 APP --> AUDIOANALYSIS
 APP --> DAILYSCHEDULE
 APP --> MAPMINIVIEW
+APP --> OPPORTUNITYSCORE
+APP --> CHURNALERT
+APP --> CUSTOMERINSIGHT
 ```
 
 **图表来源**
@@ -473,6 +567,9 @@ APP --> MAPMINIVIEW
 - [AIAudioAnalysis.tsx:38-82](file://crm-frontend/src/pages/AIAudio/index.tsx#L38-L82)
 - [DailySchedule.tsx:26-70](file://crm-frontend/src/pages/Schedule/index.tsx#L26-L70)
 - [MapMiniView.tsx:3-58](file://crm-frontend/src/pages/Map/index.tsx#L3-L58)
+- [OpportunityScoreCard.tsx:54-84](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L84)
+- [ChurnAlertCard.tsx:62-104](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L104)
+- [CustomerInsightPanel.tsx:1-11](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L1-L11)
 
 ## 详细组件分析
 
@@ -720,6 +817,106 @@ Map-->>App : 触发 onClick 回调
 **章节来源**
 - [AIBanner.tsx:3-47](file://crm-frontend/src/components/ColdVisitAssistant.tsx#L3-L47)
 
+### OpportunityScoreCard 商机评分卡片
+- 接口定义
+  - OpportunityScoreCardProps
+    - opportunityId: string
+    - onScoreUpdate?: (score: OpportunityScore) => void
+- 方法与事件
+  - 支持自动获取评分或手动计算评分
+  - 支持刷新操作
+  - 支持评分更新回调
+- 使用示例
+  - 参考路径：[OpportunityScoreCard.tsx:54-84](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L84)
+- 生命周期与状态
+  - 包含加载状态、错误状态和评分数据状态
+  - 支持Tab切换（概览、因子、风险、建议）
+- 错误处理
+  - 支持评分获取失败时自动计算
+  - 提供错误状态显示和重试按钮
+
+```mermaid
+flowchart TD
+Start(["初始化组件"]) --> LoadScore["加载评分数据"]
+LoadScore --> HasData{"是否有评分数据"}
+HasData --> |是| ShowData["显示评分卡片"]
+HasData --> |否| TryCalculate["尝试计算评分"]
+TryCalculate --> CalculateSuccess{"计算成功?"}
+CalculateSuccess --> |是| ShowData
+CalculateSuccess --> |否| ShowError["显示错误状态"]
+ShowData --> TabSwitch["Tab切换"]
+TabSwitch --> Overview["概览Tab"]
+TabSwitch --> Factors["因子Tab"]
+TabSwitch --> Risks["风险Tab"]
+TabSwitch --> Recommendations["建议Tab"]
+```
+
+**图表来源**
+- [OpportunityScoreCard.tsx:60-84](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L60-L84)
+
+**章节来源**
+- [OpportunityScoreCard.tsx:9-12](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L9-L12)
+- [OpportunityScoreCard.tsx:54-84](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L84)
+
+### ChurnAlertCard 流失预警卡片
+- 接口定义
+  - ChurnAlertCardProps
+    - customerId: string
+    - onAlertUpdate?: (alert: ChurnAlert) => void
+- 方法与事件
+  - 支持自动获取预警或手动分析风险
+  - 支持处理预警（标记已处理/忽略）
+  - 支持预警更新回调
+- 使用示例
+  - 参考路径：[ChurnAlertCard.tsx:62-104](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L104)
+- 生命周期与状态
+  - 包含加载状态、错误状态和预警数据状态
+  - 支持Tab切换（概览、原因、建议）
+  - 支持预警状态管理（active/handled/ignored）
+- 错误处理
+  - 支持预警获取失败时自动分析
+  - 提供错误状态显示和重试按钮
+
+```mermaid
+flowchart TD
+Start(["初始化组件"]) --> LoadAlert["加载预警数据"]
+LoadAlert --> HasData{"是否有预警数据"}
+HasData --> |是| ShowAlert["显示预警卡片"]
+HasData --> |否| TryAnalyze["尝试分析风险"]
+TryAnalyze --> AnalyzeSuccess{"分析成功?"}
+AnalyzeSuccess --> |是| ShowAlert
+AnalyzeSuccess --> |否| ShowError["显示错误状态"]
+ShowAlert --> TabSwitch["Tab切换"]
+TabSwitch --> Overview["概览Tab"]
+TabSwitch --> Reasons["原因Tab"]
+TabSwitch --> Suggestions["建议Tab"]
+ShowAlert --> HandleAlert["处理预警"]
+HandleAlert --> MarkHandled["标记已处理"]
+HandleAlert --> IgnoreAlert["忽略预警"]
+```
+
+**图表来源**
+- [ChurnAlertCard.tsx:68-104](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L68-L104)
+
+**章节来源**
+- [ChurnAlertCard.tsx:9-12](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L9-L12)
+- [ChurnAlertCard.tsx:62-104](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L104)
+
+### CustomerInsightPanel 客户洞察面板
+- 接口定义
+  - 无Props（内部包含客户洞察分析结果）
+- 方法与事件
+  - 无（当前实现为只读展示）
+- 使用示例
+  - 参考路径：[CustomerInsightPanel.tsx:1-11](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L1-L11)
+- 生命周期与状态
+  - 无内部状态
+- 错误处理
+  - 未见显式错误处理
+
+**章节来源**
+- [CustomerInsightPanel.tsx:1-11](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L1-L11)
+
 ## 依赖关系分析
 - 运行时依赖
   - react、react-dom：框架基础
@@ -766,6 +963,10 @@ P --> VR["@vitejs/plugin-react"]
   - 前端使用AbortController实现请求超时控制
   - 支持缓存和防抖机制
   - 分页加载避免一次性请求大量数据
+- AI组件优化
+  - 商机评分和流失预警组件支持懒加载AI服务模块
+  - 提供加载状态和错误状态处理
+  - 支持评分/预警数据的自动刷新
 
 ## 故障排查指南
 - 控制台报错
@@ -781,6 +982,10 @@ P --> VR["@vitejs/plugin-react"]
   - 检查JWT令牌有效性
   - 验证请求参数格式
   - 查看网络面板中的具体错误信息
+- AI组件问题
+  - 商机评分/流失预警获取失败时会自动尝试计算/分析
+  - 确认AI服务模块正确导入和初始化
+  - 检查AI分析所需的客户数据完整性
 
 ## 结论
 本CRM系统采用现代化的前后端分离架构，后端实现了完整的RESTful API和Swagger文档，前端提供了丰富的组件库和状态管理。系统具有良好的扩展性和维护性，建议后续增强：
@@ -789,6 +994,7 @@ P --> VR["@vitejs/plugin-react"]
 - 对列表渲染优化key与虚拟化策略
 - 补充单元测试与集成测试用例
 - 实现更完善的API版本管理和向后兼容性
+- 增强AI组件的错误处理和用户体验
 
 ## 附录
 - 快速开始
@@ -803,3 +1009,8 @@ P --> VR["@vitejs/plugin-react"]
 - API版本管理
   - 当前使用API v1版本：http://localhost:3001/api/v1
   - 支持未来版本升级和向后兼容性处理
+- AI智能分析API
+  - 商机评分：calculateOpportunityScore、getOpportunityScore、getScoreSummary
+  - 流失预警：analyzeChurnRisk、getChurnAlert、getChurnAlerts、handleChurnAlert
+  - 客户洞察：generateCustomerInsights、getCustomerInsights
+  - 综合分析：getAIDashboardData

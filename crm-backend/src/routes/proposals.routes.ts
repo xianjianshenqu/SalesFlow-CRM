@@ -306,6 +306,81 @@ router.post(
 
 /**
  * @swagger
+ * /proposals/{id}/smart-generate:
+ *   post:
+ *     summary: AI智能生成完整方案
+ *     tags: [Proposals]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: AI智能方案生成成功
+ */
+router.post(
+  '/:id/smart-generate',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.generateSmartProposal,
+);
+
+/**
+ * @swagger
+ * /proposals/{id}/pricing-strategy:
+ *   get:
+ *     summary: 获取智能定价策略
+ *     tags: [Proposals]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 获取定价策略成功
+ */
+router.get(
+  '/:id/pricing-strategy',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.getPricingStrategy,
+);
+
+/**
+ * @swagger
+ * /proposals/{id}/recommend-products:
+ *   get:
+ *     summary: 获取推荐产品组合
+ *     tags: [Proposals]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 获取产品推荐成功
+ */
+router.get(
+  '/:id/recommend-products',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.getRecommendedProducts,
+);
+
+/**
+ * @swagger
  * /proposals/{id}:
  *   delete:
  *     summary: 删除方案

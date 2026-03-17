@@ -151,6 +151,8 @@ model User {
   createdBusinessCards BusinessCard[] @relation("BusinessCardCreator")
   createdColdVisitRecords ColdVisitRecord[] @relation("ColdVisitCreator")
   dailyReports       DailyReport[]
+  salesPerformances  SalesPerformance[]
+  coachingSuggestions CoachingSuggestion[]
 
   @@index([email])
   @@index([role])
@@ -475,6 +477,7 @@ model PreSalesResource {
   updatedAt      DateTime @updatedAt
 
   assignedRequests PreSalesRequest[]
+  matchRecords     ResourceMatchRecord[]
 
   @@index([status])
   @@map("presales_resources")
@@ -507,6 +510,7 @@ model PreSalesRequest {
   assignedMember   TeamMember?       @relation(fields: [assignedMemberId], references: [id], onDelete: SetNull)
   requester        User?             @relation("UserPreSalesRequests", fields: [requesterId], references: [id], onDelete: SetNull)
   createdBy        User?             @relation("PresalesCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  matchRecords     ResourceMatchRecord[]
 
   @@index([customerId])
   @@index([status])
@@ -706,4 +710,74 @@ model ColdVisitRecord {
   @@index([companyName])
   @@index([status])
   @@map("cold_visit_records")
+}
+
+// ==================== Sales Performance (AI Coach) ====================
+
+// 销售绩效记录
+model SalesPerformance {
+  id              String   @id @default(uuid())
+  userId          String
+  date            DateTime @db.Date
+  calls           Int      @default(0)
+  meetings        Int      @default(0)
+  visits          Int      @default(0)
+  proposals       Int      @default(0)
+  closedDeals     Int      @default(0)
+  revenue         Decimal  @default(0) @db.Decimal(15, 2)
+  conversionRate  Float?
+  avgDealSize     Decimal? @db.Decimal(15, 2)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@index([date])
+  @@map("sales_performances")
+}
+
+// AI教练建议
+model CoachingSuggestion {
+  id          String   @id @default(uuid())
+  userId      String
+  type        String   // performance, skill, opportunity, time_management
+  priority    String   // high, medium, low
+  title       String
+  description String   @db.Text
+  actions     Json?    // 建议行动[]
+  metrics     Json?    // 相关指标
+  status      String   @default("pending") // pending, completed, dismissed
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([type])
+  @@index([status])
+  @@map("coaching_suggestions")
+}
+
+// ==================== Resource Matching ====================
+
+// 资源匹配记录
+model ResourceMatchRecord {
+  id               String   @id @default(uuid())
+  requestId        String
+  resourceId       String
+  matchScore       Float
+  matchedSkills    Json?    // 匹配的技能[]
+  missingSkills    Json?    // 缺失的技能[]
+  aiRecommendation Boolean  @default(false)
+  factors          Json?    // 匹配因子详情
+  createdAt        DateTime @default(now())
+
+  request  PreSalesRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  resource PreSalesResource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([resourceId])
+  @@map("resource_match_records")
 }

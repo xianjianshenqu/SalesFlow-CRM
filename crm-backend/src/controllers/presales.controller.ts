@@ -191,6 +191,47 @@ class PresalesController {
   }
 
   /**
+   * AI智能匹配资源
+   * @route GET /api/v1/presales/requests/:id/smart-match
+   */
+  async smartMatchResources(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await presalesService.smartMatchResources(id);
+      return success(res, result, 'AI资源匹配成功');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * 自动分配资源
+   * @route POST /api/v1/presales/requests/:id/auto-assign
+   */
+  async autoAssignResource(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { id } = req.params;
+      const result = await presalesService.autoAssignResource(id);
+      return success(res, result, '自动分配成功');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * 获取资源负载概览
+   * @route GET /api/v1/presales/resources/workload
+   */
+  async getResourcesWorkloadOverview(req: Request, res: Response, next: NextFunction) {
+    try {
+      const result = await presalesService.getResourcesWorkloadOverview();
+      return success(res, result, '获取资源负载概览成功');
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * 获取售前统计
    * @route GET /api/v1/presales/stats
    */

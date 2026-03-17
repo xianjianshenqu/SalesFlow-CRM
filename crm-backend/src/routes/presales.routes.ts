@@ -216,7 +216,29 @@ router.delete(
  *       200:
  *         description: 成功获取售前统计
  */
-router.get('/stats', authMiddleware, presalesController.getStats);
+router.get(
+  '/stats',
+  authMiddleware,
+  presalesController.getStats,
+);
+
+/**
+ * @swagger
+ * /presales/resources/workload:
+ *   get:
+ *     summary: 获取资源负载概览
+ *     tags: [Presales]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: 成功获取资源负载概览
+ */
+router.get(
+  '/resources/workload',
+  authMiddleware,
+  presalesController.getResourcesWorkloadOverview,
+);
 
 /**
  * @swagger
@@ -434,6 +456,56 @@ router.get(
   authMiddleware,
   validate(requestIdSchema, 'params'),
   presalesController.matchResources,
+);
+
+/**
+ * @swagger
+ * /presales/requests/{id}/smart-match:
+ *   get:
+ *     summary: AI智能匹配资源
+ *     tags: [Presales]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: AI资源匹配成功
+ */
+router.get(
+  '/requests/:id/smart-match',
+  authMiddleware,
+  validate(requestIdSchema, 'params'),
+  presalesController.smartMatchResources,
+);
+
+/**
+ * @swagger
+ * /presales/requests/{id}/auto-assign:
+ *   post:
+ *     summary: 自动分配资源
+ *     tags: [Presales]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: 自动分配成功
+ */
+router.post(
+  '/requests/:id/auto-assign',
+  authMiddleware,
+  validate(requestIdSchema, 'params'),
+  presalesController.autoAssignResource,
 );
 
 /**
