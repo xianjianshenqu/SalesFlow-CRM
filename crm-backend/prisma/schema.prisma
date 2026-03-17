@@ -150,6 +150,7 @@ model User {
   createdContacts    Contact[]      @relation("ContactCreator")
   createdBusinessCards BusinessCard[] @relation("BusinessCardCreator")
   createdColdVisitRecords ColdVisitRecord[] @relation("ColdVisitCreator")
+  dailyReports       DailyReport[]
 
   @@index([email])
   @@index([role])
@@ -185,6 +186,11 @@ model Customer {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // AI分析字段
+  lastAnalysisAt  DateTime?  // 最后AI分析时间
+  riskScore       Int?       // 流失风险评分 0-100
+  engagementScore Int?       // 互动活跃度评分 0-100
+
   // Relations
   owner           User?              @relation("CustomerOwner", fields: [ownerId], references: [id])
   createdBy       User?              @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
@@ -199,6 +205,9 @@ model Customer {
   contacts        Contact[]
   businessCards   BusinessCard[]
   coldVisitRecords ColdVisitRecord[]
+  followUpSuggestions FollowUpSuggestion[]
+  churnAlerts     ChurnAlert[]
+  customerInsight CustomerInsight?
 
   @@index([stage])
   @@index([priority])
@@ -232,6 +241,7 @@ model Opportunity {
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   owner      User?    @relation("OpportunityOwner", fields: [ownerId], references: [id])
   createdBy  User?    @relation("OpportunityCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  score      OpportunityScore?
 
   @@index([customerId])
   @@index([stage])
@@ -557,6 +567,121 @@ model BusinessCard {
   @@index([customerId])
   @@index([status])
   @@map("business_cards")
+}
+
+// ==================== AI Features ====================
+
+// 跟进建议
+model FollowUpSuggestion {
+  id          String   @id @default(uuid())
+  customerId  String
+  type        String   // call, visit, email, wechat
+  priority    String   // high, medium, low
+  reason      String   @db.Text
+  suggestedAt DateTime @default(now())
+  expiresAt   DateTime?
+  script      String?  @db.Text  // AI生成的话术
+  status      String   @default("pending") // pending, completed, dismissed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([status])
+  @@map("follow_up_suggestions")
+}
+
+// 日报/周报
+model DailyReport {
+  id          String   @id @default(uuid())
+  userId      String
+  date        DateTime @db.Date
+  type        String   // daily, weekly
+  content     String   @db.Text
+  summary     String   @db.Text
+  highlights  Json?    // 重点事项[]
+  risks       Json?    // 风险提示[]
+  nextActions Json?    // 下一步行动[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date, type])
+  @@map("daily_reports")
+}
+
+// 商机评分
+model OpportunityScore {
+  id              String   @id @default(uuid())
+  opportunityId   String   @unique
+  overallScore    Int      // 总评分 0-100
+  winProbability  Int      // 成交概率 0-100
+
+  // 维度评分
+  engagementScore Int      // 互动活跃度
+  budgetScore     Int      // 预算匹配度
+  authorityScore  Int      // 决策人接触度
+  needScore       Int      // 需求明确度
+  timingScore     Int      // 时机成熟度
+
+  // 分析依据
+  factors         Json?    // 评分因子[]
+  riskFactors     Json?    // 风险因素[]
+  recommendations Json?    // 改进建议[]
+
+  analyzedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  opportunity Opportunity @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+
+  @@map("opportunity_scores")
+}
+
+// 客户流失预警
+model ChurnAlert {
+  id          String   @id @default(uuid())
+  customerId  String
+  riskLevel   String   // high, medium, low
+  riskScore   Int      // 0-100
+  reasons     Json?    // 流失原因[]
+  signals     Json?    // 预警信号[]
+  suggestions Json?    // 挽回建议[]
+  status      String   @default("active") // active, handled, ignored
+  handledAt   DateTime?
+  handledBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([customerId])
+  @@index([riskLevel])
+  @@index([status])
+  @@map("churn_alerts")
+}
+
+// 客户洞察（AI提取）
+model CustomerInsight {
+  id               String   @id @default(uuid())
+  customerId       String   @unique
+  extractedNeeds   Json?    // 提取的需求[]
+  extractedBudget  Json?    // 预算信息
+  decisionMakers   Json?    // 决策人信息[]
+  painPoints       Json?    // 痛点[]
+  competitorInfo   Json?    // 竞品信息
+  timeline         Json?    // 时间线
+  confidence       Int      @default(0) // 置信度
+  source           String   @default("ai_analysis")
+  analyzedAt       DateTime @default(now())
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("customer_insights")
 }
 
 // ==================== Cold Visit (AI Assistant) ====================

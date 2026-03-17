@@ -14,6 +14,7 @@ import Map from './pages/Map';
 import Team from './pages/Team';
 import PreSales from './pages/PreSales';
 import Login from './pages/Login';
+import AIAssistant from './pages/AIAssistant';
 
 // 路由守卫组件
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -56,6 +57,7 @@ function App() {
           <Route path="map" element={<Map />} />
           <Route path="team" element={<Team />} />
           <Route path="presales" element={<PreSales />} />
+          <Route path="ai-assistant" element={<AIAssistant />} />
         </Route>
 
         {/* 404 重定向到首页 */}

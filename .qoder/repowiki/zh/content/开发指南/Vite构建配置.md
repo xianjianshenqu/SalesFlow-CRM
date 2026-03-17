@@ -16,7 +16,7 @@
 
 ## 更新摘要
 **变更内容**
-- 更新了开发服务器配置部分，反映了新的端口监听和主机设置
+- 更新了开发服务器配置部分，反映了现有的端口监听和主机设置
 - 新增了生产优化配置章节，包含代码分割和压缩策略
 - 扩展了构建脚本分析，涵盖TypeScript编译和Vite构建流程
 - 增强了性能优化建议，包括缓存策略和预构建依赖
@@ -249,7 +249,7 @@ class ServerConfig {
 +strictPort : false
 +host : true
 +监听所有地址 : true
-+端口自动切换 : true
++端口冲突处理 : automatic
 }
 class DevelopmentExperience {
 +局域网访问 : enabled

@@ -9,6 +9,7 @@ const navItems = [
   { path: '/service', icon: 'support_agent', label: '售后服务' },
   { path: '/payments', icon: 'payments', label: '回款统计' },
   { path: '/ai-audio', icon: 'settings_voice', label: 'AI 录音分析' },
+  { path: '/ai-assistant', icon: 'auto_awesome', label: 'AI 助手' },
   { path: '/schedule', icon: 'calendar_today', label: '智能日程' },
   { path: '/map', icon: 'map', label: '客户地图' },
   { path: '/team', icon: 'groups', label: '团队协作' },

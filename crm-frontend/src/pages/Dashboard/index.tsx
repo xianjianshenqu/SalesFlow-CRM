@@ -1,7 +1,8 @@
-import { mockCustomers, getActiveCustomers, getCustomerColor } from '../../data/customers';
+import { getActiveCustomers, getCustomerColor } from '../../data/customers';
 import { mockOpportunities, getStageStats } from '../../data/opportunities';
 import { getPaymentStats } from '../../data/payments';
-import { STAGE_COLORS, STAGE_LABELS, type Stage } from '../../types';
+import { STAGE_LABELS, type Stage } from '../../types';
+import { FollowUpWidget } from '../../components/AI';
 
 // 格式化金额
 function formatCurrency(value: number): string {
@@ -388,7 +389,10 @@ export default function Dashboard() {
       {/* 底部区域 */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <DailySchedule />
-        <CustomerMapMini />
+        <FollowUpWidget limit={5} onSuggestionClick={(suggestion) => {
+          // 可以在这里打开客户详情或话术生成对话框
+          console.log('Suggestion clicked:', suggestion);
+        }} />
       </div>
     </div>
   );
