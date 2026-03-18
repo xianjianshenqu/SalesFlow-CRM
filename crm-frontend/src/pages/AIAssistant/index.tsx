@@ -5,6 +5,8 @@
 
 import { useState, useEffect } from 'react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002/api/v1';
+
 interface Report {
   id: string;
   date: string;
@@ -63,7 +65,7 @@ export default function AIAssistant() {
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('http://localhost:3001/api/v1/ai/reports?limit=20', {
+      const response = await fetch(`${API_BASE_URL}/ai/reports?limit=20`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -86,7 +88,7 @@ export default function AIAssistant() {
     try {
       setGenerating(true);
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('http://localhost:3001/api/v1/ai/reports/generate', {
+      const response = await fetch(`${API_BASE_URL}/ai/reports/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

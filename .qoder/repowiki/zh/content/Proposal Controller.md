@@ -7,12 +7,17 @@
 - [proposals.routes.ts](file://crm-backend/src/routes/proposals.routes.ts)
 - [proposal.validator.ts](file://crm-backend/src/validators/proposal.validator.ts)
 - [proposalAI.ts](file://crm-backend/src/services/ai/proposalAI.ts)
-- [types.ts](file://crm-backend/src/services/ai/types.ts)
 - [schema.prisma](file://crm-backend/prisma/schema.prisma)
 - [auth.ts](file://crm-backend/src/middlewares/auth.ts)
-- [index.ts](file://crm-backend/src/routes/index.ts)
 - [app.ts](file://crm-backend/src/app.ts)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 新增完整的多阶段业务提案工作流程（需求分析、方案设计、内部评审、客户提案、商务谈判）
+- 扩展AI智能生成功能，支持完整的提案工作流程
+- 新增模板管理系统和AI分析功能
+- 完善状态管理和流程控制机制
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -20,11 +25,12 @@
 3. [核心组件分析](#核心组件分析)
 4. [API接口规范](#api接口规范)
 5. [数据模型设计](#数据模型设计)
-6. [AI智能功能](#ai智能功能)
-7. [错误处理机制](#错误处理机制)
-8. [性能优化策略](#性能优化策略)
-9. [安全与权限控制](#安全与权限控制)
-10. [测试与调试指南](#测试与调试指南)
+6. [多阶段工作流程](#多阶段工作流程)
+7. [AI智能功能](#ai智能功能)
+8. [错误处理机制](#错误处理机制)
+9. [性能优化策略](#性能优化策略)
+10. [安全与权限控制](#安全与权限控制)
+11. [测试与调试指南](#测试与调试指南)
 
 ## 项目概述
 
@@ -33,8 +39,11 @@
 ### 主要功能特性
 
 - **完整的提案管理**：支持提案的创建、编辑、删除、状态跟踪
+- **多阶段工作流程**：需求分析、方案设计、内部评审、客户提案、商务谈判的完整流程
 - **AI智能生成**：基于客户信息自动生成商务方案内容
 - **智能定价策略**：提供最优报价建议和产品组合推荐
+- **模板管理系统**：支持方案模板的创建、管理和应用
+- **邮件跟踪功能**：支持客户提案的邮件发送和打开跟踪
 - **多维度统计分析**：实时监控销售转化效果
 - **安全权限控制**：基于JWT的认证授权机制
 
@@ -64,6 +73,13 @@ subgraph "数据持久层"
 PRISMA[Prisma ORM]
 DATABASE[(MySQL数据库)]
 end
+subgraph "工作流程层"
+REQUIREMENT[需求分析]
+DESIGN[方案设计]
+REVIEW[内部评审]
+CUSTOMER_PROPOSAL[客户提案]
+NEGOTIATION[商务谈判]
+end
 FE --> APP
 APP --> CONTROLLER
 CONTROLLER --> SERVICE
@@ -72,20 +88,24 @@ SERVICE --> AI_SERVICE
 AI_SERVICE --> PROPOSAL_AI
 SERVICE --> PRISMA
 PRISMA --> DATABASE
-APP --> SWAGGER
+SERVICE --> REQUIREMENT
+SERVICE --> DESIGN
+SERVICE --> REVIEW
+SERVICE --> CUSTOMER_PROPOSAL
+SERVICE --> NEGOTIATION
 ```
 
 **架构图来源**
 - [app.ts:1-88](file://crm-backend/src/app.ts#L1-L88)
-- [proposal.controller.ts:1-187](file://crm-backend/src/controllers/proposal.controller.ts#L1-L187)
-- [proposal.service.ts:1-519](file://crm-backend/src/services/proposal.service.ts#L1-L519)
+- [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
+- [proposal.service.ts:1-1178](file://crm-backend/src/services/proposal.service.ts#L1-L1178)
 
 ### 层次化设计模式
 
 系统采用经典的三层架构设计：
 
 1. **表现层（Controller Layer）**：处理HTTP请求和响应
-2. **业务层（Service Layer）**：封装核心业务逻辑
+2. **业务层（Service Layer）**：封装核心业务逻辑和工作流程
 3. **数据访问层（Repository Layer）**：管理数据库交互
 
 ## 核心组件分析
@@ -118,6 +138,36 @@ class ProposalController {
 +getPricingStrategy(req, res, next) Promise~Response~
 +getRecommendedProducts(req, res, next) Promise~Response~
 +getStats(req, res, next) Promise~Response~
++getTemplates(req, res, next) Promise~Response~
++createTemplate(req, res, next) Promise~Response~
++cloneTemplate(req, res, next) Promise~Response~
++createRequirementAnalysis(req, res, next) Promise~Response~
++getRequirementAnalysis(req, res, next) Promise~Response~
++aiAnalyzeRequirement(req, res, next) Promise~Response~
++aiEnhanceRequirement(req, res, next) Promise~Response~
++updateRequirementAnalysis(req, res, next) Promise~Response~
++confirmRequirementAnalysis(req, res, next) Promise~Response~
++startDesign(req, res, next) Promise~Response~
++matchTemplate(req, res, next) Promise~Response~
++applyTemplate(req, res, next) Promise~Response~
++updateDesign(req, res, next) Promise~Response~
++confirmDesign(req, res, next) Promise~Response~
++createReview(req, res, next) Promise~Response~
++getReview(req, res, next) Promise~Response~
++addReviewComment(req, res, next) Promise~Response~
++approveReview(req, res, next) Promise~Response~
++rejectReview(req, res, next) Promise~Response~
++createCustomerProposalRecord(req, res, next) Promise~Response~
++getCustomerProposalRecord(req, res, next) Promise~Response~
++generateEmailTemplate(req, res, next) Promise~Response~
++updateCustomerProposalEmail(req, res, next) Promise~Response~
++sendCustomerProposal(req, res, next) Promise~Response~
++trackEmailOpen(req, res, next) Promise~Response~
++createNegotiation(req, res, next) Promise~Response~
++getNegotiation(req, res, next) Promise~Response~
++addDiscussion(req, res, next) Promise~Response~
++updateNegotiationTerms(req, res, next) Promise~Response~
++completeNegotiation(req, res, next) Promise~Response~
 }
 class ProposalService {
 +create(data, userId) Promise~Proposal~
@@ -132,16 +182,46 @@ class ProposalService {
 +getPricingStrategy(id) Promise~SmartQuotationResult~
 +getRecommendedProducts(id) Promise~Product[]~
 +getStats(customerId) Promise~Stats~
++getTemplates(query) Promise~PaginatedResult~
++createTemplate(data, userId) Promise~ProposalTemplate~
++cloneTemplate(templateId, userId) Promise~ProposalTemplate~
++createRequirementAnalysis(proposalId, data) Promise~RequirementAnalysis~
++getRequirementAnalysis(proposalId) Promise~RequirementAnalysis~
++aiAnalyzeRequirement(proposalId, sourceType, recordingId) Promise~AnalysisResult~
++aiEnhanceRequirement(proposalId) Promise~RequirementAnalysis~
++updateRequirementAnalysis(proposalId, data) Promise~RequirementAnalysis~
++confirmRequirementAnalysis(proposalId, finalContent) Promise~Proposal~
++startDesign(proposalId) Promise~Proposal~
++matchTemplate(proposalId, criteria) Promise~Template[]~
++applyTemplate(proposalId, templateId) Promise~Proposal~
++updateDesign(proposalId, data) Promise~Proposal~
++confirmDesign(proposalId) Promise~Proposal~
++createReview(proposalId, data) Promise~ProposalReview~
++getReview(proposalId) Promise~ProposalReview~
++addReviewComment(proposalId, userId, comment) Promise~ProposalReview~
++approveReview(proposalId, resultNotes) Promise~Proposal~
++rejectReview(proposalId, resultNotes) Promise~Proposal~
++createCustomerProposalRecord(proposalId, data) Promise~CustomerProposalRecord~
++getCustomerProposalRecord(proposalId) Promise~CustomerProposalRecord~
++generateEmailTemplate(proposalId) Promise~EmailTemplate~
++updateCustomerProposalEmail(proposalId, data) Promise~CustomerProposalRecord~
++sendCustomerProposal(proposalId) Promise~Proposal~
++trackEmailOpen(token) Promise~CustomerProposalRecord~
++createNegotiation(proposalId) Promise~NegotiationRecord~
++getNegotiation(proposalId) Promise~NegotiationRecord~
++addDiscussion(proposalId, data) Promise~NegotiationRecord~
++updateAgreedTerms(proposalId, agreedTerms) Promise~NegotiationRecord~
++completeNegotiation(proposalId) Promise~Proposal~
 }
 ProposalController --> ProposalService : "依赖"
 ```
 
 **类图来源**
-- [proposal.controller.ts:9-187](file://crm-backend/src/controllers/proposal.controller.ts#L9-L187)
-- [proposal.service.ts:10-519](file://crm-backend/src/services/proposal.service.ts#L10-L519)
+- [proposal.controller.ts:9-636](file://crm-backend/src/controllers/proposal.controller.ts#L9-L636)
+- [proposal.service.ts:10-1178](file://crm-backend/src/services/proposal.service.ts#L10-L1178)
 
 **章节来源**
-- [proposal.controller.ts:1-187](file://crm-backend/src/controllers/proposal.controller.ts#L1-L187)
+- [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
 
 ### 提案服务（ProposalService）
 
@@ -150,9 +230,12 @@ ProposalController --> ProposalService : "依赖"
 #### 核心功能模块
 
 1. **基础CRUD操作**：标准的创建、读取、更新、删除功能
-2. **AI智能集成**：与AI服务的深度集成
-3. **数据统计分析**：提供多维度的业务统计
-4. **权限验证**：确保数据访问的安全性
+2. **多阶段工作流程**：完整的提案生命周期管理
+3. **AI智能集成**：与AI服务的深度集成
+4. **模板管理**：方案模板的创建、管理和应用
+5. **邮件跟踪**：客户提案的邮件发送和打开跟踪
+6. **数据统计分析**：提供多维度的业务统计
+7. **权限验证**：确保数据访问的安全性
 
 #### 数据流处理
 
@@ -161,6 +244,7 @@ sequenceDiagram
 participant Client as 客户端
 participant Controller as 控制器
 participant Service as 服务层
+participant Workflow as 工作流程
 participant AI as AI引擎
 participant Database as 数据库
 Client->>Controller : POST /api/v1/proposals
@@ -169,6 +253,13 @@ Service->>Service : 验证数据格式
 Service->>Database : 插入新提案
 Database-->>Service : 返回新提案
 Service-->>Controller : 返回提案数据
+Controller-->>Client : 201 Created + 数据
+Note over Client,Workflow : 多阶段工作流程示例
+Client->>Controller : POST /api/v1/proposals/ : id/requirement-analysis
+Controller->>Service : createRequirementAnalysis(id, analysisData)
+Service->>Workflow : 更新状态为需求分析中
+Service->>Database : 创建需求分析记录
+Service-->>Controller : 返回分析结果
 Controller-->>Client : 201 Created + 数据
 Note over Client,AI : AI智能功能示例
 Client->>Controller : POST /api/v1/proposals/ : id/generate
@@ -181,11 +272,11 @@ Controller-->>Client : 200 OK + 数据
 ```
 
 **序列图来源**
-- [proposal.controller.ts:14-114](file://crm-backend/src/controllers/proposal.controller.ts#L14-L114)
-- [proposal.service.ts:20-231](file://crm-backend/src/services/proposal.service.ts#L20-L231)
+- [proposal.controller.ts:14-636](file://crm-backend/src/controllers/proposal.controller.ts#L14-L636)
+- [proposal.service.ts:20-1178](file://crm-backend/src/services/proposal.service.ts#L20-L1178)
 
 **章节来源**
-- [proposal.service.ts:1-519](file://crm-backend/src/services/proposal.service.ts#L1-L519)
+- [proposal.service.ts:1-1178](file://crm-backend/src/services/proposal.service.ts#L1-L1178)
 
 ## API接口规范
 
@@ -271,8 +362,244 @@ Controller-->>Client : 200 OK + 数据
 - **查询参数**: 客户ID（可选）
 - **响应**: 200 OK + 统计数据
 
+### 模板管理API
+
+#### 获取模板列表
+- **URL**: `/api/v1/proposals/templates`
+- **方法**: GET
+- **认证**: 需要JWT令牌
+- **查询参数**: 分页、筛选条件
+- **响应**: 200 OK + 模板列表
+
+#### 创建模板
+- **URL**: `/api/v1/proposals/templates`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **请求体**: 模板创建数据
+- **响应**: 201 Created + 模板详情
+
+#### 克隆模板
+- **URL**: `/api/v1/proposals/templates/:id/clone`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 模板ID
+- **响应**: 200 OK + 克隆后的模板
+
+### 需求分析阶段API
+
+#### 创建需求分析
+- **URL**: `/api/v1/proposals/:id/requirement-analysis`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 需求分析数据
+- **响应**: 201 Created + 分析详情
+
+#### 获取需求分析
+- **URL**: `/api/v1/proposals/:id/requirement-analysis`
+- **方法**: GET
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 分析详情
+
+#### AI分析需求
+- **URL**: `/api/v1/proposals/:id/requirement-analysis/ai-analyze`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: AI分析请求
+- **响应**: 200 OK + 分析结果
+
+#### AI补充需求
+- **URL**: `/api/v1/proposals/:id/requirement-analysis/ai-enhance`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 增强后的分析
+
+#### 更新需求分析
+- **URL**: `/api/v1/proposals/:id/requirement-analysis`
+- **方法**: PUT
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 更新数据
+- **响应**: 200 OK + 更新后的分析
+
+#### 确认需求分析
+- **URL**: `/api/v1/proposals/:id/requirement-analysis/confirm`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 确认内容
+- **响应**: 200 OK + 确认后的提案
+
+### 方案设计阶段API
+
+#### 开始方案设计
+- **URL**: `/api/v1/proposals/:id/design`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 设计状态
+
+#### AI匹配模板
+- **URL**: `/api/v1/proposals/:id/design/match-template`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 匹配条件
+- **响应**: 200 OK + 匹配结果
+
+#### 应用模板生成方案
+- **URL**: `/api/v1/proposals/:id/design/apply-template`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 模板ID
+- **响应**: 200 OK + 应用后的提案
+
+#### 更新方案设计
+- **URL**: `/api/v1/proposals/:id/design`
+- **方法**: PUT
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 设计更新数据
+- **响应**: 200 OK + 更新后的提案
+
+#### 确认方案设计
+- **URL**: `/api/v1/proposals/:id/design/confirm`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 确认后的提案
+
+### 内部评审阶段API
+
+#### 发起内部评审
+- **URL**: `/api/v1/proposals/:id/review`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 评审配置
+- **响应**: 201 Created + 评审详情
+
+#### 获取评审信息
+- **URL**: `/api/v1/proposals/:id/review`
+- **方法**: GET
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 评审详情
+
+#### 添加评审意见
+- **URL**: `/api/v1/proposals/:id/review/comment`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 评审意见
+- **响应**: 200 OK + 更新后的评审
+
+#### 评审通过
+- **URL**: `/api/v1/proposals/:id/review/approve`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 评审结果
+- **响应**: 200 OK + 评审后的提案
+
+#### 评审驳回
+- **URL**: `/api/v1/proposals/:id/review/reject`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 评审结果
+- **响应**: 200 OK + 评审后的提案
+
+### 客户提案阶段API
+
+#### 创建客户提案
+- **URL**: `/api/v1/proposals/:id/customer-proposal`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 提案邮件配置
+- **响应**: 201 Created + 提案记录
+
+#### 获取客户提案信息
+- **URL**: `/api/v1/proposals/:id/customer-proposal`
+- **方法**: GET
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 提案详情
+
+#### 生成邮件模板
+- **URL**: `/api/v1/proposals/:id/customer-proposal/generate-email`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 邮件模板
+
+#### 更新邮件内容
+- **URL**: `/api/v1/proposals/:id/customer-proposal/email`
+- **方法**: PUT
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 邮件更新数据
+- **响应**: 200 OK + 更新后的记录
+
+#### 发送客户提案
+- **URL**: `/api/v1/proposals/:id/customer-proposal/send`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 发送后的提案
+
+#### 邮件打开跟踪
+- **URL**: `/api/v1/proposals/track/:token`
+- **方法**: GET
+- **路径参数**: 跟踪令牌
+- **响应**: 200 OK + 跟踪结果
+
+### 商务谈判阶段API
+
+#### 创建商务谈判
+- **URL**: `/api/v1/proposals/:id/negotiation`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 201 Created + 谈判记录
+
+#### 获取谈判记录
+- **URL**: `/api/v1/proposals/:id/negotiation`
+- **方法**: GET
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 谈判详情
+
+#### 添加讨论记录
+- **URL**: `/api/v1/proposals/:id/negotiation/discussion`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 讨论内容
+- **响应**: 200 OK + 更新后的记录
+
+#### 更新条款
+- **URL**: `/api/v1/proposals/:id/negotiation/terms`
+- **方法**: PUT
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **请求体**: 条款更新
+- **响应**: 200 OK + 更新后的记录
+
+#### 完成谈判
+- **URL**: `/api/v1/proposals/:id/negotiation/complete`
+- **方法**: POST
+- **认证**: 需要JWT令牌
+- **路径参数**: 提案ID
+- **响应**: 200 OK + 完成后的提案
+
 **章节来源**
-- [proposals.routes.ts:1-407](file://crm-backend/src/routes/proposals.routes.ts#L1-L407)
+- [proposals.routes.ts:1-653](file://crm-backend/src/routes/proposals.routes.ts#L1-L653)
 
 ## 数据模型设计
 
@@ -326,9 +653,99 @@ PROPOSAL }o--|| USER : "由...拥有"
 ```
 
 **ER图来源**
-- [schema.prisma:349-375](file://crm-backend/prisma/schema.prisma#L349-L375)
-- [schema.prisma:164-220](file://crm-backend/prisma/schema.prisma#L164-L220)
-- [schema.prisma:121-160](file://crm-backend/prisma/schema.prisma#L121-L160)
+- [schema.prisma:377-409](file://crm-backend/prisma/schema.prisma#L377-L409)
+- [schema.prisma:189-248](file://crm-backend/prisma/schema.prisma#L189-L248)
+- [schema.prisma:144-185](file://crm-backend/prisma/schema.prisma#L144-L185)
+
+### 工作流程相关实体模型
+
+```mermaid
+erDiagram
+REQUIREMENT_ANALYSIS {
+string id PK
+string proposalId FK
+string customerId FK
+string sourceType
+string recordingId
+text rawContent
+boolean aiEnhanced
+text finalContent
+json extractedNeeds
+json painPoints
+json budgetHint
+string decisionTimeline
+string status
+datetime createdAt
+datetime updatedAt
+}
+PROPOSAL_TEMPLATE {
+string id PK
+string name
+string category
+text description
+text content
+json products
+text terms
+json tags
+int usageCount
+boolean isActive
+string createdById FK
+datetime createdAt
+datetime updatedAt
+}
+PROPOSAL_REVIEW {
+string id PK
+string proposalId FK
+string status
+string reviewerId FK
+json sharedWith
+json comments
+string result
+text resultNotes
+datetime reviewedAt
+datetime createdAt
+datetime updatedAt
+}
+CUSTOMER_PROPOSAL_RECORD {
+string id PK
+string proposalId FK
+string emailTo
+json emailCc
+string emailSubject
+text emailBody
+string sendStatus
+datetime sentAt
+datetime deliveredAt
+datetime openedAt
+int openCount
+string trackingToken
+string viewUrl
+datetime createdAt
+datetime updatedAt
+}
+NEGOTIATION_RECORD {
+string id PK
+string proposalId FK
+json discussions
+json agreedTerms
+string finalDocumentUrl
+string status
+datetime createdAt
+datetime updatedAt
+}
+PROPOSAL ||--|| REQUIREMENT_ANALYSIS : "包含"
+PROPOSAL ||--|| PROPOSAL_TEMPLATE : "应用"
+PROPOSAL ||--|| PROPOSAL_REVIEW : "需要"
+PROPOSAL ||--|| CUSTOMER_PROPOSAL_RECORD : "发送"
+PROPOSAL ||--|| NEGOTIATION_RECORD : "进入"
+```
+
+**ER图来源**
+- [schema.prisma:956-985](file://crm-backend/prisma/schema.prisma#L956-L985)
+- [schema.prisma:936-953](file://crm-backend/prisma/schema.prisma#L936-L953)
+- [schema.prisma:988-1017](file://crm-backend/prisma/schema.prisma#L988-L1017)
+- [schema.prisma:1020-1049](file://crm-backend/prisma/schema.prisma#L1020-L1049)
+- [schema.prisma:1052-1076](file://crm-backend/prisma/schema.prisma#L1052-L1076)
 
 ### 数据验证规则
 
@@ -346,8 +763,211 @@ PROPOSAL }o--|| USER : "由...拥有"
 - **产品**: 可选，数组格式
 - **状态**: 可选，枚举值
 
+#### 工作流程验证
+- **需求分析**: 支持手动输入、AI录音分析、AI跟进分析
+- **模板匹配**: 支持按行业、需求、预算匹配
+- **评审配置**: 支持评审人和共享团队设置
+- **邮件配置**: 支持收件人、抄送、主题、正文配置
+
 **章节来源**
-- [proposal.validator.ts:1-80](file://crm-backend/src/validators/proposal.validator.ts#L1-L80)
+- [proposal.validator.ts:1-240](file://crm-backend/src/validators/proposal.validator.ts#L1-L240)
+
+## 多阶段工作流程
+
+### 完整提案工作流程
+
+系统实现了完整的多阶段业务提案工作流程，每个阶段都有明确的状态管理和控制机制：
+
+```mermaid
+stateDiagram-v2
+[*] --> 草稿
+草稿 --> 需求分析中 : 创建需求分析
+需求分析中 --> 方案设计中 : 确认需求分析
+方案设计中 --> 待内部评审 : 确认方案设计
+待内部评审 --> 评审通过 : 评审通过
+待内部评审 --> 评审驳回 : 评审驳回
+评审通过 --> 客户提案中 : 创建客户提案
+评审驳回 --> 方案设计中 : 修改方案
+客户提案中 --> 商务谈判中 : 发送客户提案
+商务谈判中 --> 已接受 : 完成谈判
+商务谈判中 --> 客户提案中 : 继续谈判
+已接受 --> 已发送 : 发送提案
+已发送 --> 已接受 : 客户接受
+已发送 --> 已拒绝 : 客户拒绝
+已发送 --> 已过期 : 到期
+```
+
+**状态流转图来源**
+- [schema.prisma:43-56](file://crm-backend/prisma/schema.prisma#L43-L56)
+
+### 需求分析阶段
+
+#### 功能特性
+- **多源需求收集**：支持手动输入、AI录音分析、AI跟进分析
+- **AI智能分析**：自动提取需求、痛点、预算线索
+- **需求确认**：支持最终需求确认和状态转换
+
+#### 数据流程
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant Controller as 控制器
+participant Service as 服务层
+participant AI as AI引擎
+participant Database as 数据库
+Client->>Controller : POST /requirement-analysis
+Controller->>Service : createRequirementAnalysis(data)
+Service->>Database : 创建需求分析记录
+Service->>Database : 更新提案状态为需求分析中
+Database-->>Service : 返回分析记录
+Service-->>Controller : 返回分析结果
+Controller-->>Client : 201 Created + 分析详情
+Note over Client,AI : AI分析流程
+Client->>Controller : POST /ai-analyze
+Controller->>Service : aiAnalyzeRequirement(sourceType, recordingId)
+Service->>AI : 分析录音内容
+AI-->>Service : 返回分析结果
+Service->>Database : 更新需求分析记录
+Service-->>Controller : 返回分析结果
+Controller-->>Client : 200 OK + 分析详情
+```
+
+**序列图来源**
+- [proposal.controller.ts:242-322](file://crm-backend/src/controllers/proposal.controller.ts#L242-L322)
+- [proposal.service.ts:592-715](file://crm-backend/src/services/proposal.service.ts#L592-L715)
+
+### 方案设计阶段
+
+#### 功能特性
+- **模板匹配**：基于行业、需求、预算智能匹配模板
+- **模板应用**：一键应用模板生成完整方案
+- **设计确认**：支持方案设计确认和状态转换
+
+#### 模板匹配算法
+```mermaid
+flowchart TD
+Start([开始模板匹配]) --> GetProposal[获取提案信息]
+GetProposal --> GetTemplates[获取模板列表]
+GetTemplates --> CalculateScore[计算匹配分数]
+CalculateScore --> IndustryMatch[行业匹配得分]
+IndustryMatch --> BudgetMatch[预算匹配得分]
+BudgetMatch --> NeedMatch[需求匹配得分]
+NeedMatch --> SumScore[汇总得分]
+SumScore --> SortTemplates[按分数排序]
+SortTemplates --> ReturnTop5[返回前5个模板]
+ReturnTop5 --> End([匹配完成])
+```
+
+**流程图来源**
+- [proposal.service.ts:732-774](file://crm-backend/src/services/proposal.service.ts#L732-L774)
+
+### 内部评审阶段
+
+#### 功能特性
+- **评审发起**：支持指定评审人和共享团队
+- **意见管理**：支持多人评审意见收集
+- **结果处理**：支持评审通过和驳回两种结果
+
+#### 评审流程
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant Controller as 控制器
+participant Service as 服务层
+participant Database as 数据库
+Client->>Controller : POST /review
+Controller->>Service : createReview(config)
+Service->>Database : 创建评审记录
+Service->>Database : 更新提案状态为待内部评审
+Database-->>Service : 返回评审记录
+Service-->>Controller : 返回评审详情
+Controller-->>Client : 201 Created + 评审详情
+Note over Client,Client : 添加评审意见
+Client->>Controller : POST /review/comment
+Controller->>Service : addReviewComment(userId, comment)
+Service->>Database : 更新评审记录
+Service-->>Controller : 返回更新后的评审
+Controller-->>Client : 200 OK + 评审详情
+Note over Client,Client : 处理评审结果
+Client->>Controller : POST /review/approve 或 /review/reject
+Controller->>Service : approveReview(resultNotes) 或 rejectReview(resultNotes)
+Service->>Database : 更新评审状态
+Service->>Database : 更新提案状态
+Service-->>Controller : 返回更新后的提案
+Controller-->>Client : 200 OK + 提案详情
+```
+
+**序列图来源**
+- [proposal.controller.ts:403-474](file://crm-backend/src/controllers/proposal.controller.ts#L403-L474)
+- [proposal.service.ts:835-929](file://crm-backend/src/services/proposal.service.ts#L835-L929)
+
+### 客户提案阶段
+
+#### 功能特性
+- **邮件模板生成**：自动生成客户提案邮件模板
+- **邮件发送**：支持邮件发送和状态跟踪
+- **打开跟踪**：支持邮件打开情况跟踪
+
+#### 邮件跟踪机制
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant Controller as 控制器
+participant Service as 服务层
+participant Database as 数据库
+Client->>Controller : POST /customer-proposal
+Controller->>Service : createCustomerProposalRecord(config)
+Service->>Service : 生成跟踪令牌
+Service->>Database : 创建客户提案记录
+Service->>Database : 更新提案状态为客户提案中
+Database-->>Service : 返回记录
+Service-->>Controller : 返回记录详情
+Controller-->>Client : 201 Created + 记录详情
+Note over Client,Client : 发送邮件
+Client->>Controller : POST /customer-proposal/send
+Controller->>Service : sendCustomerProposal()
+Service->>Database : 更新发送状态
+Service->>Database : 更新提案状态为已发送
+Service-->>Controller : 返回更新后的提案
+Controller-->>Client : 200 OK + 提案详情
+Note over Client,Client : 邮件打开跟踪
+Client->>Controller : GET /track/ : token
+Controller->>Service : trackEmailOpen(token)
+Service->>Database : 更新打开状态
+Service-->>Controller : 返回跟踪结果
+Controller-->>Client : 200 OK + 跟踪详情
+```
+
+**序列图来源**
+- [proposal.controller.ts:482-560](file://crm-backend/src/controllers/proposal.controller.ts#L482-L560)
+- [proposal.service.ts:936-1048](file://crm-backend/src/services/proposal.service.ts#L936-L1048)
+
+### 商务谈判阶段
+
+#### 功能特性
+- **谈判记录**：支持谈判过程记录和讨论管理
+- **条款确认**：支持关键条款的确认和修改
+- **状态管理**：支持谈判进行中和已完成状态
+
+#### 谈判管理流程
+```mermaid
+flowchart TD
+Start([开始商务谈判]) --> CreateNegotiation[创建谈判记录]
+CreateNegotiation --> AddDiscussion[添加讨论记录]
+AddDiscussion --> UpdateTerms[更新确认条款]
+UpdateTerms --> ContinueNegotiation{是否完成?}
+ContinueNegotiation --> |否| AddDiscussion
+ContinueNegotiation --> |是| CompleteNegotiation[完成谈判]
+CompleteNegotiation --> UpdateProposalStatus[更新提案状态为已接受]
+UpdateProposalStatus --> End([谈判结束])
+```
+
+**流程图来源**
+- [proposal.controller.ts:568-633](file://crm-backend/src/controllers/proposal.controller.ts#L568-L633)
+- [proposal.service.ts:1055-1126](file://crm-backend/src/services/proposal.service.ts#L1055-L1126)
+
+**章节来源**
+- [proposal.service.ts:587-1178](file://crm-backend/src/services/proposal.service.ts#L587-1178)
 
 ## AI智能功能
 
@@ -402,6 +1022,22 @@ AI引擎能够自动生成完整的商务方案，包含以下核心内容：
 6. **服务条款**：详细的合同条款
 7. **服务等级**：支持和服务承诺
 8. **ROI预测**：投资回报分析
+
+#### AI分析功能
+
+```mermaid
+flowchart TD
+Start([开始AI分析]) --> GetRecording[获取录音数据]
+GetRecording --> ExtractKeywords[提取关键词]
+ExtractKeywords --> AnalyzePainPoints[分析痛点]
+AnalyzePainPoints --> ExtractNeeds[提取需求]
+ExtractNeeds --> GenerateAnalysis[生成分析报告]
+GenerateAnalysis --> UpdateRecord[更新分析记录]
+UpdateRecord --> End([分析完成])
+```
+
+**流程图来源**
+- [proposal.service.ts:1133-1165](file://crm-backend/src/services/proposal.service.ts#L1133-L1165)
 
 **章节来源**
 - [proposalAI.ts:112-154](file://crm-backend/src/services/ai/proposalAI.ts#L112-L154)
@@ -555,6 +1191,7 @@ Auth-->>Client : 200 OK + 数据
 2. **服务层测试**：验证业务逻辑正确性
 3. **数据验证测试**：验证输入数据的有效性
 4. **AI功能测试**：验证智能算法输出
+5. **工作流程测试**：验证多阶段流程正确性
 
 ### API测试工具
 
@@ -570,6 +1207,15 @@ curl -X POST http://localhost:3000/api/v1/proposals \
     "title": "测试提案",
     "value": 100000,
     "description": "测试描述"
+  }'
+
+# 创建需求分析
+curl -X POST http://localhost:3000/api/v1/proposals/:id/requirement-analysis \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "sourceType": "manual",
+    "rawContent": "测试需求内容"
   }'
 ```
 
@@ -591,6 +1237,7 @@ curl -X POST http://localhost:3000/api/v1/proposals \
 
 - **架构清晰**：采用分层架构，职责分离明确
 - **AI集成**：深度整合人工智能技术，提供智能化功能
+- **工作流程完整**：实现了从需求分析到商务谈判的完整流程
 - **安全性强**：完善的认证授权机制
 - **扩展性好**：模块化设计，易于功能扩展
 - **性能优秀**：异步处理和缓存策略
@@ -602,3 +1249,5 @@ curl -X POST http://localhost:3000/api/v1/proposals \
 ### 未来发展
 
 系统具备良好的扩展基础，可以进一步集成更多AI功能，如机器学习预测、自然语言处理等，为企业提供更加智能化的销售管理服务。
+
+**更新** 本次更新主要增加了完整的多阶段业务提案工作流程，包括需求分析、方案设计、内部评审、客户提案、商务谈判等完整流程，以及相应的AI智能生成功能和模板管理功能。

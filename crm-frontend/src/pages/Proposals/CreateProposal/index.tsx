@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { proposalApi, customerApi, Customer, ProposalTemplate } from '../../../services/api';
+import { proposalApi, customerApi } from '../../../services/api';
+import type { Customer, ProposalTemplate } from '../../../services/api';
 
 // 步骤配置
 const STEPS = [

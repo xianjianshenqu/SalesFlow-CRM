@@ -5,6 +5,8 @@
 
 import { useState } from 'react';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002/api/v1';
+
 interface ScriptGeneratorProps {
   isOpen: boolean;
   onClose: () => void;
@@ -51,7 +53,7 @@ export default function ScriptGenerator({
       setLoading(true);
       setResult(null);
       const token = localStorage.getItem('auth_token');
-      const response = await fetch('http://localhost:3001/api/v1/ai/scripts/generate', {
+      const response = await fetch(`${API_BASE_URL}/ai/scripts/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -829,6 +829,18 @@ const API_KEY = 'sk-xxxxx';
 
 // ❌ 禁止未处理的 Promise
 fetch('/api/data'); // 没有 await 或 catch
+
+// ❌ 禁止硬编码 API URL（端口可能变化）
+fetch('http://localhost:3001/api/v1/customers');
+// ✅ 应使用环境变量
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002/api/v1';
+fetch(`${API_BASE_URL}/customers`);
+
+// ❌ 禁止混合导入值和类型（verbatimModuleSyntax 要求）
+import { customerApi, Customer } from '../services/api';
+// ✅ 应分开导入
+import { customerApi } from '../services/api';
+import type { Customer } from '../services/api';
 ```
 
 ### 11.2 强烈不建议

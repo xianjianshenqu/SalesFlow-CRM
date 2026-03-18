@@ -9,6 +9,11 @@
 - [20260317020137_add_ai_features/migration.sql](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql)
 - [20260317051358_add_sales_performance_and_coaching/migration.sql](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql)
 - [20260317083220_add_presales_activity_management/migration.sql](file://crm-backend/prisma/migrations/20260317083220_add_presales_activity_management/migration.sql)
+- [20260318060044_add_proposal_workflow_stages/migration.sql](file://crm-backend/prisma/migrations/20260318060044_add_proposal_workflow_stages/migration.sql)
+- [proposal.controller.ts](file://crm-backend/src/controllers/proposal.controller.ts)
+- [proposal.service.ts](file://crm-backend/src/services/proposal.service.ts)
+- [proposals.routes.ts](file://crm-backend/src/routes/proposals.routes.ts)
+- [proposal.validator.ts](file://crm-backend/src/validators/proposal.validator.ts)
 - [presalesActivity.controller.ts](file://crm-backend/src/controllers/presalesActivity.controller.ts)
 - [presalesActivity.service.ts](file://crm-backend/src/services/presalesActivity.service.ts)
 - [presalesActivity.routes.ts](file://crm-backend/src/routes/presalesActivity.routes.ts)
@@ -27,8 +32,8 @@
 
 ## 更新摘要
 **变更内容**
-- 新增预销售活动管理模块的四个核心数据表
-- 新增活动状态和审批状态枚举类型
+- 新增完整的提案工作流程相关的新表和枚举类型
+- 新增提案模板、需求分析、内部审核、客户提案记录、谈判跟踪等完整数据模型
 - 新增完整的API接口和业务逻辑实现
 - 更新数据库关系图以反映新的实体关系
 
@@ -45,7 +50,7 @@
 
 ## 简介
 
-这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**等多个业务模块。
+这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**和**提案工作流程管理**等多个业务模块。
 
 系统的核心特点包括：
 - 全面的客户关系管理功能
@@ -54,6 +59,7 @@
 - 实时的团队协作和绩效监控
 - 智能的资源匹配和预销售支持
 - **完整的预销售活动管理功能**，包括活动创建、二维码签到、问题收集和统计分析
+- **完整的提案工作流程管理**，涵盖从需求分析到商务谈判的全流程跟踪
 
 ## 项目结构
 
@@ -82,11 +88,11 @@ FRONTEND --> CONTROLLERS
 ```
 
 **图表来源**
-- [schema.prisma:1-918](file://crm-backend/prisma/schema.prisma#L1-L918)
+- [schema.prisma:1-1076](file://crm-backend/prisma/schema.prisma#L1-L1076)
 - [app.ts](file://crm-backend/src/app.ts)
 
 **章节来源**
-- [schema.prisma:1-918](file://crm-backend/prisma/schema.prisma#L1-L918)
+- [schema.prisma:1-1076](file://crm-backend/prisma/schema.prisma#L1-L1076)
 - [20260315081326_init/migration.sql:1-381](file://crm-backend/prisma/migrations/20260315081326_init/migration.sql#L1-L381)
 
 ## 核心组件
@@ -142,6 +148,95 @@ decimal paidAmount
 decimal balance
 varchar status
 datetime dueDate
+datetime createdAt
+datetime updatedAt
+}
+PROPOSALS {
+varchar id PK
+varchar title
+varchar customerId FK
+decimal value
+enum status
+text description
+json products
+text terms
+datetime validUntil
+datetime sentAt
+text notes
+varchar ownerId FK
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+PROPOSAL_TEMPLATES {
+varchar id PK
+varchar name
+varchar category
+text description
+text content
+json products
+text terms
+json tags
+int usageCount
+boolean isActive
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+REQUIREMENT_ANALYSES {
+varchar id PK
+varchar proposalId UK
+varchar customerId FK
+varchar sourceType
+varchar recordingId
+text rawContent
+boolean aiEnhanced
+text finalContent
+json extractedNeeds
+json painPoints
+json budgetHint
+varchar decisionTimeline
+varchar status
+datetime createdAt
+datetime updatedAt
+}
+PROPOSAL_REVIEWS {
+varchar id PK
+varchar proposalId UK
+varchar status
+varchar reviewerId
+json sharedWith
+json comments
+varchar result
+text resultNotes
+datetime reviewedAt
+datetime createdAt
+datetime updatedAt
+}
+CUSTOMER_PROPOSAL_RECORDS {
+varchar id PK
+varchar proposalId UK
+varchar emailTo
+json emailCc
+varchar emailSubject
+text emailBody
+varchar sendStatus
+datetime sentAt
+datetime deliveredAt
+datetime openedAt
+int openCount
+varchar trackingToken
+varchar viewUrl
+datetime createdAt
+datetime updatedAt
+}
+NEGOTIATION_RECORDS {
+varchar id PK
+varchar proposalId UK
+json discussions
+json agreedTerms
+varchar finalDocumentUrl
+varchar status
 datetime createdAt
 datetime updatedAt
 }
@@ -210,8 +305,15 @@ datetime updatedAt
 USERS ||--o{ CUSTOMERS : "拥有"
 CUSTOMERS ||--o{ OPPORTUNITIES : "包含"
 CUSTOMERS ||--o{ PAYMENTS : "支付"
+CUSTOMERS ||--o{ PROPOSALS : "创建"
 OPPORTUNITIES ||--|| PAYMENTS : "关联"
+USERS ||--o{ PROPOSALS : "创建"
 USERS ||--o{ PRESALES_ACTIVITIES : "创建"
+PROPOSALS ||--|| REQUIREMENT_ANALYSES : "包含"
+PROPOSALS ||--|| PROPOSAL_REVIEWS : "包含"
+PROPOSALS ||--|| CUSTOMER_PROPOSAL_RECORDS : "包含"
+PROPOSALS ||--|| NEGOTIATION_RECORDS : "包含"
+PROPOSALS ||--o{ PROPOSAL_TEMPLATES : "使用"
 PRESALES_ACTIVITIES ||--o{ ACTIVITY_QR_CODES : "包含"
 PRESALES_ACTIVITIES ||--o{ ACTIVITY_SIGN_INS : "包含"
 PRESALES_ACTIVITIES ||--o{ ACTIVITY_QUESTIONS : "包含"
@@ -220,9 +322,13 @@ ACTIVITY_SIGN_INS ||--o{ ACTIVITY_QUESTIONS : "产生"
 ```
 
 **图表来源**
-- [schema.prisma:121-220](file://crm-backend/prisma/schema.prisma#L121-L220)
-- [schema.prisma:224-280](file://crm-backend/prisma/schema.prisma#L224-L280)
-- [schema.prisma:809-918](file://crm-backend/prisma/schema.prisma#L809-L918)
+- [schema.prisma:377-409](file://crm-backend/prisma/schema.prisma#L377-L409)
+- [schema.prisma:936-985](file://crm-backend/prisma/schema.prisma#L936-L985)
+- [schema.prisma:988-1017](file://crm-backend/prisma/schema.prisma#L988-L1017)
+- [schema.prisma:1020-1049](file://crm-backend/prisma/schema.prisma#L1020-L1049)
+- [schema.prisma:1052-1076](file://crm-backend/prisma/schema.prisma#L1052-L1076)
+- [schema.prisma:822-853](file://crm-backend/prisma/schema.prisma#L822-L853)
+- [schema.prisma:856-931](file://crm-backend/prisma/schema.prisma#L856-L931)
 
 ### 枚举类型系统
 
@@ -243,11 +349,30 @@ class TaskType {
 +follow_up
 +other
 }
+class TaskPriority {
++high
++medium
++low
+}
 class TaskStatus {
 +pending
 +in_progress
 +completed
 +cancelled
+}
+class ProposalStatus {
++draft
++requirement_analysis
++designing
++pending_review
++review_passed
++review_rejected
++customer_proposal
++negotiation
++sent
++accepted
++rejected
++expired
 }
 class OpportunityStatus {
 +new_lead
@@ -281,11 +406,11 @@ class ApprovalStatus {
 ```
 
 **图表来源**
-- [schema.prisma:15-117](file://crm-backend/prisma/schema.prisma#L15-L117)
-- [schema.prisma:119-133](file://crm-backend/prisma/schema.prisma#L119-L133)
+- [schema.prisma:43-56](file://crm-backend/prisma/schema.prisma#L43-L56)
+- [schema.prisma:15-140](file://crm-backend/prisma/schema.prisma#L15-L140)
 
 **章节来源**
-- [schema.prisma:13-133](file://crm-backend/prisma/schema.prisma#L13-L133)
+- [schema.prisma:13-140](file://crm-backend/prisma/schema.prisma#L13-L140)
 
 ## 架构概览
 
@@ -354,6 +479,14 @@ ACTIVITY_QR_CODES[Activity QR Codes]
 ACTIVITY_SIGN_INS[Activity Sign Ins]
 ACTIVITY_QUESTIONS[Activity Questions]
 end
+subgraph "提案工作流程管理"
+PROPOSALS[Proposals]
+PROPOSAL_TEMPLATES[Proposal Templates]
+REQUIREMENT_ANALYSES[Requirement Analyses]
+PROPOSAL_REVIEWS[Proposal Reviews]
+CUSTOMER_PROPOSAL_RECORDS[Customer Proposal Records]
+NEGOTIATION_RECORDS[Negotiation Records]
+end
 USERS --> CUSTOMERS
 USERS --> TEAM_MEMBERS
 USERS --> SCHEDULE_TASKS
@@ -379,6 +512,7 @@ CUSTOMERS --> FOLLOW_UP_SUGGESTIONS
 CUSTOMERS --> CHURN_ALERTS
 CUSTOMERS --> CUSTOMER_INSIGHTS
 CUSTOMERS --> PRESALES_ACTIVITIES
+CUSTOMERS --> PROPOSALS
 OPPORTUNITIES --> PROPOSALS
 OPPORTUNITIES --> OPPORTUNITY_SCORES
 OPPORTUNITIES --> PAYMENTS
@@ -394,10 +528,19 @@ PRESALES_ACTIVITIES --> ACTIVITY_SIGN_INS
 PRESALES_ACTIVITIES --> ACTIVITY_QUESTIONS
 ACTIVITY_QR_CODES --> ACTIVITY_SIGN_INS
 ACTIVITY_SIGN_INS --> ACTIVITY_QUESTIONS
+PROPOSALS --> PROPOSAL_TEMPLATES
+PROPOSALS --> REQUIREMENT_ANALYSES
+PROPOSALS --> PROPOSAL_REVIEWS
+PROPOSALS --> CUSTOMER_PROPOSAL_RECORDS
+PROPOSALS --> NEGOTIATION_RECORDS
+REQUIREMENT_ANALYSES --> PROPOSALS
+PROPOSAL_REVIEWS --> PROPOSALS
+CUSTOMER_PROPOSAL_RECORDS --> PROPOSALS
+NEGOTIATION_RECORDS --> PROPOSALS
 ```
 
 **图表来源**
-- [schema.prisma:121-918](file://crm-backend/prisma/schema.prisma#L121-L918)
+- [schema.prisma:377-1076](file://crm-backend/prisma/schema.prisma#L377-L1076)
 
 ## 详细组件分析
 
@@ -465,9 +608,9 @@ USERS ||--o{ CUSTOMERS : "创建"
 ```
 
 **图表来源**
-- [schema.prisma:164-220](file://crm-backend/prisma/schema.prisma#L164-L220)
-- [schema.prisma:525-551](file://crm-backend/prisma/schema.prisma#L525-L551)
-- [schema.prisma:555-574](file://crm-backend/prisma/schema.prisma#L555-L574)
+- [schema.prisma:189-248](file://crm-backend/prisma/schema.prisma#L189-L248)
+- [schema.prisma:589-608](file://crm-backend/prisma/schema.prisma#L589-L608)
+- [schema.prisma:590-608](file://crm-backend/prisma/schema.prisma#L590-L608)
 
 #### 业务流程分析
 
@@ -547,8 +690,8 @@ OpportunityScore --> Opportunity : "关联"
 ```
 
 **图表来源**
-- [schema.prisma:620-645](file://crm-backend/prisma/schema.prisma#L620-L645)
-- [schema.prisma:224-253](file://crm-backend/prisma/schema.prisma#L224-L253)
+- [schema.prisma:654-679](file://crm-backend/prisma/schema.prisma#L654-L679)
+- [schema.prisma:252-281](file://crm-backend/prisma/schema.prisma#L252-L281)
 
 **章节来源**
 - [opportunity.service.ts:1-164](file://crm-backend/src/services/opportunity.service.ts#L1-L164)
@@ -653,6 +796,85 @@ Analytics --> End([分析完成])
 - [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
 - [presalesActivity.service.ts:1-766](file://crm-backend/src/services/presalesActivity.service.ts#L1-L766)
 
+### 提案工作流程管理
+
+**新增** 提案工作流程管理模块提供完整的商务提案生命周期管理，涵盖从需求分析到商务谈判的全流程跟踪。
+
+#### 提案工作流程生命周期
+
+```mermaid
+stateDiagram-v2
+[*] --> 草稿
+草稿 --> 需求分析中 : 创建需求分析
+需求分析中 --> 方案设计中 : 确认需求分析
+方案设计中 --> 待内部评审 : 确认方案设计
+待内部评审 --> 评审通过 : 评审通过
+待内部评审 --> 评审驳回 : 评审驳回
+评审通过 --> 客户提案中 : 创建客户提案
+客户提案中 --> 已发送 : 发送提案
+已发送 --> 商务谈判中 : 创建谈判记录
+商务谈判中 --> 已接受 : 谈判完成
+商务谈判中 --> 已拒绝 : 谈判失败
+已接受 --> [*]
+已拒绝 --> [*]
+评审驳回 --> [*]
+```
+
+#### 需求分析流程
+
+```mermaid
+flowchart TD
+Start([开始需求分析]) --> CollectData[收集客户数据]
+CollectData --> ManualInput[手动输入需求]
+ManualInput --> AIAnalysis[AI分析录音]
+AIAnalysis --> ExtractNeeds[提取需求要点]
+ExtractNeeds --> PainPointAnalysis[痛点分析]
+PainPointAnalysis --> BudgetEstimate[预算估算]
+BudgetEstimate --> TimelineAnalysis[决策时间线分析]
+TimelineAnalysis --> Confirm[确认需求]
+Confirm --> Design[进入方案设计]
+Design --> End([需求分析完成])
+```
+
+#### 客户提案发送流程
+
+```mermaid
+sequenceDiagram
+participant Sales as 销售人员
+participant System as 系统
+participant Email as 邮件服务器
+participant Customer as 客户
+Sales->>System : 创建客户提案
+System->>System : 生成跟踪令牌
+System->>Email : 发送邮件
+Email->>Customer : 邮件送达
+Customer->>System : 打开邮件
+System->>System : 更新打开状态
+System->>Sales : 发送统计更新
+```
+
+#### 商务谈判跟踪
+
+```mermaid
+flowchart TD
+Start([开始谈判]) --> FirstMeeting[首次会议]
+FirstMeeting --> Discussion1[讨论条款]
+Discussion1 --> CounterOffer[还价]
+CounterOffer --> FinalTerms[确定最终条款]
+FinalTerms --> DocumentPreparation[准备最终文档]
+DocumentPreparation --> Signature[签署协议]
+Signature --> End([谈判完成])
+```
+
+**图表来源**
+- [proposal.service.ts:588-715](file://crm-backend/src/services/proposal.service.ts#L588-L715)
+- [proposal.service.ts:931-1048](file://crm-backend/src/services/proposal.service.ts#L931-L1048)
+- [proposal.service.ts:1050-1126](file://crm-backend/src/services/proposal.service.ts#L1050-L1126)
+
+**章节来源**
+- [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
+- [proposal.service.ts:1-1178](file://crm-backend/src/services/proposal.service.ts#L1-L1178)
+
 ### AI智能分析
 
 AI智能分析模块提供客户洞察、流失预警、跟进建议和销售教练等智能化功能。
@@ -693,11 +915,11 @@ Monitor --> End
 ```
 
 **图表来源**
-- [schema.prisma:648-668](file://crm-backend/prisma/schema.prisma#L648-L668)
-- [schema.prisma:671-689](file://crm-backend/prisma/schema.prisma#L671-L689)
+- [schema.prisma:705-723](file://crm-backend/prisma/schema.prisma#L705-L723)
+- [schema.prisma:682-702](file://crm-backend/prisma/schema.prisma#L682-L702)
 
 **章节来源**
-- [schema.prisma:576-918](file://crm-backend/prisma/schema.prisma#L576-L918)
+- [schema.prisma:612-723](file://crm-backend/prisma/schema.prisma#L612-L723)
 
 ### 团队协作与绩效
 
@@ -720,10 +942,10 @@ Feedback --> Improve[优化匹配算法]
 ```
 
 **图表来源**
-- [schema.prisma:766-783](file://crm-backend/prisma/schema.prisma#L766-L783)
+- [schema.prisma:800-817](file://crm-backend/prisma/schema.prisma#L800-L817)
 
 **章节来源**
-- [schema.prisma:464-521](file://crm-backend/prisma/schema.prisma#L464-L521)
+- [schema.prisma:498-555](file://crm-backend/prisma/schema.prisma#L498-L555)
 
 ## 依赖关系分析
 
@@ -760,6 +982,14 @@ ActivityQrCodes[Activity QR Codes]
 ActivitySignIns[Activity Sign Ins]
 ActivityQuestions[Activity Questions]
 end
+subgraph "提案工作流程"
+Proposals[Proposals]
+ProposalTemplates[Proposal Templates]
+RequirementAnalyses[Requirement Analyses]
+ProposalReviews[Proposal Reviews]
+CustomerProposalRecords[Customer Proposal Records]
+NegotiationRecords[Negotiation Records]
+end
 Users --> Customers
 Users --> Teams
 Users --> ScheduleTasks
@@ -775,6 +1005,8 @@ Customers --> AudioRecordings
 Customers --> Opportunities
 Customers --> Payments
 Customers --> ScheduleTasks
+Customers --> PresalesActivities
+Customers --> Proposals
 Opportunities --> Proposals
 Opportunities --> Payments
 Opportunities --> OpportunityScores
@@ -784,10 +1016,19 @@ PresalesActivities --> ActivitySignIns
 PresalesActivities --> ActivityQuestions
 ActivityQrCodes --> ActivitySignIns
 ActivitySignIns --> ActivityQuestions
+Proposals --> ProposalTemplates
+Proposals --> RequirementAnalyses
+Proposals --> ProposalReviews
+Proposals --> CustomerProposalRecords
+Proposals --> NegotiationRecords
+RequirementAnalyses --> Proposals
+ProposalReviews --> Proposals
+CustomerProposalRecords --> Proposals
+NegotiationRecords --> Proposals
 ```
 
 **图表来源**
-- [schema.prisma:121-918](file://crm-backend/prisma/schema.prisma#L121-L918)
+- [schema.prisma:377-1076](file://crm-backend/prisma/schema.prisma#L377-L1076)
 
 ### 控制器-服务层依赖
 
@@ -865,12 +1106,57 @@ class PresalesActivityController {
 +answerQuestion()
 +getActivityStats()
 }
+class ProposalController {
++create()
++getAll()
++getById()
++update()
++updateStatus()
++delete()
++generateWithAI()
++send()
++generateSmartProposal()
++getPricingStrategy()
++getRecommendedProducts()
++getStats()
++getTemplates()
++createTemplate()
++cloneTemplate()
++createRequirementAnalysis()
++getRequirementAnalysis()
++aiAnalyzeRequirement()
++aiEnhanceRequirement()
++updateRequirementAnalysis()
++confirmRequirementAnalysis()
++startDesign()
++matchTemplate()
++applyTemplate()
++updateDesign()
++confirmDesign()
++createReview()
++getReview()
++addReviewComment()
++approveReview()
++rejectReview()
++createCustomerProposalRecord()
++getCustomerProposalRecord()
++generateEmailTemplate()
++updateCustomerProposalEmail()
++sendCustomerProposal()
++trackEmailOpen()
++createNegotiation()
++getNegotiation()
++addDiscussion()
++updateAgreedTerms()
++completeNegotiation()
+}
 CustomerController --> CustomerService
 ContactController --> ContactService
 OpportunityController --> OpportunityService
 PaymentController --> PaymentService
 ScheduleController --> ScheduleService
 PresalesActivityController --> PresalesActivityService
+ProposalController --> ProposalService
 ```
 
 **图表来源**
@@ -880,6 +1166,7 @@ PresalesActivityController --> PresalesActivityService
 - [payment.controller.ts:5-60](file://crm-backend/src/controllers/payment.controller.ts#L5-L60)
 - [schedule.controller.ts:9-153](file://crm-backend/src/controllers/schedule.controller.ts#L9-L153)
 - [presalesActivity.controller.ts:9-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L9-L338)
+- [proposal.controller.ts:9-636](file://crm-backend/src/controllers/proposal.controller.ts#L9-L636)
 
 **章节来源**
 - [customer.controller.ts:1-58](file://crm-backend/src/controllers/customer.controller.ts#L1-L58)
@@ -888,6 +1175,7 @@ PresalesActivityController --> PresalesActivityService
 - [payment.controller.ts:1-60](file://crm-backend/src/controllers/payment.controller.ts#L1-L60)
 - [schedule.controller.ts:1-153](file://crm-backend/src/controllers/schedule.controller.ts#L1-L153)
 - [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
+- [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
 
 ## 性能考虑
 
@@ -900,6 +1188,12 @@ PresalesActivityController --> PresalesActivityService
 - **机会表**: customerId, stage, ownerId, status
 - **支付表**: customerId, status, dueDate(唯一索引)
 - **音频记录表**: customerId, sentiment, status
+- **提案表**: customerId, status, ownerId, validUntil(复合索引)
+- **提案模板表**: category, isActive(复合索引)
+- **需求分析表**: proposalId(唯一索引), customerId, status
+- **内部评审表**: proposalId(唯一索引), status, reviewerId
+- **客户提案表**: proposalId(唯一索引), sendStatus, trackingToken(唯一索引)
+- **谈判记录表**: proposalId(唯一索引), status
 - **预销售活动表**: type, status, approvalStatus, startTime(复合索引)
 - **二维码表**: activityId, codeType(复合索引)
 - **签到表**: activityId, customerId, phone(复合索引)
@@ -934,13 +1228,13 @@ PresalesActivityController --> PresalesActivityService
 - 查看具体的SQL错误信息
 - 确认MySQL版本兼容性
 - 检查是否有重复的索引或约束
-- **新增**: 检查预销售活动相关的新表是否正确创建
+- **新增**: 检查提案工作流程相关的新表是否正确创建
 
 #### 查询超时
 - 分析慢查询日志
 - 检查WHERE条件是否使用了合适的索引
 - 考虑添加复合索引优化复杂查询
-- **新增**: 检查预销售活动相关查询的索引使用情况
+- **新增**: 检查提案工作流程相关查询的索引使用情况
 
 ### 错误处理机制
 
@@ -965,14 +1259,19 @@ ErrorHandler --> Response[标准化错误响应]
 
 该销售AI CRM系统的数据库架构设计合理，具有以下优势：
 
-1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了预销售活动管理模块**
+1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了预销售活动管理和提案工作流程管理模块**
 2. **灵活的扩展性**: 基于Prisma的Schema设计便于后续功能扩展
 3. **强大的AI集成**: 内置的智能分析功能提升了系统的自动化水平
 4. **良好的性能设计**: 合理的索引策略和查询优化保证了系统的响应速度
 5. **清晰的架构分离**: 控制器-服务层-数据层的职责分离提高了代码的可维护性
-6. **完整的API支持**: **新增了预销售活动管理的完整RESTful API接口**
+6. **完整的API支持**: **新增了提案工作流程的完整RESTful API接口**
 
 **新增功能优势**:
+- **完整的提案生命周期管理**: 从需求分析到商务谈判的全流程跟踪
+- **智能模板系统**: 支持模板创建、匹配和应用
+- **AI驱动的需求分析**: 自动从录音和跟进记录中提取需求
+- **邮件跟踪功能**: 支持客户提案的发送和打开跟踪
+- **谈判记录管理**: 完整的商务谈判过程记录和条款确认
 - **活动生命周期管理**: 从创建到结束的完整流程控制
 - **二维码签到系统**: 支持多种类型的二维码和签到验证
 - **问题收集与分析**: 自动分类和优先级管理
@@ -985,3 +1284,5 @@ ErrorHandler --> Response[标准化错误响应]
 - 优化大数据量场景下的查询性能
 - **新增**: 扩展预销售活动的移动端支持
 - **新增**: 增强AI分析功能以支持更多业务场景
+- **新增**: 优化提案工作流程的自动化程度
+- **新增**: 增加更多报表和分析功能

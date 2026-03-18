@@ -56,6 +56,8 @@ const priorityLabels: Record<string, string> = {
   low: '低',
 };
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002/api/v1';
+
 export default function FollowUpWidget({ limit = 5, onSuggestionClick }: FollowUpWidgetProps) {
   const [suggestions, setSuggestions] = useState<FollowUpSuggestion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +71,7 @@ export default function FollowUpWidget({ limit = 5, onSuggestionClick }: FollowU
     try {
       setLoading(true);
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`http://localhost:3001/api/v1/ai/follow-up-suggestions?limit=${limit}`, {
+      const response = await fetch(`${API_BASE_URL}/ai/follow-up-suggestions?limit=${limit}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -90,7 +92,7 @@ export default function FollowUpWidget({ limit = 5, onSuggestionClick }: FollowU
   const handleStatusChange = async (id: string, status: 'completed' | 'dismissed') => {
     try {
       const token = localStorage.getItem('auth_token');
-      const response = await fetch(`http://localhost:3001/api/v1/ai/follow-up-suggestions/${id}/status`, {
+      const response = await fetch(`${API_BASE_URL}/ai/follow-up-suggestions/${id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

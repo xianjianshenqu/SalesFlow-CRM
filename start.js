@@ -13,7 +13,7 @@ const CONFIG = {
   frontendDir: 'crm-frontend',
   backendDir: 'crm-backend',
   defaultFrontendPort: 5173,
-  defaultBackendPort: 3001,
+  defaultBackendPort: 3002,
   minPort: 3000,
   maxPort: 9999,
 };
