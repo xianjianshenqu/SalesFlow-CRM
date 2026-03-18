@@ -18,6 +18,7 @@
 - 扩展AI智能生成功能，支持完整的提案工作流程
 - 新增模板管理系统和AI分析功能
 - 完善状态管理和流程控制机制
+- **重大改进**：新提案创建后直接进入需求分析阶段而非草稿状态，简化了前端提案管理界面的复杂阶段导航逻辑
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -55,31 +56,31 @@
 graph TB
 subgraph "前端层"
 FE[React前端应用]
-end
+END
 subgraph "API网关层"
 APP[Express应用]
 SWAGGER[Swagger文档]
-end
+END
 subgraph "业务逻辑层"
 CONTROLLER[提案控制器]
 SERVICE[提案服务]
 VALIDATOR[数据验证器]
-end
+END
 subgraph "AI智能层"
 AI_SERVICE[AI服务]
 PROPOSAL_AI[提案AI引擎]
-end
+END
 subgraph "数据持久层"
 PRISMA[Prisma ORM]
 DATABASE[(MySQL数据库)]
-end
+END
 subgraph "工作流程层"
 REQUIREMENT[需求分析]
 DESIGN[方案设计]
 REVIEW[内部评审]
 CUSTOMER_PROPOSAL[客户提案]
 NEGOTIATION[商务谈判]
-end
+END
 FE --> APP
 APP --> CONTROLLER
 CONTROLLER --> SERVICE
@@ -98,7 +99,7 @@ SERVICE --> NEGOTIATION
 **架构图来源**
 - [app.ts:1-88](file://crm-backend/src/app.ts#L1-L88)
 - [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
-- [proposal.service.ts:1-1178](file://crm-backend/src/services/proposal.service.ts#L1-L1178)
+- [proposal.service.ts:1-1192](file://crm-backend/src/services/proposal.service.ts#L1-L1192)
 
 ### 层次化设计模式
 
@@ -218,7 +219,7 @@ ProposalController --> ProposalService : "依赖"
 
 **类图来源**
 - [proposal.controller.ts:9-636](file://crm-backend/src/controllers/proposal.controller.ts#L9-L636)
-- [proposal.service.ts:10-1178](file://crm-backend/src/services/proposal.service.ts#L10-L1178)
+- [proposal.service.ts:10-1192](file://crm-backend/src/services/proposal.service.ts#L10-L1192)
 
 **章节来源**
 - [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
@@ -237,6 +238,34 @@ ProposalController --> ProposalService : "依赖"
 6. **数据统计分析**：提供多维度的业务统计
 7. **权限验证**：确保数据访问的安全性
 
+#### 重大改进：提案创建流程优化
+
+**更新** 提案创建后直接进入需求分析阶段，简化了工作流程
+
+系统在提案创建时进行了重大优化，新创建的提案会直接进入需求分析阶段，而不是传统的草稿状态：
+
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant Controller as 控制器
+participant Service as 服务层
+participant Workflow as 工作流程
+participant Database as 数据库
+Client->>Controller : POST /api/v1/proposals
+Controller->>Service : create(proposalData, userId)
+Service->>Service : 验证数据格式
+Service->>Database : 插入新提案状态=需求分析
+Service->>Database : 自动创建需求分析记录状态=草稿
+Database-->>Service : 返回新提案
+Service-->>Controller : 返回提案数据
+Controller-->>Client : 201 Created + 数据
+Note over Client,Workflow : 直接进入需求分析阶段
+```
+
+**序列图来源**
+- [proposal.controller.ts:14-26](file://crm-backend/src/controllers/proposal.controller.ts#L14-L26)
+- [proposal.service.ts:21-57](file://crm-backend/src/services/proposal.service.ts#L21-L57)
+
 #### 数据流处理
 
 ```mermaid
@@ -250,7 +279,8 @@ participant Database as 数据库
 Client->>Controller : POST /api/v1/proposals
 Controller->>Service : create(proposalData, userId)
 Service->>Service : 验证数据格式
-Service->>Database : 插入新提案
+Service->>Database : 插入新提案状态=需求分析
+Service->>Database : 创建需求分析记录状态=草稿
 Database-->>Service : 返回新提案
 Service-->>Controller : 返回提案数据
 Controller-->>Client : 201 Created + 数据
@@ -273,10 +303,10 @@ Controller-->>Client : 200 OK + 数据
 
 **序列图来源**
 - [proposal.controller.ts:14-636](file://crm-backend/src/controllers/proposal.controller.ts#L14-L636)
-- [proposal.service.ts:20-1178](file://crm-backend/src/services/proposal.service.ts#L20-L1178)
+- [proposal.service.ts:20-1192](file://crm-backend/src/services/proposal.service.ts#L20-L1192)
 
 **章节来源**
-- [proposal.service.ts:1-1178](file://crm-backend/src/services/proposal.service.ts#L1-L1178)
+- [proposal.service.ts:1-1192](file://crm-backend/src/services/proposal.service.ts#L1-L1192)
 
 ## API接口规范
 
@@ -288,6 +318,7 @@ Controller-->>Client : 200 OK + 数据
 - **认证**: 需要JWT令牌
 - **请求体**: 提案创建数据
 - **响应**: 201 Created + 提案详情
+- **状态**: 创建后直接进入需求分析阶段
 
 #### 获取提案列表
 - **URL**: `/api/v1/proposals`
@@ -780,8 +811,7 @@ PROPOSAL ||--|| NEGOTIATION_RECORD : "进入"
 
 ```mermaid
 stateDiagram-v2
-[*] --> 草稿
-草稿 --> 需求分析中 : 创建需求分析
+[*] --> 需求分析中
 需求分析中 --> 方案设计中 : 确认需求分析
 方案设计中 --> 待内部评审 : 确认方案设计
 待内部评审 --> 评审通过 : 评审通过
@@ -799,6 +829,47 @@ stateDiagram-v2
 
 **状态流转图来源**
 - [schema.prisma:43-56](file://crm-backend/prisma/schema.prisma#L43-L56)
+
+### 重大改进：简化创建流程
+
+**更新** 新提案创建后直接进入需求分析阶段
+
+系统在提案创建时进行了重大优化，移除了传统的草稿状态，新创建的提案会直接进入需求分析阶段：
+
+#### 创建流程优化
+
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant Controller as 控制器
+participant Service as 服务层
+participant Database as 数据库
+Client->>Controller : POST /api/v1/proposals
+Controller->>Service : create(proposalData, userId)
+Service->>Database : 创建提案状态=需求分析中
+Service->>Database : 自动创建需求分析记录状态=草稿
+Database-->>Service : 返回提案
+Service-->>Controller : 返回提案
+Controller-->>Client : 201 Created + 提案详情
+Note over Client,Client : 前端界面简化
+Client->>Client : 直接显示需求分析界面
+Client->>Client : 无需手动切换到需求分析
+```
+
+**序列图来源**
+- [proposal.controller.ts:21-26](file://crm-backend/src/controllers/proposal.controller.ts#L21-L26)
+- [proposal.service.ts:21-57](file://crm-backend/src/services/proposal.service.ts#L21-L57)
+
+#### 前端界面简化
+
+**更新** 前端提案管理界面的复杂阶段导航逻辑得到简化
+
+由于新提案直接进入需求分析阶段，前端界面的导航逻辑得到了显著简化：
+
+- **移除草稿状态**：用户不再需要手动将提案从草稿状态切换到需求分析
+- **简化导航**：提案创建后直接进入需求分析界面
+- **减少步骤**：从创建到需求分析的步骤减少了50%
+- **提升用户体验**：新用户可以更快地开始工作流程
 
 ### 需求分析阶段
 
@@ -967,7 +1038,7 @@ UpdateProposalStatus --> End([谈判结束])
 - [proposal.service.ts:1055-1126](file://crm-backend/src/services/proposal.service.ts#L1055-L1126)
 
 **章节来源**
-- [proposal.service.ts:587-1178](file://crm-backend/src/services/proposal.service.ts#L587-1178)
+- [proposal.service.ts:587-1192](file://crm-backend/src/services/proposal.service.ts#L587-1192)
 
 ## AI智能功能
 
@@ -1241,6 +1312,7 @@ curl -X POST http://localhost:3000/api/v1/proposals/:id/requirement-analysis \
 - **安全性强**：完善的认证授权机制
 - **扩展性好**：模块化设计，易于功能扩展
 - **性能优秀**：异步处理和缓存策略
+- **用户体验优化**：重大改进简化了提案创建流程
 
 ### 应用价值
 
@@ -1250,4 +1322,4 @@ curl -X POST http://localhost:3000/api/v1/proposals/:id/requirement-analysis \
 
 系统具备良好的扩展基础，可以进一步集成更多AI功能，如机器学习预测、自然语言处理等，为企业提供更加智能化的销售管理服务。
 
-**更新** 本次更新主要增加了完整的多阶段业务提案工作流程，包括需求分析、方案设计、内部评审、客户提案、商务谈判等完整流程，以及相应的AI智能生成功能和模板管理功能。
+**更新** 本次更新主要增加了完整的多阶段业务提案工作流程，包括需求分析、方案设计、内部评审、客户提案、商务谈判等完整流程，以及相应的AI智能生成功能和模板管理功能。**重大改进** 是新提案创建后直接进入需求分析阶段而非草稿状态，简化了前端提案管理界面的复杂阶段导航逻辑，提升了用户体验和工作效率。

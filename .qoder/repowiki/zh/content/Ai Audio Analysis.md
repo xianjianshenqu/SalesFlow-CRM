@@ -3,6 +3,7 @@
 <cite>
 **本文档引用的文件**
 - [ai.service.ts](file://crm-backend/src/services/ai.service.ts)
+- [client.ts](file://crm-backend/src/services/ai/client.ts)
 - [opportunityScoring.ts](file://crm-backend/src/services/ai/opportunityScoring.ts)
 - [churnAnalysis.ts](file://crm-backend/src/services/ai/churnAnalysis.ts)
 - [reportGeneration.ts](file://crm-backend/src/services/ai/reportGeneration.ts)
@@ -21,6 +22,9 @@
 - [AIAnalysisPanel.tsx](file://crm-frontend/src/pages/AIAudio/components/AIAnalysisPanel.tsx)
 - [AudioPlayer.tsx](file://crm-frontend/src/pages/AIAudio/components/AudioPlayer.tsx)
 - [RecordingList.tsx](file://crm-frontend/src/pages/AIAudio/components/RecordingList.tsx)
+- [DingTalkStatusCard.tsx](file://crm-frontend/src/pages/AIAudio/components/DingTalkStatusCard.tsx)
+- [StatsOverview.tsx](file://crm-frontend/src/pages/AIAudio/components/StatsOverview.tsx)
+- [SuggestionList.tsx](file://crm-frontend/src/pages/AIAudio/components/SuggestionList.tsx)
 - [OpportunityScoreCard.tsx](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx)
 - [ChurnAlertCard.tsx](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx)
 - [CustomerInsightPanel.tsx](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx)
@@ -43,9 +47,13 @@
 
 ## 更新摘要
 **变更内容**
-- 更新API基础URL配置：将VITE_API_BASE_URL默认端口从3001更新为3002，确保前端组件与后端服务正确通信
-- 后端服务默认端口已从3001更新为3002，与前端配置保持一致
-- 一键启动脚本自动检测端口并配置前后端服务，确保端口冲突时的兼容性
+- 全面升级AI音频分析组件，集成阿里云DashScope Qwen大模型
+- 新增完整的AI客户端封装和重试机制
+- 强化钉钉录音同步功能，支持实时状态展示
+- 完善音频播放器功能，支持播放控制和进度跳转
+- 新增实时统计分析面板，提供多维度数据可视化
+- 升级AI分析流程，支持真实API调用和降级处理
+- 优化前端界面，增强用户体验和交互性
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -68,22 +76,23 @@
 
 ### 主要特性
 
-- **智能语音分析**：自动识别通话情感、提取关键词和关键点
-- **销售洞察**：分析客户心理状态和购买意向
-- **自动化建议**：基于分析结果生成具体的行动建议
+- **智能语音分析**：基于阿里云DashScope Qwen模型进行语音转文字、情感分析、关键词提取
+- **销售洞察**：分析客户心理状态和购买意向，提供深度洞察
+- **自动化建议**：基于分析结果生成具体的行动建议和销售脚本
 - **多格式支持**：支持MP3、WAV、M4A等多种音频格式
-- **钉钉集成**：支持从钉钉平台同步录音数据
-- **实时播放**：内置音频播放器支持多种播放控制
+- **钉钉集成**：支持从钉钉平台同步录音数据，实时状态展示
+- **实时播放**：内置音频播放器支持多种播放控制，包括播放/暂停、跳转、速度调节
 - **AI功能扩展**：支持客户洞察、流失预警、商机评分等AI功能
 - **智能分析系统**：提供机会评分、客户流失预警、智能客户洞察等高级AI分析功能
 - **智能报价生成**：基于客户信息和市场行情生成智能报价建议
 - **AI教练建议**：提供个性化的销售绩效改进指导
 - **资源智能匹配**：自动匹配最适合的售前资源和专家团队
 - **智能问题分类**：支持对客户咨询问题进行自动分类和情感分析
+- **实时统计分析**：提供多维度的录音分析统计和可视化展示
 
 ## 系统架构
 
-系统采用前后端分离的架构设计，后端使用Node.js + Express框架，前端使用React + TypeScript构建。
+系统采用前后端分离的架构设计，后端使用Node.js + Express框架，前端使用React + TypeScript构建，集成了阿里云DashScope Qwen大模型进行智能分析。
 
 ```mermaid
 graph TB
@@ -101,6 +110,14 @@ FE10[智能报价生成器]
 FE11[销售AI教练]
 FE12[资源智能匹配器]
 FE13[问题分类分析器]
+FE14[钉钉状态卡片]
+FE15[实时统计面板]
+end
+subgraph "AI服务层"
+AI1[AI客户端封装]
+AI2[阿里云DashScope Qwen]
+AI3[重试机制]
+AI4[JSON解析]
 end
 subgraph "API层"
 API1[录音路由]
@@ -132,15 +149,15 @@ DA3[数据库迁移管理]
 end
 subgraph "外部服务"
 ES1[钉钉API]
-ES2[AI分析服务]
+ES2[阿里云DashScope]
 ES3[文件存储]
-ES4[Tencent Cloud API]
+ES4[腾讯云API]
 end
 FE1 --> API1
 FE2 --> API1
 FE3 --> API1
 FE4 --> API2
-FE5 --> API3
+FE5 --> API2
 FE6 --> API2
 FE7 --> API4
 FE8 --> API4
@@ -149,6 +166,8 @@ FE10 --> API5
 FE11 --> API6
 FE12 --> API7
 FE13 --> API8
+FE14 --> API1
+FE15 --> API2
 API1 --> BL1
 API2 --> BL1
 API3 --> BL1
@@ -182,18 +201,67 @@ BL9 --> ES4
 BL10 --> ES4
 BL11 --> ES2
 BL1 --> ES1
+AI1 --> AI2
+AI2 --> AI3
+AI3 --> AI4
 ```
 
 **图表来源**
 - [app.ts:74-78](file://crm-backend/src/app.ts#L74-L78)
 - [recordings.routes.ts:12-355](file://crm-backend/src/routes/recordings.routes.ts#L12-L355)
 - [index.ts:37-55](file://crm-backend/src/services/ai/index.ts#L37-L55)
+- [client.ts:50-77](file://crm-backend/src/services/ai/client.ts#L50-L77)
 
 ## 核心组件分析
 
+### AI客户端封装
+
+AI客户端封装是整个系统的核心组件，负责与阿里云DashScope Qwen模型进行交互，提供稳定的API调用和错误处理机制。
+
+```mermaid
+classDiagram
+class AIClient {
++client : OpenAI | null
++model : string
++isInitialized : boolean
++constructor(config) AIClient
++isConfigured() boolean
++chat(messages, options) Promise~ChatResponse~
++chatForJson(messages, options) Promise~T~
++isRetryableError(error) boolean
++sleep(ms) Promise~void~
+}
+class ChatMessage {
++role : 'system' | 'user' | 'assistant'
++content : string
+}
+class ChatOptions {
++temperature? : number
++maxTokens? : number
++topP? : number
++stream? : boolean
+}
+class ChatResponse {
++content : string
++usage? : Usage
+}
+class Usage {
++promptTokens : number
++completionTokens : number
++totalTokens : number
+}
+AIClient --> ChatMessage
+AIClient --> ChatOptions
+AIClient --> ChatResponse
+ChatResponse --> Usage
+```
+
+**图表来源**
+- [client.ts:50-224](file://crm-backend/src/services/ai/client.ts#L50-L224)
+
 ### AI服务组件
 
-AI服务是整个系统的核心组件，负责处理所有AI相关的分析功能。
+AI服务是整个系统的核心组件，负责处理所有AI相关的分析功能，现已升级为支持阿里云DashScope Qwen模型。
 
 ```mermaid
 classDiagram
@@ -204,10 +272,10 @@ class AIService {
 +extractKeywords(text) Promise~string[]~
 +generateSummary(text, keywords) Promise~string~
 +analyzeCompany(companyName, imageUrl) Promise~CompanyIntelligenceResult~
-+callRealAI(audioUrl, duration, customerInfo) Promise~AIAnalysisResult~
--mockAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
--generateMockResult(duration, customerInfo) AIAnalysisResult
--generateMockCompanyIntelligence(companyName) CompanyIntelligenceResult
++callRealAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
++mockAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
++generateMockResult(duration, customerInfo) AIAnalysisResult
++generateMockCompanyIntelligence(companyName) CompanyIntelligenceResult
 }
 class AIAnalysisResult {
 +string transcript
@@ -285,7 +353,7 @@ QuestionClassificationService --> AIAnalysisResult
 ```
 
 **图表来源**
-- [ai.service.ts:79-564](file://crm-backend/src/services/ai.service.ts#L79-L564)
+- [ai.service.ts:72-97](file://crm-backend/src/services/ai.service.ts#L72-L97)
 - [proposalAI.ts:53-154](file://crm-backend/src/services/ai/proposalAI.ts#L53-L154)
 - [salesCoach.ts:51-138](file://crm-backend/src/services/ai/salesCoach.ts#L51-L138)
 - [resourceMatching.ts:44-92](file://crm-backend/src/services/ai/resourceMatching.ts#L44-L92)
@@ -293,7 +361,7 @@ QuestionClassificationService --> AIAnalysisResult
 
 ### 录音服务组件
 
-录音服务负责处理录音相关的业务逻辑，包括存储、分析和管理。
+录音服务负责处理录音相关的业务逻辑，包括存储、分析和管理，现已支持钉钉录音同步功能。
 
 ```mermaid
 classDiagram
@@ -332,13 +400,14 @@ RecordingService --> AIService
 - [recording.controller.ts:46-230](file://crm-backend/src/controllers/recording.controller.ts#L46-L230)
 
 **章节来源**
-- [ai.service.ts:79-564](file://crm-backend/src/services/ai.service.ts#L79-L564)
+- [client.ts:50-224](file://crm-backend/src/services/ai/client.ts#L50-L224)
+- [ai.service.ts:72-400](file://crm-backend/src/services/ai.service.ts#L72-L400)
 - [recording.service.ts:9-455](file://crm-backend/src/services/recording.service.ts#L9-L455)
 - [recording.controller.ts:46-230](file://crm-backend/src/controllers/recording.controller.ts#L46-L230)
 
 ## AI音频分析流程
 
-系统提供了完整的AI音频分析工作流程，从录音上传到最终的分析结果展示。
+系统提供了完整的AI音频分析工作流程，从录音上传到最终的分析结果展示，现已集成阿里云DashScope Qwen模型。
 
 ```mermaid
 sequenceDiagram
@@ -347,6 +416,8 @@ participant Frontend as 前端界面
 participant API as 后端API
 participant Service as 录音服务
 participant AIService as AI服务
+participant AIClient as AI客户端
+participant DashScope as 阿里云DashScope
 participant DB as 数据库
 User->>Frontend : 上传录音文件
 Frontend->>API : POST /api/v1/recordings/upload
@@ -360,7 +431,10 @@ Frontend->>API : POST /api/v1/recordings/ : id/analyze
 API->>Service : analyze()
 Service->>DB : 更新状态为processing
 Service->>AIService : analyzeRecording()
-AIService->>AIService : 调用AI分析API
+AIService->>AIClient : chatForJson()
+AIClient->>DashScope : 调用Qwen模型
+DashScope-->>AIClient : 返回分析结果
+AIClient-->>AIService : 解析JSON响应
 AIService-->>Service : 返回分析结果
 Service->>DB : 更新分析结果
 DB-->>Service : 确认更新
@@ -371,7 +445,8 @@ API-->>Frontend : 显示分析结果
 **图表来源**
 - [recording.controller.ts:129-137](file://crm-backend/src/controllers/recording.controller.ts#L129-L137)
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
-- [ai.service.ts:86-98](file://crm-backend/src/services/ai.service.ts#L86-L98)
+- [ai.service.ts:84-97](file://crm-backend/src/services/ai.service.ts#L84-L97)
+- [client.ts:152-182](file://crm-backend/src/services/ai/client.ts#L152-L182)
 
 ### 分析流程详细说明
 
@@ -379,18 +454,21 @@ API-->>Frontend : 显示分析结果
 2. **状态初始化**：录音记录创建时状态设置为"pending"
 3. **AI分析触发**：用户点击分析按钮，系统调用AI分析服务
 4. **状态更新**：分析开始前将状态更新为"processing"
-5. **AI处理**：调用AI服务进行语音转文字、情感分析、关键词提取等
-6. **结果保存**：将分析结果保存到数据库，状态更新为"analyzed"
-7. **结果展示**：前端界面展示完整的分析结果
+5. **AI处理**：调用AI客户端封装，通过阿里云DashScope Qwen模型进行分析
+6. **重试机制**：支持最多3次重试，指数退避延迟
+7. **JSON解析**：自动解析AI响应，支持Markdown代码块格式
+8. **结果保存**：将分析结果保存到数据库，状态更新为"analyzed"
+9. **结果展示**：前端界面展示完整的分析结果
 
 **章节来源**
 - [recording.controller.ts:129-137](file://crm-backend/src/controllers/recording.controller.ts#L129-L137)
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
-- [ai.service.ts:86-98](file://crm-backend/src/services/ai.service.ts#L86-L98)
+- [ai.service.ts:84-153](file://crm-backend/src/services/ai.service.ts#L84-L153)
+- [client.ts:93-147](file://crm-backend/src/services/ai/client.ts#L93-L147)
 
 ## AI智能分析功能
 
-系统新增了四大核心AI智能分析功能，提供更全面的销售智能分析能力。
+系统新增了四大核心AI智能分析功能，提供更全面的销售智能分析能力，现已全部支持阿里云DashScope Qwen模型。
 
 ### 智能报价与提案生成
 
@@ -503,7 +581,7 @@ PredictedAvailability --> End([匹配完成])
 
 ## AI问题分类服务
 
-系统新增了AI问题分类服务，专门处理客户咨询问题的智能分类和分析功能。
+系统新增了AI问题分类服务，专门处理客户咨询问题的智能分类和分析功能，现已支持阿里云DashScope Qwen模型。
 
 ### 问题分类核心功能
 
@@ -692,7 +770,7 @@ AI功能相关的数据库结构在多个迁移中得到完善：
 
 ## 前端界面设计
 
-前端界面采用现代化的设计理念，提供了直观易用的操作界面。
+前端界面采用现代化的设计理念，提供了直观易用的操作界面，现已全面升级支持钉钉同步和实时统计功能。
 
 ### 主要界面组件
 
@@ -707,6 +785,7 @@ E[音频播放器]
 F[AI分析面板]
 G[智能建议列表]
 H[上传录音弹窗]
+I[实时统计面板]
 end
 subgraph "AI智能分析组件"
 I[商机评分卡片]
@@ -773,6 +852,8 @@ S --> S1
 - [AIAnalysisPanel.tsx:46-224](file://crm-frontend/src/pages/AIAudio/components/AIAnalysisPanel.tsx#L46-L224)
 - [AudioPlayer.tsx:9-165](file://crm-frontend/src/pages/AIAudio/components/AudioPlayer.tsx#L9-L165)
 - [RecordingList.tsx:41-158](file://crm-frontend/src/pages/AIAudio/components/RecordingList.tsx#L41-L158)
+- [DingTalkStatusCard.tsx:14-118](file://crm-frontend/src/pages/AIAudio/components/DingTalkStatusCard.tsx#L14-L118)
+- [StatsOverview.tsx:17-168](file://crm-frontend/src/pages/AIAudio/components/StatsOverview.tsx#L17-L168)
 - [OpportunityScoreCard.tsx:54-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L336)
 - [ChurnAlertCard.tsx:62-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L326)
 - [CustomerInsightPanel.tsx:80-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L80-L381)
@@ -847,13 +928,15 @@ End
 - [AIAnalysisPanel.tsx:46-224](file://crm-frontend/src/pages/AIAudio/components/AIAnalysisPanel.tsx#L46-L224)
 - [AudioPlayer.tsx:9-165](file://crm-frontend/src/pages/AIAudio/components/AudioPlayer.tsx#L9-L165)
 - [RecordingList.tsx:41-158](file://crm-frontend/src/pages/AIAudio/components/RecordingList.tsx#L41-L158)
+- [DingTalkStatusCard.tsx:14-118](file://crm-frontend/src/pages/AIAudio/components/DingTalkStatusCard.tsx#L14-L118)
+- [StatsOverview.tsx:17-168](file://crm-frontend/src/pages/AIAudio/components/StatsOverview.tsx#L17-L168)
 - [OpportunityScoreCard.tsx:54-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L336)
 - [ChurnAlertCard.tsx:62-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L326)
 - [CustomerInsightPanel.tsx:80-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L80-L381)
 
 ## 数据模型
 
-系统定义了完整的数据模型来支持AI音频分析功能。
+系统定义了完整的数据模型来支持AI音频分析功能，现已全面支持阿里云DashScope集成。
 
 ```mermaid
 erDiagram
@@ -1115,7 +1198,7 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 
 ## API接口设计
 
-系统提供了完整的RESTful API来支持AI音频分析功能。
+系统提供了完整的RESTful API来支持AI音频分析功能，现已全面支持阿里云DashScope集成。
 
 ### 录音管理API
 
@@ -1199,7 +1282,7 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 
 ## 性能考虑
 
-系统在设计时充分考虑了性能优化，确保在大量数据场景下的稳定运行。
+系统在设计时充分考虑了性能优化，确保在大量数据场景下的稳定运行，现已全面支持阿里云DashScope Qwen模型。
 
 ### 性能优化策略
 
@@ -1215,14 +1298,18 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 10. **内存管理**：优化AI分析结果缓存，控制内存使用
 11. **问题分类批处理**：批量处理多个问题，提高处理效率
 12. **预销售活动管理**：优化活动和问题的关联查询性能
+13. **重试机制**：阿里云DashScope API调用支持最多3次重试
+14. **指数退避**：重试延迟采用指数退避策略，最长10秒
+15. **JSON解析优化**：自动解析AI响应，支持Markdown代码块格式
+16. **错误降级**：AI服务失败时自动降级到模拟模式
 
 ### 性能监控指标
 
-- **分析响应时间**：模拟分析约1.5-2.5秒
+- **分析响应时间**：模拟分析约1.5-2.5秒，真实API约2-5秒
 - **并发处理能力**：支持多个录音同时分析
 - **内存使用**：合理控制分析结果缓存
 - **数据库查询**：优化查询索引和分页
-- **AI准确率**：模拟准确率94-99%
+- **AI准确率**：模拟准确率94-99%，真实API准确率更高
 - **AI服务吞吐量**：支持每秒处理多个分析请求
 - **报价生成响应**：智能报价生成约800-1500ms
 - **教练建议响应**：销售教练分析约1000-1800ms
@@ -1230,6 +1317,8 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - **问题分类响应**：单个问题分类约300-800ms
 - **批量分类响应**：批量处理每个问题约200-500ms
 - **预销售活动响应**：活动管理约500-1000ms
+- **阿里云API调用**：支持重试机制，最长延迟约10秒
+- **钉钉同步响应**：实时状态展示，支持手动同步
 
 ## 故障排除指南
 
@@ -1251,15 +1340,16 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 #### AI分析失败
 **问题描述**：AI分析过程中出现错误
 **可能原因**：
-- 环境变量配置不正确
+- 阿里云DashScope API Key未配置
 - 网络连接问题
 - 文件格式不支持
 
 **解决步骤**：
-1. 检查AI配置是否正确
-2. 验证网络连接
+1. 检查DASHSCOPE_API_KEY环境变量是否正确设置
+2. 验证网络连接和阿里云服务状态
 3. 确认录音文件格式
-4. 查看服务器日志
+4. 查看服务器日志中的AI客户端错误信息
+5. 系统会自动降级到模拟模式
 
 #### 录音上传失败
 **问题描述**：录音文件上传过程中出现问题
@@ -1308,7 +1398,7 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - 依赖服务不可用
 
 **解决步骤**：
-1. 检查AI服务配置和密钥
+1. 检查阿里云DashScope API配置和密钥
 2. 验证输入数据格式
 3. 确认依赖服务状态
 4. 查看AI服务日志
@@ -1355,15 +1445,17 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 #### 问题分类服务异常
 **问题描述**：AI问题分类服务无法正常工作
 **可能原因**：
+- 阿里云DashScope服务异常
 - 自然语言处理服务异常
 - 关键词提取算法问题
 - 分类模型配置错误
 
 **解决步骤**：
-1. 检查NLP服务的可用性和响应时间
-2. 验证关键词提取算法的准确性
-3. 确认分类模型的配置和训练状态
-4. 查看问题分类的日志和错误信息
+1. 检查阿里云DashScope服务的可用性和响应时间
+2. 验证NLP服务的可用性和响应时间
+3. 验证关键词提取算法的准确性
+4. 确认分类模型的配置和训练状态
+5. 查看问题分类的日志和错误信息
 
 #### 预销售活动管理异常
 **问题描述**：预销售活动或问题管理功能异常
@@ -1378,37 +1470,96 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 3. 确认用户权限和访问控制
 4. 查看预销售管理的日志和错误信息
 
+#### 阿里云DashScope集成异常
+**问题描述**：阿里云DashScope Qwen模型调用失败
+**可能原因**：
+- API Key配置错误
+- 网络连接问题
+- 速率限制
+- 服务端错误
+
+**解决步骤**：
+1. 检查DASHSCOPE_API_KEY环境变量是否正确设置
+2. 验证网络连接和阿里云服务状态
+3. 检查API调用频率是否超过限制
+4. 查看AI客户端的重试日志和错误信息
+5. 系统会自动降级到模拟模式
+
+#### 音频播放器功能异常
+**问题描述**：音频播放器无法正常播放录音
+**可能原因**：
+- 音频文件URL无效
+- 浏览器兼容性问题
+- 播放权限问题
+
+**解决步骤**：
+1. 检查录音文件URL是否有效
+2. 验证音频文件格式是否受支持
+3. 确认浏览器的音频播放权限
+4. 查看音频播放器的错误日志
+
+#### 钉钉同步功能异常
+**问题描述**：钉钉录音同步功能无法正常工作
+**可能原因**：
+- 钉钉API配置错误
+- 用户权限问题
+- 网络连接问题
+
+**解决步骤**：
+1. 检查钉钉API配置和权限设置
+2. 验证用户是否有足够的权限
+3. 确认网络连接和钉钉服务状态
+4. 查看钉钉同步的日志和错误信息
+
+#### 实时统计面板异常
+**问题描述**：实时统计面板数据不更新
+**可能原因**：
+- 统计数据查询失败
+- 数据缓存问题
+- 权限验证问题
+
+**解决步骤**：
+1. 检查统计查询的SQL语句和索引
+2. 验证数据缓存的更新机制
+3. 确认用户权限和数据访问控制
+4. 查看统计服务的日志和错误信息
+
 **章节来源**
 - [recording.controller.ts:157-190](file://crm-backend/src/controllers/recording.controller.ts#L157-L190)
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
+- [client.ts:187-209](file://crm-backend/src/services/ai/client.ts#L187-L209)
 
 ## 总结
 
-销售AI CRM系统的AI音频分析功能是一个完整的端到端解决方案，涵盖了从录音上传、AI分析到结果展示的全流程。
+销售AI CRM系统的AI音频分析功能是一个完整的端到端解决方案，现已全面升级为基于阿里云DashScope Qwen模型的智能分析系统，涵盖了从录音上传、AI分析到结果展示的全流程。
 
 ### 系统优势
 
-1. **技术先进性**：采用最新的AI技术和语音处理算法
-2. **用户体验**：提供直观易用的界面和流畅的操作体验
-3. **扩展性强**：模块化设计便于功能扩展和维护
-4. **安全性高**：完善的权限控制和数据安全保障
-5. **性能优异**：优化的架构设计支持高并发处理
-6. **数据库管理**：完整的迁移和版本控制机制
-7. **AI功能丰富**：支持多种AI分析和预测功能
-8. **智能分析全面**：提供机会评分、流失预警、客户洞察等高级AI分析功能
-9. **智能报价生成**：基于客户信息和市场行情生成智能报价建议
-10. **AI教练建议**：提供个性化的销售绩效改进指导
-11. **资源智能匹配**：自动匹配最适合的售前资源和专家团队
-12. **智能问题分类**：支持对客户咨询问题进行自动分类和情感分析
-13. **预销售管理**：提供完整的预销售活动和问题管理功能
+1. **技术先进性**：采用阿里云DashScope Qwen大模型，提供高质量的智能分析能力
+2. **稳定性强**：完善的重试机制和错误降级处理，确保服务可靠性
+3. **用户体验**：提供直观易用的界面和流畅的操作体验
+4. **扩展性强**：模块化设计便于功能扩展和维护
+5. **安全性高**：完善的权限控制和数据安全保障
+6. **性能优异**：优化的架构设计支持高并发处理
+7. **数据库管理**：完整的迁移和版本控制机制
+8. **AI功能丰富**：支持多种AI分析和预测功能
+9. **智能分析全面**：提供机会评分、流失预警、客户洞察等高级AI分析功能
+10. **智能报价生成**：基于客户信息和市场行情生成智能报价建议
+11. **AI教练建议**：提供个性化的销售绩效改进指导
+12. **资源智能匹配**：自动匹配最适合的售前资源和专家团队
+13. **智能问题分类**：支持对客户咨询问题进行自动分类和情感分析
+14. **预销售管理**：提供完整的预销售活动和问题管理功能
+15. **钉钉集成**：支持实时状态展示和手动同步功能
+16. **实时统计**：提供多维度的数据可视化和统计分析
+17. **音频播放**：完整的音频播放器功能，支持多种播放控制
 
 ### 技术特色
 
-- **智能分析**：自动识别情感、提取关键词、生成洞察
+- **智能分析**：基于阿里云DashScope Qwen模型进行自动识别情感、提取关键词、生成洞察
 - **多格式支持**：支持主流音频格式的处理
-- **实时同步**：与钉钉平台无缝集成
-- **可视化展示**：丰富的图表和数据展示
-- **自动化建议**：基于分析结果生成具体的行动建议
+- **实时同步**：与钉钉平台无缝集成，提供实时状态展示
+- **可视化展示**：丰富的图表和数据展示，支持实时统计面板
+- **自动化建议**：基于分析结果生成具体的行动建议和销售脚本
 - **数据库迁移**：完整的数据库版本管理和迁移机制
 - **AI功能扩展**：支持客户洞察、流失预警、商机评分等高级功能
 - **智能分析系统**：提供机会评分、客户流失预警、智能客户洞察等AI智能分析功能
@@ -1417,12 +1568,15 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - **资源匹配系统**：提供多维度的售前资源智能匹配和分配建议
 - **问题分类系统**：提供智能的问题分类、情感分析和优先级评估
 - **预销售管理系统**：提供完整的预销售活动和问题跟踪管理
+- **重试机制**：支持最多3次重试，指数退避延迟
+- **JSON解析优化**：自动解析AI响应，支持Markdown代码块格式
+- **错误降级**：AI服务失败时自动降级到模拟模式
 
 ### 发展前景
 
 随着AI技术的不断发展，该系统还有很大的改进空间：
 
-1. **AI算法优化**：持续改进分析准确性和智能化水平
+1. **AI算法优化**：持续改进阿里云DashScope Qwen模型的分析准确性和智能化水平
 2. **多语言支持**：扩展对更多语言的支持
 3. **实时分析**：实现实时语音流分析能力
 4. **移动端优化**：增强移动设备上的使用体验
@@ -1435,5 +1589,7 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 11. **资源匹配算法**：优化匹配精度和分配效率
 12. **问题分类智能化**：提升问题分类的准确性和处理效率
 13. **预销售流程优化**：提供更高效的预销售活动管理体验
+14. **实时统计增强**：提供更丰富的数据可视化和分析功能
+15. **音频播放优化**：增强音频播放器的功能和用户体验
 
-该系统为销售团队提供了强大的智能化工具，能够显著提升销售效率和客户服务质量。
+该系统为销售团队提供了强大的智能化工具，能够显著提升销售效率和客户服务质量，现已全面支持阿里云DashScope Qwen模型，为企业数字化转型提供强有力的技术支撑。

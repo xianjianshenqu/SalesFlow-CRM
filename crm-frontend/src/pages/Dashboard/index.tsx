@@ -14,115 +14,164 @@ function formatCurrency(value: number): string {
   return `¥${value.toLocaleString()}`;
 }
 
-// 统计卡片组件
+// 统计卡片组件 - Luxury Dark Theme
 function StatsCard({ 
   title, 
   value, 
   change, 
   icon, 
-  iconBgColor 
+  gradient,
+  delay = 0
 }: { 
   title: string; 
   value: string; 
   change?: string;
   icon: string;
-  iconBgColor: string;
+  gradient: string;
+  delay?: number;
 }) {
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-slate-500 dark:text-slate-400">{title}</p>
-          <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{value}</p>
-          {change && (
-            <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1">
-              <span className="material-symbols-outlined text-sm">trending_up</span>
-              {change}
-            </p>
-          )}
-        </div>
-        <div className={`size-12 rounded-xl ${iconBgColor} flex items-center justify-center`}>
-          <span className="material-symbols-outlined text-white">{icon}</span>
+    <div 
+      className="group relative rounded-2xl p-6 overflow-hidden fade-in-up"
+      style={{ animationDelay: `${delay}ms` }}
+    >
+      {/* Glass background */}
+      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-xl border border-gray-700/30 rounded-2xl"></div>
+      
+      {/* Gradient glow on hover */}
+      <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-br ${gradient} blur-2xl`}></div>
+
+      {/* Border glow */}
+      <div className="absolute inset-0 rounded-2xl border border-gray-700/30 group-hover:border-gray-600/50 transition-colors"></div>
+
+      <div className="relative z-10">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm text-gray-300 font-medium">{title}</p>
+            <p className="text-3xl font-bold text-white mt-2 font-['Outfit']">{value}</p>
+            {change && (
+              <p className="text-xs text-emerald-300 mt-3 flex items-center gap-1.5 font-medium">
+                <span className="material-symbols-outlined text-sm">trending_up</span>
+                {change}
+              </p>
+            )}
+          </div>
+          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+            <span className="material-symbols-outlined text-white">{icon}</span>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// AI建议横幅组件
+// AI建议横幅组件 - Luxury Dark Theme
 function AISuggestionBanner() {
   return (
-    <div className="bg-gradient-to-r from-primary to-blue-600 rounded-xl p-6 text-white">
-      <div className="flex items-center gap-4">
-        <div className="size-12 rounded-full bg-white/20 flex items-center justify-center">
-          <span className="material-symbols-outlined">auto_awesome</span>
+    <div className="relative rounded-2xl overflow-hidden fade-in-up stagger-1">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 bg-gradient-to-r from-amber-600/20 via-amber-500/10 to-cyan-500/20"></div>
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/80 to-gray-900/60 backdrop-blur-xl"></div>
+      
+      {/* Shimmer effect */}
+      <div className="absolute inset-0 shimmer"></div>
+      
+      {/* Border */}
+      <div className="absolute inset-0 rounded-2xl border border-amber-500/20"></div>
+      
+      <div className="relative z-10 p-6">
+        <div className="flex items-center gap-5">
+          <div className="relative">
+            <div className="absolute inset-0 bg-amber-500/30 rounded-full blur-xl animate-pulse"></div>
+            <div className="relative w-14 h-14 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+              <span className="material-symbols-outlined text-white text-2xl">auto_awesome</span>
+            </div>
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="font-semibold text-lg text-white font-['Outfit']">AI 智能建议</h3>
+              <span className="px-2 py-0.5 text-[10px] font-medium bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/30">NEW</span>
+            </div>
+            <p className="text-gray-400 text-sm">
+              建议今天优先跟进华为和宁德时代项目，本周预期可成交 <span className="text-amber-400 font-semibold">¥1,930,000</span>
+            </p>
+          </div>
+          <button className="group px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl text-sm font-semibold text-gray-900 shadow-lg shadow-amber-500/25 hover:shadow-amber-500/40 hover:scale-105 transition-all">
+            查看详情
+            <span className="material-symbols-outlined text-sm ml-1 inline-block group-hover:translate-x-1 transition-transform">arrow_forward</span>
+          </button>
         </div>
-        <div className="flex-1">
-          <h3 className="font-semibold text-lg">AI 智能建议</h3>
-          <p className="text-white/80 text-sm mt-1">
-            建议今天优先跟进华为和宁德时代项目，本周预期可成交 ¥1,930,000
-          </p>
-        </div>
-        <button className="px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors">
-          查看详情
-        </button>
       </div>
     </div>
   );
 }
 
-// 销售漏斗概览组件
+// 销售漏斗概览组件 - Luxury Dark Theme
 function FunnelOverview() {
   const stageStats = getStageStats();
   const totalValue = mockOpportunities.reduce((sum, o) => sum + o.value, 0);
   
   const stages: Exclude<Stage, 'won'>[] = ['new_lead', 'contacted', 'solution', 'quoted', 'negotiation', 'procurement_process', 'contract_stage'];
-  const stageColors: Record<Exclude<Stage, 'won'>, string> = {
-    new_lead: 'bg-slate-500',
-    contacted: 'bg-cyan-500',
-    solution: 'bg-violet-500',
-    quoted: 'bg-indigo-500',
-    negotiation: 'bg-blue-500',
-    procurement_process: 'bg-amber-500',
-    contract_stage: 'bg-orange-500'
+  const stageColors: Record<Exclude<Stage, 'won'>, { bg: string; gradient: string }> = {
+    new_lead: { bg: 'bg-gray-500', gradient: 'from-gray-500 to-gray-600' },
+    contacted: { bg: 'bg-cyan-500', gradient: 'from-cyan-500 to-cyan-600' },
+    solution: { bg: 'bg-violet-500', gradient: 'from-violet-500 to-violet-600' },
+    quoted: { bg: 'bg-indigo-500', gradient: 'from-indigo-500 to-indigo-600' },
+    negotiation: { bg: 'bg-blue-500', gradient: 'from-blue-500 to-blue-600' },
+    procurement_process: { bg: 'bg-amber-500', gradient: 'from-amber-500 to-amber-600' },
+    contract_stage: { bg: 'bg-orange-500', gradient: 'from-orange-500 to-orange-600' }
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-slate-900 dark:text-white">销售漏斗概览</h3>
-        <span className="text-sm text-slate-500 dark:text-slate-400">
-          总价值: {formatCurrency(totalValue)}
-        </span>
-      </div>
+    <div className="relative rounded-2xl overflow-hidden fade-in-up stagger-2">
+      {/* Glass background */}
+      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-xl border border-gray-700/30 rounded-2xl"></div>
       
-      <div className="space-y-3">
-        {stages.map((stage) => {
-          const stat = stageStats.find(s => s.stage === stage);
-          const percentage = totalValue > 0 ? ((stat?.value || 0) / totalValue) * 100 : 0;
-          return (
-            <div key={stage}>
-              <div className="flex items-center justify-between text-sm mb-1">
-                <span className="text-slate-600 dark:text-slate-400">{STAGE_LABELS[stage]}</span>
-                <span className="font-medium text-slate-900 dark:text-white">
-                  {stat?.count || 0} 个机会 · {formatCurrency(stat?.value || 0)}
-                </span>
-              </div>
-              <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full ${stageColors[stage]} rounded-full transition-all`}
-                  style={{ width: `${percentage}%` }}
-                />
-              </div>
+      <div className="relative z-10 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/20 flex items-center justify-center border border-amber-500/20">
+              <span className="material-symbols-outlined text-amber-400">filter_alt</span>
             </div>
-          );
-        })}
+            <h3 className="font-semibold text-white font-['Outfit']">销售漏斗概览</h3>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-800/50 rounded-lg border border-gray-700/30">
+            <span className="text-xs text-gray-300">总价值</span>
+            <span className="text-sm font-semibold text-amber-300">{formatCurrency(totalValue)}</span>
+          </div>
+        </div>
+        
+        <div className="space-y-4">
+          {stages.map((stage, index) => {
+            const stat = stageStats.find(s => s.stage === stage);
+            const percentage = totalValue > 0 ? ((stat?.value || 0) / totalValue) * 100 : 0;
+            return (
+              <div key={stage} className="group">
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full bg-gradient-to-r ${stageColors[stage].gradient}`}></div>
+                    <span className="text-gray-200 group-hover:text-white transition-colors font-medium">{STAGE_LABELS[stage]}</span>
+                  </div>
+                  <span className="font-medium text-white">
+                    {stat?.count || 0} <span className="text-gray-300 text-xs">个机会</span> · <span className="text-amber-300">{formatCurrency(stat?.value || 0)}</span>
+                  </span>
+                </div>
+                <div className="h-2 bg-gray-800/50 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full bg-gradient-to-r ${stageColors[stage].gradient} rounded-full transition-all duration-700 ease-out`}
+                    style={{ width: `${percentage}%`, transitionDelay: `${index * 100}ms` }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
 
-// AI录音分析列表
+// AI录音分析列表 - Luxury Dark Theme
 function AIRecordingList() {
   const recordings = [
     {
@@ -152,9 +201,9 @@ function AIRecordingList() {
   ];
 
   const sentimentColors = {
-    positive: 'text-emerald-500',
-    neutral: 'text-slate-400',
-    negative: 'text-red-500'
+    positive: 'text-emerald-400',
+    neutral: 'text-gray-400',
+    negative: 'text-red-400'
   };
 
   const sentimentIcons = {
@@ -163,44 +212,65 @@ function AIRecordingList() {
     negative: 'sentiment_dissatisfied'
   };
 
+  const sentimentBgColors = {
+    positive: 'bg-emerald-500/10 border-emerald-500/20',
+    neutral: 'bg-gray-500/10 border-gray-500/20',
+    negative: 'bg-red-500/10 border-red-500/20'
+  };
+
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-slate-900 dark:text-white">AI 录音分析</h3>
-        <button className="text-sm text-primary hover:text-primary/80">查看全部</button>
-      </div>
+    <div className="relative rounded-2xl overflow-hidden fade-in-up stagger-3">
+      {/* Glass background */}
+      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-xl border border-gray-700/30 rounded-2xl"></div>
       
-      <div className="space-y-4">
-        {recordings.map((recording) => {
-          const colorClass = getCustomerColor(recording.customerShortName);
-          return (
-            <div key={recording.id} className="flex items-start gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer">
-              <div className={`size-10 rounded-lg ${colorClass.bg} ${colorClass.text} flex items-center justify-center font-semibold text-sm shrink-0`}>
-                {recording.customerShortName}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between">
-                  <p className="font-medium text-slate-900 dark:text-white text-sm truncate">
-                    {recording.customerName}
-                  </p>
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{recording.duration}</span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">
-                  {recording.summary}
-                </p>
-              </div>
-              <span className={`material-symbols-outlined text-lg ${sentimentColors[recording.sentiment]}`}>
-                {sentimentIcons[recording.sentiment]}
-              </span>
+      <div className="relative z-10 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 flex items-center justify-center border border-cyan-500/20">
+              <span className="material-symbols-outlined text-cyan-400">settings_voice</span>
             </div>
-          );
-        })}
+            <h3 className="font-semibold text-white font-['Outfit']">AI 录音分析</h3>
+          </div>
+          <button className="group flex items-center gap-1 text-sm text-amber-300 hover:text-amber-200 transition-colors font-medium">
+            查看全部
+            <span className="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">arrow_forward</span>
+          </button>
+        </div>
+        
+        <div className="space-y-3">
+          {recordings.map((recording) => {
+            const colorClass = getCustomerColor(recording.customerShortName);
+            return (
+              <div key={recording.id} className="group flex items-start gap-3 p-3 rounded-xl hover:bg-gray-800/30 transition-all cursor-pointer border border-transparent hover:border-gray-700/30">
+                <div className={`w-10 h-10 rounded-xl ${colorClass.bg} ${colorClass.text} flex items-center justify-center font-semibold text-sm shrink-0 border border-gray-700/30`}>
+                  {recording.customerShortName}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-gray-100 text-sm truncate group-hover:text-amber-300 transition-colors">
+                      {recording.customerName}
+                    </p>
+                    <span className="text-xs text-gray-400 font-mono">{recording.duration}</span>
+                  </div>
+                  <p className="text-xs text-gray-300 mt-1 line-clamp-1">
+                    {recording.summary}
+                  </p>
+                </div>
+                <div className={`w-8 h-8 rounded-lg ${sentimentBgColors[recording.sentiment]} flex items-center justify-center border`}>
+                  <span className={`material-symbols-outlined text-lg ${sentimentColors[recording.sentiment]}`}>
+                    {sentimentIcons[recording.sentiment]}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
 
-// 每日日程组件
+// 每日日程组件 - Luxury Dark Theme
 function DailySchedule() {
   const tasks = [
     {
@@ -241,42 +311,64 @@ function DailySchedule() {
   };
 
   const typeColors = {
-    meeting: 'bg-blue-50 dark:bg-blue-900/30 text-blue-600',
-    visit: 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600',
-    task: 'bg-amber-50 dark:bg-amber-900/30 text-amber-600',
-    call: 'bg-purple-50 dark:bg-purple-900/30 text-purple-600'
+    meeting: { bg: 'bg-blue-500/10', border: 'border-blue-500/20', text: 'text-blue-400', icon: 'text-blue-400' },
+    visit: { bg: 'bg-emerald-500/10', border: 'border-emerald-500/20', text: 'text-emerald-400', icon: 'text-emerald-400' },
+    task: { bg: 'bg-amber-500/10', border: 'border-amber-500/20', text: 'text-amber-400', icon: 'text-amber-400' },
+    call: { bg: 'bg-purple-500/10', border: 'border-purple-500/20', text: 'text-purple-400', icon: 'text-purple-400' }
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold text-slate-900 dark:text-white">今日日程</h3>
-        <span className="text-xs text-slate-500 dark:text-slate-400">2023年10月16日</span>
-      </div>
+    <div className="relative rounded-2xl overflow-hidden fade-in-up stagger-5">
+      {/* Glass background */}
+      <div className="absolute inset-0 bg-gray-900/60 backdrop-blur-xl border border-gray-700/30 rounded-2xl"></div>
       
-      <div className="relative">
-        {/* 时间轴 */}
-        <div className="absolute left-5 top-2 bottom-2 w-px bg-slate-200 dark:bg-slate-700"></div>
-        
-        <div className="space-y-4">
-          {tasks.map((task) => (
-            <div key={task.id} className="flex items-start gap-4 relative">
-              {/* 时间点 */}
-              <div className="size-2.5 rounded-full bg-primary ring-4 ring-white dark:ring-slate-900 z-10 mt-2"></div>
-              
-              {/* 内容 */}
-              <div className="flex-1 -mt-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">{task.time}</span>
-                  <span className={`material-symbols-outlined text-sm ${typeColors[task.type as keyof typeof typeColors]}`}>
-                    {typeIcons[task.type as keyof typeof typeIcons]}
-                  </span>
-                </div>
-                <p className="text-sm font-medium text-slate-900 dark:text-white mt-0.5">{task.title}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{task.customer}</p>
-              </div>
+      <div className="relative z-10 p-6">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center border border-purple-500/20">
+              <span className="material-symbols-outlined text-purple-400">calendar_today</span>
             </div>
-          ))}
+            <div>
+              <h3 className="font-semibold text-white font-['Outfit']">今日日程</h3>
+              <p className="text-xs text-gray-300">2023年10月16日 星期一</p>
+            </div>
+          </div>
+          <button className="w-8 h-8 rounded-lg bg-gray-800/50 border border-gray-700/30 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700/50 transition-all">
+            <span className="material-symbols-outlined text-sm">add</span>
+          </button>
+        </div>
+        
+        <div className="relative">
+          {/* 时间轴 */}
+          <div className="absolute left-[18px] top-3 bottom-3 w-px bg-gradient-to-b from-gray-700 via-gray-600 to-gray-700"></div>
+          
+          <div className="space-y-4">
+            {tasks.map((task, index) => {
+              const colors = typeColors[task.type as keyof typeof typeColors];
+              return (
+                <div key={task.id} className="group flex items-start gap-4 relative cursor-pointer">
+                  {/* 时间点 */}
+                  <div className="relative z-10">
+                    <div className="w-4 h-4 rounded-full bg-gray-900 border-2 border-amber-500/50 group-hover:border-amber-400 group-hover:scale-110 transition-all mt-1"></div>
+                  </div>
+                  
+                  {/* 内容 */}
+                  <div className="flex-1 -mt-1 p-3 rounded-xl hover:bg-gray-800/30 transition-all border border-transparent hover:border-gray-700/30">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="text-xs font-mono text-gray-300">{task.time}</span>
+                      <div className={`w-5 h-5 rounded ${colors.bg} ${colors.border} border flex items-center justify-center`}>
+                        <span className={`material-symbols-outlined text-[10px] ${colors.icon}`}>
+                          {typeIcons[task.type as keyof typeof typeIcons]}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-sm font-medium text-gray-100 group-hover:text-amber-300 transition-colors">{task.title}</p>
+                    <p className="text-xs text-gray-300 mt-0.5">{task.customer}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -529,11 +621,18 @@ export default function Dashboard() {
   const totalValue = mockOpportunities.reduce((sum, o) => sum + o.value, 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Ambient glow effects */}
+      <div className="ambient-glow ambient-glow-1"></div>
+      <div className="ambient-glow ambient-glow-2"></div>
+      
       {/* 页面标题 */}
-      <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-white">工作台</h1>
-        <p className="text-slate-500 dark:text-slate-400 mt-1">欢迎回来，Alex！今天有 4 个待办事项</p>
+      <div className="fade-in-up">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="w-1 h-8 bg-gradient-to-b from-amber-500 to-amber-600 rounded-full"></div>
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white font-['Outfit']">工作台</h1>
+        </div>
+        <p className="text-slate-600 dark:text-gray-200 ml-4">欢迎回来，<span className="text-amber-600 dark:text-amber-300 font-medium">Alex</span>！今天有 <span className="text-slate-900 dark:text-white font-semibold">4</span> 个待办事项</p>
       </div>
 
       {/* AI 建议横幅 */}
@@ -546,28 +645,32 @@ export default function Dashboard() {
           value={formatCurrency(paymentStats.totalPaid)}
           change="+12.5% 较上月"
           icon="payments"
-          iconBgColor="bg-emerald-500"
+          gradient="from-emerald-500 to-emerald-600"
+          delay={100}
         />
         <StatsCard
           title="活跃客户"
           value={activeCustomers.toString()}
           change="+3 本月新增"
           icon="group"
-          iconBgColor="bg-blue-500"
+          gradient="from-blue-500 to-blue-600"
+          delay={200}
         />
         <StatsCard
           title="漏斗价值"
           value={formatCurrency(totalValue)}
           change="7 个活跃机会"
           icon="filter_alt"
-          iconBgColor="bg-amber-500"
+          gradient="from-amber-500 to-amber-600"
+          delay={300}
         />
         <StatsCard
           title="今日拜访"
           value="4"
           change="2 个高优先级"
           icon="event"
-          iconBgColor="bg-purple-500"
+          gradient="from-purple-500 to-purple-600"
+          delay={400}
         />
       </div>
 

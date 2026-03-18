@@ -1,4 +1,4 @@
-# 提案服务（Proposal Service）
+# 提案服务
 
 <cite>
 **本文档引用的文件**
@@ -12,15 +12,20 @@
 - [schema.prisma](file://crm-backend/prisma/schema.prisma)
 - [app.ts](file://crm-backend/src/app.ts)
 - [package.json](file://crm-backend/package.json)
+- [index.tsx](file://crm-frontend/src/pages/Proposals/CreateProposal/index.tsx)
+- [index.tsx](file://crm-frontend/src/pages/Proposals/ProposalDetail/index.tsx)
+- [RequirementAnalysis.tsx](file://crm-frontend/src/pages/Proposals/ProposalDetail/components/RequirementAnalysis.tsx)
+- [ProposalDesign.tsx](file://crm-frontend/src/pages/Proposals/ProposalDetail/components/ProposalDesign.tsx)
+- [api.ts](file://crm-frontend/src/services/api.ts)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- 新增完整的AI智能报价与方案生成功能
-- 扩展提案工作流程管理，包含需求分析、方案设计、内部评审、客户提案、商务谈判等阶段
-- 增强模板管理系统和产品推荐功能
-- 完善定价策略分析和ROI预测
-- 新增邮件跟踪和客户互动功能
+- 新增提案创建逻辑改进：直接进入需求分析阶段，简化初始流程
+- 增强AI服务集成：智能报价、方案生成、需求分析、模板匹配等功能
+- 简化前端工作流程：四步创建流程，从客户选择到确认创建
+- 自动化提案生成和分析：AI驱动的需求提取、痛点分析、产品推荐
+- 完整的工作流程管理：需求分析、方案设计、内部评审、客户提案、商务谈判的完整闭环
 
 ## 目录
 1. [简介](#简介)
@@ -30,16 +35,17 @@
 5. [详细组件分析](#详细组件分析)
 6. [AI智能功能](#ai智能功能)
 7. [提案工作流程](#提案工作流程)
-8. [依赖关系分析](#依赖关系分析)
-9. [性能考虑](#性能考虑)
-10. [故障排除指南](#故障排除指南)
-11. [结论](#结论)
+8. [前端工作流程](#前端工作流程)
+9. [依赖关系分析](#依赖关系分析)
+10. [性能考虑](#性能考虑)
+11. [故障排除指南](#故障排除指南)
+12. [结论](#结论)
 
 ## 简介
 
 提案服务是销售AI CRM系统中的核心业务模块，负责管理商务方案的全生命周期。该服务提供了完整的提案创建、编辑、发送、AI智能生成等功能，并集成了先进的AI分析能力，包括智能定价策略、产品推荐、方案内容生成等。
 
-系统采用现代化的微服务架构，基于Node.js和TypeScript构建，使用Express框架提供RESTful API接口，配合Prisma ORM进行数据库操作，集成Swagger进行API文档自动生成。**更新后的系统现已支持完整的提案工作流程管理，包括需求分析、方案设计、内部评审、客户提案、商务谈判等多个阶段。**
+系统采用现代化的微服务架构，基于Node.js和TypeScript构建，使用Express框架提供RESTful API接口，配合Prisma ORM进行数据库操作，集成Swagger进行API文档自动生成。**更新后的系统现已支持简化的提案创建流程，创建后直接进入需求分析阶段，大幅提升了用户体验和工作效率。**
 
 ## 项目结构
 
@@ -140,7 +146,7 @@ Client->>Controller : POST /api/v1/proposals
 Controller->>Controller : 验证请求参数
 Controller->>Service : create(proposalData, userId)
 Service->>DB : 创建提案记录
-DB-->>Service : 返回新提案
+Note over Service,DB : 自动创建需求分析记录
 Service-->>Controller : 返回提案数据
 Controller-->>Client : 201 Created
 Note over Client,AI : AI智能生成流程
@@ -176,7 +182,7 @@ Controller-->>Client : 201 Created
 1. **创建提案** (`create`)
    - 验证用户认证状态
    - 调用服务层创建提案
-   - 返回创建成功的响应
+   - **更新**：创建后直接进入需求分析阶段，状态设为'requirement_analysis'
 
 2. **获取提案列表** (`getAll`)
    - 支持分页、筛选、排序
@@ -208,7 +214,7 @@ Controller-->>Client : 201 Created
 #### 主要功能模块
 
 1. **基础CRUD操作**
-   - 创建提案时自动设置状态为'draft'
+   - 创建提案时自动设置状态为'requirement_analysis'
    - 支持复杂查询条件的组合
    - 包含完整的数据验证
 
@@ -507,6 +513,38 @@ stateDiagram-v2
 **章节来源**
 - [proposal.service.ts:588-1178](file://crm-backend/src/services/proposal.service.ts#L588-L1178)
 
+## 前端工作流程
+
+### 简化的创建流程
+
+前端采用了全新的四步创建流程，大幅简化了用户操作：
+
+1. **选择客户** - 从客户列表中选择目标客户
+2. **选择模板** - 可选的模板选择，支持跳过
+3. **填写基本信息** - 填写方案标题、金额、描述等
+4. **确认创建** - 最终确认并创建提案
+
+### 需求分析界面
+
+需求分析界面提供了灵活的需求输入方式：
+- **手动输入**：直接输入需求内容
+- **AI分析录音**：从通话录音中提取需求
+- **AI增强**：AI对需求内容进行补充和优化
+
+### 方案设计界面
+
+方案设计界面支持：
+- **模板匹配**：AI智能匹配最适合的模板
+- **产品配置**：灵活的产品组合配置
+- **条款编辑**：详细的商务条款编辑
+- **实时预览**：设计过程中的实时预览
+
+**章节来源**
+- [index.tsx:1-426](file://crm-frontend/src/pages/Proposals/CreateProposal/index.tsx#L1-L426)
+- [index.tsx:1-236](file://crm-frontend/src/pages/Proposals/ProposalDetail/index.tsx#L1-L236)
+- [RequirementAnalysis.tsx:1-301](file://crm-frontend/src/pages/Proposals/ProposalDetail/components/RequirementAnalysis.tsx#L1-L301)
+- [ProposalDesign.tsx:1-323](file://crm-frontend/src/pages/Proposals/ProposalDetail/components/ProposalDesign.tsx#L1-L323)
+
 ## 依赖关系分析
 
 ```mermaid
@@ -666,16 +704,15 @@ T --> R
 
 ## 结论
 
-提案服务作为销售AI CRM系统的核心模块，展现了现代企业级应用的设计理念和技术架构。**经过本次更新，系统不仅具备了完整的AI智能功能，还实现了提案工作的全流程管理。**
+提案服务作为销售AI CRM系统的核心模块，展现了现代企业级应用的设计理念和技术架构。**经过本次更新，系统不仅具备了完整的AI智能功能，还实现了简化的提案创建流程和完整的工作流程管理。**
 
 主要优势包括：
-- **完整的功能覆盖**：从基础CRUD到AI智能生成，再到完整的工作流程管理
-- **优秀的架构设计**：清晰的分层和职责分离
-- **强大的AI能力**：智能定价、方案生成、产品推荐、需求分析、模板匹配
-- **完善的工作流程**：需求分析、方案设计、内部评审、客户提案、商务谈判的完整闭环
+- **简化的创建流程**：四步创建流程，从客户选择到确认创建
+- **智能的初始状态**：创建后直接进入需求分析阶段，无需手动切换
+- **完整的AI能力**：智能定价、方案生成、产品推荐、需求分析、模板匹配
 - **智能化的邮件跟踪**：客户互动和反馈管理
 - **严格的验证机制**：全面的数据验证和状态管理
 - **完善的错误处理**：全面的异常捕获和处理机制
 - **良好的扩展性**：模块化设计便于功能扩展
 
-该系统为企业销售团队提供了智能化的完整提案管理工具，能够显著提升销售效率和客户转化率，从需求发现到最终成交的全过程都得到了AI技术的强力支持。
+该系统为企业销售团队提供了智能化的完整提案管理工具，能够显著提升销售效率和客户转化率，从需求发现到最终成交的全过程都得到了AI技术的强力支持。新的架构改进使得整个提案流程更加高效、直观和智能化，为用户提供了更好的使用体验。

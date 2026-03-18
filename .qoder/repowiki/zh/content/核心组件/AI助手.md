@@ -28,10 +28,19 @@
 - [.env](file://crm-frontend/.env)
 - [aiService.ts](file://crm-frontend/src/services/aiService.ts)
 - [api.ts](file://crm-frontend/src/services/api.ts)
+- [client.ts](file://crm-backend/src/services/ai/client.ts)
+- [followUpAnalysis.ts](file://crm-backend/src/services/ai/followUpAnalysis.ts)
+- [reportGeneration.ts](file://crm-backend/src/services/ai/reportGeneration.ts)
+- [customerInsight.ts](file://crm-backend/src/services/ai/customerInsight.ts)
+- [questionClassification.service.ts](file://crm-backend/src/services/ai/questionClassification.service.ts)
 </cite>
 
 ## 更新摘要
 **所做更改**
+- 新增阿里云DashScope Qwen模型集成，包括AI客户端基础设施和统一的AI服务层架构
+- 新增多种AI功能支持：语音转录、情感分析、关键词提取、摘要生成、企业智能分析、跟进分析、报告生成
+- 新增完整的AI降级机制和错误处理，支持模拟模式和真实API模式无缝切换
+- 新增问题分类服务，支持批量问题分类和趋势分析
 - 更新API基础URL配置：所有AI相关服务的API基础URL已更新为http://localhost:3002/api/v1
 - 新增智能报价与提案生成功能，提供基于客户信息的智能报价和完整商务方案生成
 - 新增销售绩效AI教练功能，提供个性化销售培训和改进建议
@@ -67,6 +76,8 @@
 - **智能报告**：自动生成日报/周报，包含重点事项、风险提示和下一步行动
 - **录音AI分析**：对通话录音进行情感分析、关键词提取和行动建议生成
 - **陌生拜访助手**：基于企业信息生成销售话术和建议
+- **问题分类系统**：基于AI的客户问题智能分类和趋势分析
+- **阿里云DashScope Qwen模型集成**：完整的AI客户端基础设施和统一的AI服务层架构
 
 系统采用前后端分离架构，后端使用Node.js + Express + Prisma，前端使用React + TypeScript，现已发展为功能完备的AI销售助手平台。
 
@@ -107,20 +118,25 @@ V --> AA[销售教练服务]
 V --> AB[资源匹配服务]
 V --> AC[跟进分析服务]
 V --> AD[报告生成服务]
+V --> AE[问题分类服务]
+V --> AF[AI客户端]
 end
 L --> V
+AF --> AG[阿里云DashScope Qwen模型]
 V --> Y
 V --> Z
 V --> AA
 V --> AB
 V --> AC
 V --> AD
+V --> AE
 ```
 
 **图表来源**
 - [app.ts:1-88](file://crm-backend/src/app.ts#L1-L88)
 - [schema.prisma:1-783](file://crm-backend/prisma/schema.prisma#L1-L783)
 - [index.ts:1-57](file://crm-backend/src/services/ai/index.ts#L1-L57)
+- [client.ts:1-224](file://crm-backend/src/services/ai/client.ts#L1-L224)
 
 **章节来源**
 - [app.ts:1-88](file://crm-backend/src/app.ts#L1-L88)
@@ -132,9 +148,10 @@ V --> AD
 ### 后端核心组件
 1. **AI控制器 (ai.controller.ts)**：处理所有AI相关的HTTP请求
 2. **AI服务层**：封装AI分析逻辑，支持模拟和真实API调用
-3. **路由层 (ai.routes.ts)**：定义AI功能的REST API接口
-4. **中间件 (auth.ts)**：提供JWT认证和权限控制
-5. **AI服务模块 (ai/index.ts)**：统一管理所有AI服务
+3. **AI客户端 (client.ts)**：基于OpenAI兼容接口封装阿里云DashScope Qwen模型
+4. **路由层 (ai.routes.ts)**：定义AI功能的REST API接口
+5. **中间件 (auth.ts)**：提供JWT认证和权限控制
+6. **AI服务模块 (ai/index.ts)**：统一管理所有AI服务
 
 ### 新增AI分析服务
 1. **机会评分服务 (opportunityScoring.ts)**：基于BANT模型的综合评分
@@ -142,7 +159,10 @@ V --> AD
 3. **智能报价服务 (proposalAI.ts)**：基于客户信息的智能报价和方案生成
 4. **销售教练服务 (salesCoach.ts)**：个性化销售培训和改进建议
 5. **资源匹配服务 (resourceMatching.ts)**：多维度资源匹配和最优分配
-6. **客户洞察服务 (types.ts)**：深度客户画像分析
+6. **客户洞察服务 (customerInsight.ts)**：深度客户画像分析
+7. **跟进分析服务 (followUpAnalysis.ts)**：基于客户互动数据的跟进建议生成
+8. **报告生成服务 (reportGeneration.ts)**：自动生成日报/周报
+9. **问题分类服务 (questionClassification.service.ts)**：AI驱动的问题智能分类
 
 ### 前端核心组件
 1. **AI助手页面**：提供智能报告生成功能
@@ -156,7 +176,7 @@ V --> AD
 
 **章节来源**
 - [ai.controller.ts:1-800](file://crm-backend/src/controllers/ai.controller.ts#L1-L800)
-- [ai.service.ts:1-564](file://crm-backend/src/services/ai.service.ts#L1-L564)
+- [ai.service.ts:1-699](file://crm-backend/src/services/ai.service.ts#L1-L699)
 - [ai.routes.ts:1-98](file://crm-backend/src/routes/ai.routes.ts#L1-L98)
 - [opportunityScoring.ts:1-613](file://crm-backend/src/services/ai/opportunityScoring.ts#L1-L613)
 - [churnAnalysis.ts:1-517](file://crm-backend/src/services/ai/churnAnalysis.ts#L1-L517)
@@ -165,6 +185,11 @@ V --> AD
 - [resourceMatching.ts:1-692](file://crm-backend/src/services/ai/resourceMatching.ts#L1-L692)
 - [types.ts:124-276](file://crm-backend/src/services/ai/types.ts#L124-L276)
 - [auth.ts:1-69](file://crm-backend/src/middlewares/auth.ts#L1-L69)
+- [client.ts:1-224](file://crm-backend/src/services/ai/client.ts#L1-L224)
+- [followUpAnalysis.ts:1-480](file://crm-backend/src/services/ai/followUpAnalysis.ts#L1-L480)
+- [reportGeneration.ts:1-379](file://crm-backend/src/services/ai/reportGeneration.ts#L1-L379)
+- [customerInsight.ts:1-548](file://crm-backend/src/services/ai/customerInsight.ts#L1-L548)
+- [questionClassification.service.ts:1-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L1-L372)
 
 ## 架构总览
 系统采用分层架构设计，现已扩展为多层AI分析架构：
@@ -194,14 +219,17 @@ SC[销售教练服务]
 RM[资源匹配服务]
 FA[跟进分析服务]
 RG[报告生成服务]
+QC[问题分类服务]
+end
+subgraph "AI引擎层"
+AI_CLIENT[AI客户端]
+DASHSCOPE[阿里云DashScope Qwen模型]
+MOCK[模拟AI引擎]
+REAL[真实AI API]
 end
 subgraph "数据访问层"
 PRISMA[Prisma ORM]
 DB[(MySQL数据库)]
-end
-subgraph "AI引擎"
-MOCK[模拟AI引擎]
-REAL[真实AI API]
 end
 FE1 --> GW
 FE2 --> GW
@@ -220,19 +248,65 @@ AS --> SC
 AS --> RM
 AS --> FA
 AS --> RG
+AS --> QC
+AS --> AI_CLIENT
+AI_CLIENT --> DASHSCOPE
+AI_CLIENT --> MOCK
 AS --> PRISMA
 PRISMA --> DB
-AS --> MOCK
-AS --> REAL
 ```
 
 **图表来源**
 - [app.ts:10-88](file://crm-backend/src/app.ts#L10-L88)
 - [ai.controller.ts:6-8](file://crm-backend/src/controllers/ai.controller.ts#L6-L8)
-- [ai.service.ts:79-564](file://crm-backend/src/services/ai.service.ts#L79-L564)
+- [ai.service.ts:79-699](file://crm-backend/src/services/ai.service.ts#L79-L699)
 - [index.ts:37-55](file://crm-backend/src/services/ai/index.ts#L37-L55)
+- [client.ts:50-224](file://crm-backend/src/services/ai/client.ts#L50-L224)
 
 ## 详细组件分析
+
+### AI客户端基础设施
+AI客户端采用统一的基础设施设计，现已集成阿里云DashScope Qwen模型：
+
+```mermaid
+classDiagram
+class AIClient {
+- client : OpenAI | null
+- model : string
+- isInitialized : boolean
++ constructor(config? : AIClientConfig)
++ isConfigured() : boolean
++ chat(messages, options?) : Promise~ChatResponse~
++ chatForJson(messages, options?) : Promise~T~
+- isRetryableError(error) : boolean
+- sleep(ms) : Promise~void~
+}
+class ChatMessage {
++ role : system | user | assistant
++ content : string
+}
+class ChatOptions {
++ temperature? : number
++ maxTokens? : number
++ topP? : number
++ stream? : boolean
+}
+class ChatResponse {
++ content : string
++ usage? : Usage
+}
+class Usage {
++ promptTokens : number
++ completionTokens : number
++ totalTokens : number
+}
+AIClient --> ChatMessage : "使用"
+AIClient --> ChatOptions : "使用"
+AIClient --> ChatResponse : "返回"
+```
+
+**图表来源**
+- [client.ts:50-224](file://crm-backend/src/services/ai/client.ts#L50-L224)
 
 ### AI服务架构
 AI服务采用策略模式，现已扩展为多服务架构：
@@ -247,7 +321,7 @@ class AIService {
 +analyzeSentiment(text) Promise~SentimentType~
 +extractKeywords(text) Promise~string[]~
 +generateSummary(text, keywords) Promise~string~
--callRealAI(audioUrl, duration, customerInfo) Promise~AIAnalysisResult~
+-callRealAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
 -mockAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
 -generateMockResult(duration, customerInfo) AIAnalysisResult
 }
@@ -310,7 +384,7 @@ class ResourceMatchingService {
 }
 class CustomerInsightService {
 -CONFIDENCE_THRESHOLDS : object
-+analyzeCustomerInsights(input) Promise~CustomerInsightResult~
++extractCustomerInsights(input) Promise~CustomerInsightResult~
 -extractNeeds(input) Needs[]
 -extractBudget(input) BudgetInfo
 -analyzeDecisionMakers(input) DecisionMakers[]
@@ -318,22 +392,48 @@ class CustomerInsightService {
 -analyzeCompetitorInfo(input) CompetitorInfo[]
 -generateTimeline(input) Timeline
 }
+class FollowUpAnalysisService {
++analyzeFollowUpTiming(input) Promise~FollowUpSuggestionResult~
++generateScript(input) Promise~ScriptGenerationResult~
+-private callRealAnalysis(input) Promise~FollowUpSuggestionResult~
+-private callRealScriptGeneration(input) Promise~ScriptGenerationResult~
+-private mockAnalysis(input) Promise~FollowUpSuggestionResult~
+-private mockScriptGeneration(input) Promise~ScriptGenerationResult~
+}
+class ReportGenerationService {
++generateReport(input) Promise~DailyReportResult~
+-private callRealGeneration(input) Promise~DailyReportResult~
+-private mockGeneration(input) Promise~DailyReportResult~
+}
+class QuestionClassificationService {
++classifyQuestion(question) Promise~QuestionClassification~
++classifyQuestions(questions) Promise~BatchClassificationResult[]~
++summarizeQuestions(questions) Promise~string~
++suggestAnswer(question, category, context?) Promise~string~
++analyzeTrends(questions) Promise~TrendAnalysis~
+}
 AIService --> OpportunityScoringService : "使用"
 AIService --> ChurnAnalysisService : "使用"
 AIService --> ProposalAIService : "使用"
 AIService --> SalesCoachService : "使用"
 AIService --> ResourceMatchingService : "使用"
 AIService --> CustomerInsightService : "使用"
+AIService --> FollowUpAnalysisService : "使用"
+AIService --> ReportGenerationService : "使用"
+AIService --> QuestionClassificationService : "使用"
 ```
 
 **图表来源**
-- [ai.service.ts:79-564](file://crm-backend/src/services/ai.service.ts#L79-L564)
+- [ai.service.ts:79-699](file://crm-backend/src/services/ai.service.ts#L79-L699)
 - [opportunityScoring.ts:42-105](file://crm-backend/src/services/ai/opportunityScoring.ts#L42-L105)
 - [churnAnalysis.ts:28-65](file://crm-backend/src/services/ai/churnAnalysis.ts#L28-L65)
 - [proposalAI.ts:53-106](file://crm-backend/src/services/ai/proposalAI.ts#L53-L106)
 - [salesCoach.ts:51-82](file://crm-backend/src/services/ai/salesCoach.ts#L51-L82)
 - [resourceMatching.ts:44-92](file://crm-backend/src/services/ai/resourceMatching.ts#L44-L92)
 - [types.ts:219-276](file://crm-backend/src/services/ai/types.ts#L219-L276)
+- [followUpAnalysis.ts:22-480](file://crm-backend/src/services/ai/followUpAnalysis.ts#L22-L480)
+- [reportGeneration.ts:17-379](file://crm-backend/src/services/ai/reportGeneration.ts#L17-L379)
+- [questionClassification.service.ts:25-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L25-L372)
 
 ### 数据模型设计
 系统使用Prisma定义了完整的AI功能数据模型，现已扩展：
@@ -347,6 +447,7 @@ USER ||--o{ CHURN_ALERT : "创建"
 USER ||--o{ OPPORTUNITY_SCORE : "计算"
 USER ||--o{ SALES_PERFORMANCE : "记录"
 USER ||--o{ COACHING_SUGGESTION : "生成"
+USER ||--o{ FOLLOW_UP_SUGGESTION : "生成"
 CUSTOMER ||--o{ AUDIO_RECORDING : "拥有"
 CUSTOMER ||--o{ FOLLOW_UP_SUGGESTION : "产生"
 CUSTOMER ||--o{ CONTACT : "包含"
@@ -366,6 +467,13 @@ PRE_SALES_REQUEST ||--|| CUSTOMER : "关联"
 PRE_SALES_RESOURCE ||--o{ RESOURCE_MATCH_RECORD : "被匹配"
 RESOURCE_MATCH_RECORD ||--|| PRE_SALES_REQUEST : "记录"
 RESOURCE_MATCH_RECORD ||--|| PRE_SALES_RESOURCE : "匹配"
+FOLLOW_UP_SUGGESTION ||--|| USER : "生成"
+DAILY_REPORT ||--|| USER : "生成"
+CHURN_ALERT ||--|| USER : "生成"
+OPPORTUNITY_SCORE ||--|| USER : "生成"
+CUSTOMER_INSIGHT ||--|| USER : "生成"
+PRE_SALES_REQUEST ||--|| USER : "生成"
+PRE_SALES_RESOURCE ||--|| USER : "生成"
 note for USER "用户表<br/>包含认证信息和角色"
 note for CUSTOMER "客户表<br/>包含客户基本信息和AI字段"
 note for AUDIO_RECORDING "录音表<br/>存储通话录音和分析结果"
@@ -417,6 +525,54 @@ Controller-->>Client : 返回JSON响应
 - [schema.prisma:572-613](file://crm-backend/prisma/schema.prisma#L572-L613)
 
 ## 新增AI功能详解
+
+### 阿里云DashScope Qwen模型集成
+系统现已完整集成阿里云DashScope Qwen模型，提供统一的AI客户端基础设施：
+
+#### AI客户端配置
+- **模型配置**：默认使用 `qwen3.5-plus` 模型，支持自定义模型选择
+- **API密钥管理**：通过环境变量 `DASHSCOPE_API_KEY` 配置
+- **基础URL设置**：默认指向 `https://dashscope.aliyuncs.com/compatible-mode/v1`
+- **兼容性设计**：基于OpenAI兼容接口，确保与现有代码的无缝集成
+
+#### 降级机制
+- **自动降级**：当API密钥未配置时，自动切换到模拟模式
+- **错误恢复**：真实API调用失败时，自动降级到模拟分析
+- **性能监控**：记录AI调用耗时和Token使用情况
+- **重试机制**：支持指数退避重试，最大重试3次
+
+#### 错误处理
+- **网络错误处理**：自动检测网络连接问题
+- **速率限制处理**：优雅处理429状态码
+- **超时处理**：支持超时重试机制
+- **JSON解析容错**：自动修复常见的JSON格式问题
+
+**章节来源**
+- [client.ts:1-224](file://crm-backend/src/services/ai/client.ts#L1-L224)
+- [ai.service.ts:84-97](file://crm-backend/src/services/ai.service.ts#L84-L97)
+
+### 问题分类系统
+基于AI的客户问题智能分类和趋势分析系统：
+
+#### 分类能力
+- **多维度分类**：产品相关、价格相关、技术相关、实施相关、其他
+- **优先级评估**：高、中、低三个优先级
+- **置信度评分**：提供分类的可信度评估
+- **情感分析**：识别客户情绪状态
+
+#### 批量处理
+- **批量分类**：支持批量问题分类，每批最多5个问题
+- **趋势分析**：分析问题的发展趋势和热点话题
+- **摘要生成**：自动生成问题汇总报告
+- **智能建议**：提供针对性的解决方案建议
+
+#### 关键词提取
+- **智能关键词**：从问题中提取关键信息
+- **上下文理解**：结合问题背景进行准确分类
+- **多语言支持**：支持中文问题的智能处理
+
+**章节来源**
+- [questionClassification.service.ts:1-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L1-L372)
 
 ### 智能报价与提案生成系统
 基于客户信息的智能报价和完整商务方案生成系统：
@@ -514,6 +670,54 @@ Controller-->>Client : 返回JSON响应
 - [resourceMatching.ts:1-692](file://crm-backend/src/services/ai/resourceMatching.ts#L1-L692)
 - [types.ts:563-657](file://crm-backend/src/services/ai/types.ts#L563-L657)
 
+### 跟进分析服务
+基于客户互动数据的智能跟进建议生成：
+
+#### 跟进时机分析
+- **多维度分析**：基于客户最近联系时间、通话录音情感、商机状态、待办任务
+- **智能决策**：自动判断最佳跟进方式（电话/拜访/邮件/微信）
+- **优先级评估**：根据紧急程度和重要性设置优先级
+- **时效性管理**：设置建议的有效期和过期时间
+
+#### 话术生成
+- **场景适配**：根据沟通目的（跟进/演示/谈判/方案介绍）生成合适话术
+- **个性化定制**：结合客户行业、联系人信息、历史互动生成个性化话术
+- **关键要点**：提供沟通要点和注意事项
+- **模板库**：内置多种沟通场景的标准话术模板
+
+#### 模拟与真实模式
+- **真实API模式**：使用阿里云DashScope Qwen模型生成高质量分析
+- **模拟模式**：在API不可用时提供降级服务，确保系统正常运行
+- **无缝切换**：自动检测API状态并在两种模式间切换
+
+**章节来源**
+- [followUpAnalysis.ts:1-480](file://crm-backend/src/services/ai/followUpAnalysis.ts#L1-L480)
+
+### 报告生成服务
+自动生成日报/周报的智能报告系统：
+
+#### 报告内容生成
+- **工作摘要**：基于统计数据生成简洁的工作摘要
+- **详细内容**：包含客户跟进、商机进展、任务执行、通话分析、回款情况
+- **重点事项**：识别高价值商机、积极客户反馈、新增客户等重点事项
+- **风险提示**：识别潜在风险，如长时间无活动的商机、负面录音等
+- **下一步行动**：基于当前状态生成具体的行动建议
+
+#### 智能分析
+- **数据聚合**：自动收集和聚合销售活动数据
+- **趋势分析**：识别工作模式和趋势变化
+- **异常检测**：自动识别异常情况和潜在问题
+- **建议生成**：基于数据分析提供改进建议
+
+#### 模板化输出
+- **结构化格式**：统一的报告格式和结构
+- **可编辑内容**：支持人工修改和补充
+- **历史对比**：支持与历史数据的对比分析
+- **导出功能**：支持多种格式的报告导出
+
+**章节来源**
+- [reportGeneration.ts:1-379](file://crm-backend/src/services/ai/reportGeneration.ts#L1-L379)
+
 ## 前端组件架构
 前端采用组件化设计，提供直观的AI助手界面，现已扩展为多组件架构：
 
@@ -569,6 +773,12 @@ PL[播放器]
 AI[AI分析面板]
 SL[建议列表]
 end
+subgraph "问题分类组件"
+QC[问题分类面板]
+CL[分类结果]
+SUM[摘要报告]
+TREND[趋势分析]
+end
 AA --> RL
 AA --> RD
 AA --> GR
@@ -578,6 +788,7 @@ AA --> CIP
 AA --> QPC
 AA --> SCP
 AA --> RMC
+AA --> QC
 OSC --> SS
 OSC --> RS
 OSC --> REC
@@ -601,6 +812,9 @@ AP --> RL2
 AP --> PL
 AP --> AI
 AP --> SL
+QC --> CL
+QC --> SUM
+QC --> TREND
 ```
 
 **图表来源**
@@ -724,6 +938,25 @@ AP --> SL
 **章节来源**
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 
+### 问题分类面板组件
+提供智能问题分类和趋势分析：
+
+#### 功能特性
+- **问题分类**：自动识别问题类型和优先级
+- **置信度评估**：显示分类的可信度
+- **情感分析**：识别客户情绪状态
+- **批量处理**：支持批量问题分类
+- **趋势分析**：识别热点话题和发展趋势
+
+#### 用户交互
+- **分类查看**：查看详细分类结果
+- **摘要报告**：生成问题摘要报告
+- **趋势分析**：查看问题发展趋势
+- **建议采纳**：基于分析结果制定应对策略
+
+**章节来源**
+- [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
+
 **章节来源**
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 - [AIAudio/index.tsx:1-441](file://crm-frontend/src/pages/AIAudio/index.tsx#L1-L441)
@@ -742,6 +975,11 @@ AP --> SL
 - **环境变量**：`VITE_API_BASE_URL=http://localhost:3002/api/v1`
 - **默认回退**：代码中硬编码的默认值确保开发环境稳定性
 - **Axios配置**：所有API请求统一使用此基础URL
+
+#### 阿里云DashScope配置
+- **API密钥**：`DASHSCOPE_API_KEY=sk-243559b283e14055b4495c9ffd1b366f`
+- **基础URL**：`DASHSCOPE_BASE_URL=https://dashscope.aliyuncs.com/compatible-mode/v1`
+- **默认模型**：`DASHSCOPE_MODEL=qwen3.5-plus`
 
 #### 配置文件位置
 - **后端**：`crm-backend/.env` - 环境变量配置
@@ -787,13 +1025,17 @@ CORS[cors] --> NET[网络]
 ENDPOINT[express-rate-limit] --> THROTTLE[限流]
 MORGAN[morgan] --> LOG[日志]
 WINSTON[winston] --> LOG
+OPENAI[openai] --> AI_CLIENT[AI客户端]
+DASHSCOPE[阿里云DashScope] --> AI_CLIENT
 ENDPOINT --> AI[AI服务]
-AI --> OPENAI[OpenAI SDK]
-AI --> TENCENT[Tencent AI]
-AI --> BAIDU[Baidu AI]
+AI --> OPENAI
+AI --> DASHSCOPE
 AI --> PROPOSAL[智能报价服务]
 AI --> COACH[销售教练服务]
 AI --> MATCH[资源匹配服务]
+AI --> FOLLOWUP[跟进分析服务]
+AI --> REPORT[报告生成服务]
+AI --> QUESTION[问题分类服务]
 end
 subgraph "AI依赖"
 BCRYPT[bcryptjs] --> PASS[密码加密]
@@ -868,18 +1110,55 @@ APP --> ENDPOINT
 
 ### AI服务异常
 **症状**：AI分析失败或返回模拟数据
-**原因**：真实API配置缺失
+**原因**：阿里云DashScope API配置缺失
 **解决方案**：
-1. 设置环境变量：TENCENT_SECRET_ID, TENCENT_SECRET_KEY
-2. 配置正确的API区域
+1. 设置环境变量：`DASHSCOPE_API_KEY`
+2. 配置正确的API区域和模型
 3. 检查网络连接
 4. 验证AI服务可用性
+
+### API基础URL配置问题
+**症状**：AI功能无法访问或返回404错误
+**原因**：API基础URL配置不正确
+**解决方案**：
+1. 检查后端配置：`PORT=3002` 和 `API_PREFIX=/api/v1`
+2. 验证前端配置：`VITE_API_BASE_URL=http://localhost:3002/api/v1`
+3. 确认服务正在3002端口运行
+4. 检查防火墙和网络连接
+5. 验证API路由是否正确映射
+
+### AI客户端初始化失败
+**症状**：AI客户端未初始化，抛出"AI客户端未初始化"错误
+**原因**：API密钥未正确配置
+**解决方案**：
+1. 检查 `.env` 文件中的 `DASHSCOPE_API_KEY`
+2. 确认API密钥格式正确
+3. 验证阿里云账户状态
+4. 检查网络连接和代理设置
+
+### 降级机制问题
+**症状**：即使API配置正确，仍使用模拟模式
+**原因**：AI客户端检测逻辑问题
+**解决方案**：
+1. 检查 `aiClient.isConfigured()` 方法
+2. 验证环境变量读取
+3. 查看控制台日志中的初始化信息
+4. 确认OpenAI SDK版本兼容性
+
+### 重试机制失效
+**症状**：API调用失败后不进行重试
+**原因**：重试配置或错误检测问题
+**解决方案**：
+1. 检查 `RETRY_CONFIG` 配置
+2. 验证错误类型检测逻辑
+3. 查看重试间隔计算
+4. 确认网络错误类型识别
 
 ### 数据库连接问题
 **症状**：查询超时或连接失败
 **原因**：数据库配置错误
 **解决方案**：
-1. 检查DATABASE_URL配置
+1. 检查 `DATABASE_URL` 配置
 2. 确认数据库服务运行正常
 3. 验证网络连通性
 
@@ -891,16 +1170,6 @@ APP --> ENDPOINT
 2. 配置适当的并发限制
 3. 优化AI模型参数
 4. 实施AI分析缓存策略
-
-### API基础URL配置问题
-**症状**：AI功能无法访问或返回404错误
-**原因**：API基础URL配置不正确
-**解决方案**：
-1. 检查后端配置：`PORT=3002` 和 `API_PREFIX=/api/v1`
-2. 验证前端配置：`VITE_API_BASE_URL=http://localhost:3002/api/v1`
-3. 确认服务正在3002端口运行
-4. 检查防火墙和网络连接
-5. 验证API路由是否正确映射
 
 ### 新功能集成问题
 **症状**：智能报价、销售教练、资源匹配功能无法使用
@@ -923,6 +1192,7 @@ APP --> ENDPOINT
 **章节来源**
 - [auth.ts:13-33](file://crm-backend/src/middlewares/auth.ts#L13-L33)
 - [ai.service.ts:66-73](file://crm-backend/src/services/ai.service.ts#L66-L73)
+- [client.ts:75-77](file://crm-backend/src/services/ai/client.ts#L75-L77)
 - [schema.prisma:8-11](file://crm-backend/prisma/schema.prisma#L8-L11)
 
 ## 结论
@@ -931,11 +1201,13 @@ APP --> ENDPOINT
 ### 技术优势
 - **模块化设计**：AI功能独立封装，易于维护和扩展
 - **多层架构**：从基础分析到高级洞察的完整AI生态系统
+- **阿里云集成**：完整的DashScope Qwen模型集成，提供稳定可靠的AI能力
 - **双模式支持**：既支持模拟AI分析，又可接入真实AI服务
 - **完整生态**：从前端到后端的全栈AI解决方案
 - **数据驱动**：基于客户数据的智能分析和建议
 - **实时监控**：多维度的客户状态实时跟踪
 - **智能决策**：从报价到资源分配的业务智能决策支持
+- **问题分类**：基于AI的问题智能分类和趋势分析能力
 
 ### 应用价值
 - **提升效率**：自动化生成跟进策略和销售话术
@@ -946,6 +1218,7 @@ APP --> ENDPOINT
 - **决策支持**：提供数据驱动的业务决策依据
 - **成本优化**：智能报价和资源匹配降低成本
 - **能力提升**：个性化销售培训和技能改进
+- **智能客服**：基于AI的问题分类和趋势分析
 
 ### 功能特色
 - **机会评分**：基于BANT模型的综合评估
@@ -957,14 +1230,17 @@ APP --> ENDPOINT
 - **资源匹配**：多维度资源最优分配
 - **智能建议**：针对性的改进建议和行动方案
 - **可视化展示**：直观的数据展示和分析界面
+- **问题分类**：AI驱动的问题智能分类和趋势分析
+- **阿里云集成**：稳定的DashScope Qwen模型支持
 
 ### 发展方向
-1. **AI能力增强**：集成更多AI模型和算法
+1. **AI能力增强**：集成更多阿里云AI模型和算法
 2. **个性化定制**：支持企业特定的销售流程
 3. **多语言支持**：扩展国际化能力
 4. **移动端优化**：提供更好的移动用户体验
 5. **实时协作**：支持团队协作和知识共享
 6. **预测分析**：提供更精准的业务预测能力
 7. **自动化决策**：实现更高级别的业务自动化
+8. **智能客服**：基于AI的问题分类和自动回复
 
 该系统为销售团队提供了强大的AI助手，能够显著提升销售效率和客户服务质量，是现代CRM系统的重要发展方向。
