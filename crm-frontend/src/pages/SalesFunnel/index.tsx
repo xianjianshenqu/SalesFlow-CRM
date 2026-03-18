@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { mockOpportunities } from '../../data/opportunities';
-import { STAGE_LABELS, STAGE_COLORS, type Opportunity, type Stage } from '../../types';
+import { useState, useCallback, useRef } from 'react';
+import { useFunnelStore } from '../../stores/funnelStore';
+import { STAGE_LABELS, STAGE_COLORS, type Opportunity, type Stage, type Priority } from '../../types';
 
 // 格式化金额
 function formatCurrency(value: number): string {
@@ -10,8 +10,251 @@ function formatCurrency(value: number): string {
   return `¥${value.toLocaleString()}`;
 }
 
-// 机会卡片组件
-function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
+// 阶段颜色配置
+const STAGE_DOT_COLORS: Record<Stage, string> = {
+  new_lead: 'bg-slate-500',
+  quoted: 'bg-indigo-500',
+  negotiation: 'bg-blue-500',
+  procurement_process: 'bg-amber-500',
+  contract_stage: 'bg-orange-500',
+  won: 'bg-emerald-500'
+};
+
+// 删除确认对话框
+function DeleteConfirmDialog({
+  opportunity,
+  onConfirm,
+  onCancel
+}: {
+  opportunity: Opportunity;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="size-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+            <span className="material-symbols-outlined text-red-600 dark:text-red-400">delete</span>
+          </div>
+          <div>
+            <h3 className="font-semibold text-slate-900 dark:text-white">确认删除</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400">此操作无法撤销</p>
+          </div>
+        </div>
+        <p className="text-slate-600 dark:text-slate-300 mb-6">
+          确定要删除机会 "<span className="font-medium text-slate-900 dark:text-white">{opportunity.title}</span>" 吗？
+        </p>
+        <div className="flex gap-3 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            取消
+          </button>
+          <button
+            onClick={onConfirm}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            确认删除
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 编辑表单模态框
+function EditOpportunityModal({
+  opportunity,
+  onSave,
+  onCancel
+}: {
+  opportunity: Opportunity;
+  onSave: (data: Partial<Opportunity>) => void;
+  onCancel: () => void;
+}) {
+  const [title, setTitle] = useState(opportunity.title);
+  const [customerName, setCustomerName] = useState(opportunity.customerName);
+  const [value, setValue] = useState(opportunity.value.toString());
+  const [priority, setPriority] = useState<Priority>(opportunity.priority);
+  const [probability, setProbability] = useState(opportunity.probability);
+  const [nextStep, setNextStep] = useState(opportunity.nextStep || '');
+  const [description, setDescription] = useState(opportunity.description || '');
+
+  const handleSave = () => {
+    if (title.trim() && customerName.trim()) {
+      onSave({
+        title: title.trim(),
+        customerName: customerName.trim(),
+        value: parseFloat(value) || 0,
+        priority,
+        probability,
+        nextStep: nextStep.trim(),
+        description: description.trim()
+      });
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-xl p-6 max-w-lg w-full mx-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">编辑机会</h3>
+          <button
+            onClick={onCancel}
+            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+          >
+            <span className="material-symbols-outlined">close</span>
+          </button>
+        </div>
+
+        <div className="space-y-4">
+          {/* 客户名称 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              客户名称
+            </label>
+            <input
+              type="text"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          {/* 项目名称 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              项目名称
+            </label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          {/* 金额 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              预计金额 (¥)
+            </label>
+            <input
+              type="number"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          {/* 成交概率 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              成交概率: {probability}%
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={probability}
+              onChange={(e) => setProbability(parseInt(e.target.value))}
+              className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+            />
+          </div>
+
+          {/* 优先级 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+              优先级
+            </label>
+            <div className="flex gap-2">
+              {(['high', 'medium', 'low'] as Priority[]).map((p) => (
+                <button
+                  key={p}
+                  onClick={() => setPriority(p)}
+                  className={`flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-colors ${
+                    priority === p
+                      ? p === 'high'
+                        ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 ring-2 ring-red-500'
+                        : p === 'medium'
+                        ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 ring-2 ring-amber-500'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 ring-2 ring-slate-500'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                  }`}
+                >
+                  {p === 'high' ? '高' : p === 'medium' ? '中' : '低'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 下一步 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              下一步行动
+            </label>
+            <input
+              type="text"
+              value={nextStep}
+              onChange={(e) => setNextStep(e.target.value)}
+              placeholder="输入下一步行动计划..."
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+            />
+          </div>
+
+          {/* 描述 */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              备注
+            </label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              rows={3}
+              placeholder="添加备注信息..."
+              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-3 justify-end mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
+          <button
+            onClick={onCancel}
+            className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+          >
+            取消
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={!title.trim() || !customerName.trim()}
+            className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            保存更改
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 机会卡片组件 - 支持拖拽和操作
+function OpportunityCard({ 
+  opportunity, 
+  onDragStart, 
+  onDragEnd,
+  onEdit,
+  onDelete
+}: { 
+  opportunity: Opportunity;
+  onDragStart: (e: React.DragEvent, opportunity: Opportunity) => void;
+  onDragEnd: () => void;
+  onEdit: (opportunity: Opportunity) => void;
+  onDelete: (opportunity: Opportunity) => void;
+}) {
+  const [showActions, setShowActions] = useState(false);
+
   const priorityColors = {
     high: 'border-l-red-500',
     medium: 'border-l-amber-500',
@@ -20,10 +263,43 @@ function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
 
   return (
     <div 
-      className={`bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700 border-l-4 ${priorityColors[opportunity.priority]} cursor-grab active:cursor-grabbing hover:shadow-md transition-shadow`}
+      draggable
+      onDragStart={(e) => onDragStart(e, opportunity)}
+      onDragEnd={onDragEnd}
+      onMouseEnter={() => setShowActions(true)}
+      onMouseLeave={() => setShowActions(false)}
+      className={`relative bg-white dark:bg-slate-800 rounded-lg p-4 shadow-sm border border-slate-200 dark:border-slate-700 border-l-4 ${priorityColors[opportunity.priority]} cursor-grab active:cursor-grabbing hover:shadow-md transition-all`}
     >
+      {/* 操作按钮 - 悬停显示 */}
+      <div 
+        className={`absolute top-2 right-2 flex gap-1 transition-opacity duration-200 ${
+          showActions ? 'opacity-100' : 'opacity-0'
+        }`}
+      >
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(opportunity);
+          }}
+          className="size-7 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-primary hover:text-white transition-colors flex items-center justify-center"
+          title="编辑"
+        >
+          <span className="material-symbols-outlined text-sm">edit</span>
+        </button>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(opportunity);
+          }}
+          className="size-7 rounded-md bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-red-500 hover:text-white transition-colors flex items-center justify-center"
+          title="删除"
+        >
+          <span className="material-symbols-outlined text-sm">delete</span>
+        </button>
+      </div>
+
       {/* 标题和概率 */}
-      <div className="flex items-start justify-between mb-2">
+      <div className="flex items-start justify-between mb-2 pr-16">
         <h4 className="font-medium text-slate-900 dark:text-white text-sm leading-snug line-clamp-2">
           {opportunity.title}
         </h4>
@@ -63,32 +339,131 @@ function OpportunityCard({ opportunity }: { opportunity: Opportunity }) {
   );
 }
 
-// 阶段列组件
+// 添加客户表单组件
+function AddCustomerForm({ 
+  onAdd 
+}: { 
+  onAdd: (customerName: string, title: string, value: number) => void;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [title, setTitle] = useState('');
+  const [value, setValue] = useState('');
+
+  const handleSubmit = () => {
+    if (customerName.trim() && title.trim()) {
+      onAdd(customerName.trim(), title.trim(), parseFloat(value) || 0);
+      setCustomerName('');
+      setTitle('');
+      setValue('');
+      setIsExpanded(false);
+    }
+  };
+
+  if (!isExpanded) {
+    return (
+      <button
+        onClick={() => setIsExpanded(true)}
+        className="w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-lg text-slate-400 hover:text-primary hover:border-primary transition-colors flex items-center justify-center gap-2"
+      >
+        <span className="material-symbols-outlined text-sm">add</span>
+        <span className="text-sm">添加客户</span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700 shadow-sm">
+      <input
+        type="text"
+        placeholder="客户名称"
+        value={customerName}
+        onChange={(e) => setCustomerName(e.target.value)}
+        className="w-full mb-2 px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+      />
+      <input
+        type="text"
+        placeholder="项目名称"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        className="w-full mb-2 px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+      />
+      <input
+        type="number"
+        placeholder="预计金额（可选）"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        className="w-full mb-3 px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+      />
+      <div className="flex gap-2">
+        <button
+          onClick={handleSubmit}
+          disabled={!customerName.trim() || !title.trim()}
+          className="flex-1 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          添加
+        </button>
+        <button
+          onClick={() => {
+            setIsExpanded(false);
+            setCustomerName('');
+            setTitle('');
+            setValue('');
+          }}
+          className="px-4 py-2 text-slate-500 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+        >
+          取消
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// 阶段列组件 - 支持放置
 function StageColumn({ 
   stage, 
   opportunities,
-  totalValue 
+  totalValue,
+  onDragOver,
+  onDrop,
+  onAddCustomer,
+  onEditOpportunity,
+  onDeleteOpportunity,
+  draggedOpportunity
 }: { 
   stage: Stage;
   opportunities: Opportunity[];
   totalValue: number;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent, stage: Stage) => void;
+  onAddCustomer: (stage: Stage, customerName: string, title: string, value: number) => void;
+  onEditOpportunity: (opportunity: Opportunity) => void;
+  onDeleteOpportunity: (opportunity: Opportunity) => void;
+  draggedOpportunity: Opportunity | null;
 }) {
   const colors = STAGE_COLORS[stage];
-  const stageColors: Record<Stage, string> = {
-    new_lead: 'bg-slate-500',
-    contacted: 'bg-indigo-500',
-    solution: 'bg-blue-500',
-    negotiation: 'bg-amber-500',
-    won: 'bg-emerald-500'
+  const isOver = draggedOpportunity !== null && draggedOpportunity.stage !== stage;
+
+  const handleDragStart = (e: React.DragEvent, opportunity: Opportunity) => {
+    e.dataTransfer.setData('opportunityId', opportunity.id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragEnd = () => {
+    // 拖拽结束处理在父组件
   };
 
   return (
-    <div className="flex-1 min-w-[300px] bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+    <div 
+      className={`flex-1 min-w-[280px] max-w-[320px] bg-slate-50 dark:bg-slate-900/50 rounded-xl transition-all ${isOver ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+      onDragOver={onDragOver}
+      onDrop={(e) => onDrop(e, stage)}
+    >
       {/* 列头 */}
       <div className="p-4 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
-            <div className={`size-3 rounded-full ${stageColors[stage]}`}></div>
+            <div className={`size-3 rounded-full ${STAGE_DOT_COLORS[stage]}`}></div>
             <h3 className="font-semibold text-slate-900 dark:text-white">{STAGE_LABELS[stage]}</h3>
           </div>
           <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
@@ -101,17 +476,31 @@ function StageColumn({
       </div>
 
       {/* 卡片列表 */}
-      <div className="p-4 space-y-3 min-h-[400px]">
+      <div className="p-4 space-y-3 min-h-[200px] max-h-[calc(100vh-400px)] overflow-y-auto">
         {opportunities.map((opportunity) => (
-          <OpportunityCard key={opportunity.id} opportunity={opportunity} />
+          <OpportunityCard 
+            key={opportunity.id} 
+            opportunity={opportunity}
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
+            onEdit={onEditOpportunity}
+            onDelete={onDeleteOpportunity}
+          />
         ))}
         
         {opportunities.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-600">
+          <div className="flex flex-col items-center justify-center py-8 text-slate-400 dark:text-slate-600">
             <span className="material-symbols-outlined text-4xl mb-2">inbox</span>
             <p className="text-sm">暂无机会</p>
           </div>
         )}
+      </div>
+
+      {/* 添加客户表单 */}
+      <div className="p-4 pt-0">
+        <AddCustomerForm 
+          onAdd={(customerName, title, value) => onAddCustomer(stage, customerName, title, value)} 
+        />
       </div>
     </div>
   );
@@ -119,17 +508,18 @@ function StageColumn({
 
 // 漏斗统计卡片
 function FunnelStats() {
-  const totalValue = mockOpportunities.reduce((sum, o) => sum + o.value, 0);
-  const weightedValue = mockOpportunities.reduce((sum, o) => sum + (o.value * o.probability / 100), 0);
-  const avgProbability = mockOpportunities.length > 0 
-    ? Math.round(mockOpportunities.reduce((sum, o) => sum + o.probability, 0) / mockOpportunities.length)
+  const { opportunities } = useFunnelStore();
+  const totalValue = opportunities.reduce((sum, o) => sum + o.value, 0);
+  const weightedValue = opportunities.reduce((sum, o) => sum + (o.value * o.probability / 100), 0);
+  const avgProbability = opportunities.length > 0 
+    ? Math.round(opportunities.reduce((sum, o) => sum + o.probability, 0) / opportunities.length)
     : 0;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
         <p className="text-sm text-slate-500 dark:text-slate-400">总机会数</p>
-        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{mockOpportunities.length}</p>
+        <p className="text-2xl font-bold text-slate-900 dark:text-white mt-1">{opportunities.length}</p>
       </div>
       <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
         <p className="text-sm text-slate-500 dark:text-slate-400">总价值</p>
@@ -148,15 +538,86 @@ function FunnelStats() {
 }
 
 export default function SalesFunnel() {
-  const [viewMode, setViewMode] = useState<'kanban' | 'list'>('kanban');
+  const { opportunities, moveOpportunity, addOpportunity, updateOpportunity, deleteOpportunity } = useFunnelStore();
+  const [draggedOpportunity, setDraggedOpportunity] = useState<Opportunity | null>(null);
+  const [editingOpportunity, setEditingOpportunity] = useState<Opportunity | null>(null);
+  const [deletingOpportunity, setDeletingOpportunity] = useState<Opportunity | null>(null);
+  const nextIdRef = useRef(100);
 
-  const stages: Stage[] = ['new_lead', 'contacted', 'solution', 'negotiation'];
+  const stages: Stage[] = ['new_lead', 'quoted', 'negotiation', 'procurement_process', 'contract_stage', 'won'];
 
-  const getOpportunitiesByStage = (stage: Stage) => 
-    mockOpportunities.filter(o => o.stage === stage);
+  const getOpportunitiesByStage = useCallback((stage: Stage) => 
+    opportunities.filter(o => o.stage === stage),
+    [opportunities]
+  );
 
-  const getStageTotalValue = (stage: Stage) => 
-    getOpportunitiesByStage(stage).reduce((sum, o) => sum + o.value, 0);
+  const getStageTotalValue = useCallback((stage: Stage) => 
+    getOpportunitiesByStage(stage).reduce((sum, o) => sum + o.value, 0),
+    [getOpportunitiesByStage]
+  );
+
+  // 拖拽处理
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, newStage: Stage) => {
+    e.preventDefault();
+    const opportunityId = e.dataTransfer.getData('opportunityId');
+    const opportunity = opportunities.find(o => o.id === opportunityId);
+    
+    if (opportunity && opportunity.stage !== newStage) {
+      moveOpportunity(opportunityId, newStage);
+    }
+    setDraggedOpportunity(null);
+  }, [opportunities, moveOpportunity]);
+
+  // 添加客户
+  const handleAddCustomer = useCallback((stage: Stage, customerName: string, title: string, value: number) => {
+    const stageProbabilities: Record<Stage, number> = {
+      new_lead: 20,
+      quoted: 40,
+      negotiation: 55,
+      procurement_process: 70,
+      contract_stage: 85,
+      won: 100
+    };
+
+    const newOpportunity: Opportunity = {
+      id: `o${nextIdRef.current++}`,
+      customerId: `c${nextIdRef.current}`,
+      customerName,
+      title,
+      stage,
+      value: value || 0,
+      probability: stageProbabilities[stage],
+      owner: '当前用户',
+      priority: 'medium',
+      expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      lastActivity: new Date().toISOString().split('T')[0],
+      description: '',
+      nextStep: ''
+    };
+
+    addOpportunity(newOpportunity);
+  }, [addOpportunity]);
+
+  // 编辑保存
+  const handleEditSave = useCallback((data: Partial<Opportunity>) => {
+    if (editingOpportunity) {
+      updateOpportunity(editingOpportunity.id, data);
+      setEditingOpportunity(null);
+    }
+  }, [editingOpportunity, updateOpportunity]);
+
+  // 删除确认
+  const handleDeleteConfirm = useCallback(() => {
+    if (deletingOpportunity) {
+      deleteOpportunity(deletingOpportunity.id);
+      setDeletingOpportunity(null);
+    }
+  }, [deletingOpportunity, deleteOpportunity]);
 
   return (
     <div className="space-y-6">
@@ -164,38 +625,7 @@ export default function SalesFunnel() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-slate-900 dark:text-white">销售漏斗</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">可视化管理销售机会，追踪转化进度</p>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* 视图切换 */}
-          <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('kanban')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'kanban'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm align-middle mr-1">view_kanban</span>
-              看板
-            </button>
-            <button
-              onClick={() => setViewMode('list')}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm align-middle mr-1">view_list</span>
-              列表
-            </button>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
-            <span className="material-symbols-outlined text-sm">add</span>
-            新建机会
-          </button>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">拖拽卡片更改阶段 · 悬停卡片显示操作按钮</p>
         </div>
       </div>
 
@@ -203,16 +633,40 @@ export default function SalesFunnel() {
       <FunnelStats />
 
       {/* 看板视图 */}
-      <div className="flex gap-6 overflow-x-auto pb-4">
+      <div className="flex gap-4 overflow-x-auto pb-4">
         {stages.map((stage) => (
           <StageColumn
             key={stage}
             stage={stage}
             opportunities={getOpportunitiesByStage(stage)}
             totalValue={getStageTotalValue(stage)}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onAddCustomer={handleAddCustomer}
+            onEditOpportunity={setEditingOpportunity}
+            onDeleteOpportunity={setDeletingOpportunity}
+            draggedOpportunity={draggedOpportunity}
           />
         ))}
       </div>
+
+      {/* 编辑模态框 */}
+      {editingOpportunity && (
+        <EditOpportunityModal
+          opportunity={editingOpportunity}
+          onSave={handleEditSave}
+          onCancel={() => setEditingOpportunity(null)}
+        />
+      )}
+
+      {/* 删除确认对话框 */}
+      {deletingOpportunity && (
+        <DeleteConfirmDialog
+          opportunity={deletingOpportunity}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeletingOpportunity(null)}
+        />
+      )}
     </div>
   );
 }

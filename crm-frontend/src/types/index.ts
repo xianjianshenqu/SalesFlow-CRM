@@ -1,5 +1,5 @@
 // 销售阶段枚举
-export type Stage = 'new_lead' | 'contacted' | 'solution' | 'negotiation' | 'won';
+export type Stage = 'new_lead' | 'quoted' | 'negotiation' | 'procurement_process' | 'contract_stage' | 'won';
 
 // 优先级枚举
 export type Priority = 'high' | 'medium' | 'low';
@@ -240,18 +240,20 @@ export interface User {
 // 阶段映射
 export const STAGE_LABELS: Record<Stage, string> = {
   new_lead: '新线索',
-  contacted: '已联系',
-  solution: '方案建议',
-  negotiation: '谈判中',
+  quoted: '已报价',
+  negotiation: '商务谈判',
+  procurement_process: '采购流程中',
+  contract_stage: '合同阶段中',
   won: '已成交'
 };
 
 // 阶段颜色映射
 export const STAGE_COLORS: Record<Stage, { bg: string; text: string; ring: string }> = {
   new_lead: { bg: 'bg-slate-100 dark:bg-slate-800', text: 'text-slate-600 dark:text-slate-400', ring: 'ring-slate-500/10' },
-  contacted: { bg: 'bg-indigo-50 dark:bg-indigo-900/30', text: 'text-indigo-600 dark:text-indigo-400', ring: 'ring-indigo-500/10' },
-  solution: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', ring: 'ring-blue-500/10' },
-  negotiation: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', ring: 'ring-amber-500/10' },
+  quoted: { bg: 'bg-indigo-50 dark:bg-indigo-900/30', text: 'text-indigo-600 dark:text-indigo-400', ring: 'ring-indigo-500/10' },
+  negotiation: { bg: 'bg-blue-50 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400', ring: 'ring-blue-500/10' },
+  procurement_process: { bg: 'bg-amber-50 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400', ring: 'ring-amber-500/10' },
+  contract_stage: { bg: 'bg-orange-50 dark:bg-orange-900/30', text: 'text-orange-600 dark:text-orange-400', ring: 'ring-orange-500/10' },
   won: { bg: 'bg-emerald-50 dark:bg-emerald-900/30', text: 'text-emerald-600 dark:text-emerald-400', ring: 'ring-emerald-500/10' }
 };
 

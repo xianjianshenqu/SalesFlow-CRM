@@ -14,10 +14,19 @@
 - [index.tsx](file://crm-frontend/src/pages/Dashboard/index.tsx)
 - [index.tsx](file://crm-frontend/src/pages/PreSales/Activities/index.tsx)
 - [CustomerInsightPanel.tsx](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx)
+- [Header.tsx](file://crm-frontend/src/components/layout/Header.tsx)
+- [Sidebar.tsx](file://crm-frontend/src/components/layout/Sidebar.tsx)
 - [funnelStore.ts](file://crm-frontend/src/stores/funnelStore.ts)
 - [index.ts](file://crm-backend/src/types/index.ts)
 - [index.ts](file://crm-frontend/src/types/index.ts)
 </cite>
+
+## 更新摘要
+**所做更改**
+- 更新了预售仪表板的视觉设计部分，反映全面的视觉重新设计和现代化改造
+- 新增了活动类型配置增强、统计卡片渐变设计、动画效果、图标集成等视觉改进
+- 更新了前端组件设计章节，包含新的Material Icons集成和暗色模式支持
+- 增强了性能优化策略，包含新的动画和过渡效果
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -27,9 +36,10 @@
 5. [数据流分析](#数据流分析)
 6. [前端组件设计](#前端组件设计)
 7. [AI智能分析集成](#ai智能分析集成)
-8. [性能优化策略](#性能优化策略)
-9. [故障排除指南](#故障排除指南)
-10. [总结](#总结)
+8. [视觉设计与现代化改造](#视觉设计与现代化改造)
+9. [性能优化策略](#性能优化策略)
+10. [故障排除指南](#故障排除指南)
+11. [总结](#总结)
 
 ## 项目概述
 
@@ -46,6 +56,7 @@ FE_Dashboard[仪表板页面]
 FE_Presales[预售管理页面]
 FE_AI[AI分析组件]
 FE_Store[状态管理]
+FE_Layout[布局组件]
 end
 subgraph "后端层 (Node.js)"
 BE_Router[路由层]
@@ -61,6 +72,7 @@ end
 FE_Dashboard --> BE_Router
 FE_Presales --> BE_Router
 FE_AI --> BE_Router
+FE_Layout --> BE_Router
 BE_Router --> BE_Controller
 BE_Controller --> BE_Service
 BE_Service --> BE_DB
@@ -405,7 +417,7 @@ Card3[机会统计]
 Card4[日程统计]
 end
 subgraph "分析区域"
-Funnel[销售漏斗]
+Funnel[销售漏]
 Recording[AI录音分析]
 Score[商机评分]
 Churn[流失预警]
@@ -475,6 +487,47 @@ ActivityCard --> PresalesActivity
 - [index.tsx:1-593](file://crm-frontend/src/pages/Dashboard/index.tsx#L1-L593)
 - [index.tsx:1-283](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L1-L283)
 
+### Material Icons 图标系统
+
+系统全面集成了Material Icons图标系统，提供统一的视觉语言：
+
+```mermaid
+graph LR
+subgraph "图标分类"
+Schedule[schedule - 时间图标]
+Location[location_on - 位置图标]
+Business[business - 公司图标]
+Add[add - 添加图标]
+Search[search - 搜索图标]
+Groups[groups - 团队图标]
+Meeting[meeting - 会议图标]
+Visit[location_on - 拜访图标]
+Task[assignment - 任务图标]
+Call[call - 电话图标]
+Analytics[analytics - 分析图标]
+Warning[warning - 警告图标]
+Check[check_circle - 确认图标]
+Person[person - 人员图标]
+Error[error - 错误图标]
+Compare[compare - 对比图标]
+Rocket[rocket_launch - 升级图标]
+Notifications[notifications - 通知图标]
+Logout[logout - 登出图标]
+Dashboard[dashboard - 仪表板图标]
+Storefront[storefront - 售前中心图标]
+end
+```
+
+**图表来源**
+- [index.tsx:87-118](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L87-L118)
+- [index.tsx:208-217](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L208-L217)
+- [index.tsx:233-245](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L233-L245)
+
+**章节来源**
+- [index.tsx:87-118](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L87-L118)
+- [index.tsx:208-217](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L208-L217)
+- [index.tsx:233-245](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L233-L245)
+
 ## AI智能分析集成
 
 ### 客户洞察分析
@@ -489,8 +542,8 @@ Analyze --> Generate[生成洞察]
 Generate --> Output[洞察结果输出]
 Input --> Features[提取需求特征]
 Input --> Decision[提取决策特征]
-Input --> Pain[提取痛点特征]
-Input --> Competitor[提取竞品特征]
+Input --> Pain[extract痛点特征]
+Input --> Competitor[extract竞品特征]
 Features --> Needs[需求分析]
 Decision --> DecisionMaker[决策人分析]
 Pain --> PainPoints[痛点分析]
@@ -520,6 +573,137 @@ Confidence --> FinalOutput[最终洞察报告]
 **章节来源**
 - [CustomerInsightPanel.tsx:1-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L1-L381)
 
+## 视觉设计与现代化改造
+
+### 活动类型配置增强
+
+预售活动管理系统现在支持五种不同的活动类型，每种类型都有独特的视觉标识：
+
+```mermaid
+graph TB
+subgraph "活动类型配置"
+Demo[产品演示<br/>蓝色主题]
+POC[POC测试<br/>紫色主题]
+Training[培训活动<br/>绿松石主题]
+Seminar[研讨会<br/>琥珀主题]
+Other[其他活动<br/>灰色主题]
+end
+subgraph "状态配置"
+Draft[草稿<br/>灰色主题]
+Pending[待审批<br/>琥珀主题]
+Approved[已批准<br/>蓝色主题]
+Ongoing[进行中<br/>绿松石主题]
+Completed[已完成<br/>灰色主题]
+Cancelled[已取消<br/>红色主题]
+end
+Demo --> BlueTheme[蓝色渐变背景]
+POC --> PurpleTheme[紫色渐变背景]
+Training --> EmeraldTheme[绿松石渐变背景]
+Seminar --> AmberTheme[琥珀渐变背景]
+Other --> SlateTheme[灰色渐变背景]
+```
+
+**图表来源**
+- [index.tsx:32-48](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L32-L48)
+
+### 统计卡片渐变设计
+
+仪表板统计卡片采用了现代化的渐变设计，提供丰富的视觉层次：
+
+```mermaid
+graph LR
+subgraph "渐变卡片设计"
+Payments[营收统计<br/>emerald-500渐变]
+Customers[客户统计<br/>blue-500渐变]
+Funnel[漏斗价值<br/>amber-500渐变]
+Visits[今日拜访<br/>purple-500渐变]
+end
+subgraph "图标设计"
+PaymentsIcon[payments图标]
+CustomersIcon[group图标]
+FunnelIcon[filter_alt图标]
+VisitsIcon[event图标]
+end
+Payments --> PaymentsIcon
+Customers --> CustomersIcon
+Funnel --> FunnelIcon
+Visits --> VisitsIcon
+```
+
+**图表来源**
+- [index.tsx:540-569](file://crm-frontend/src/pages/Dashboard/index.tsx#L540-L569)
+
+### 动画效果集成
+
+系统集成了多种动画效果，提升用户体验：
+
+```mermaid
+graph TB
+subgraph "动画效果"
+Hover[悬停动画<br/>阴影和边框变化]
+Transition[过渡动画<br/>平滑的颜色变化]
+Spin[加载动画<br/>旋转指示器]
+Pulse[脉冲动画<br/>占位符加载]
+Gradient[渐变动画<br/>背景色变化]
+Scale[缩放动画<br/>卡片放大效果]
+Opacity[透明度动画<br/>悬停时的透明度变化]
+End
+end
+```
+
+**图表来源**
+- [index.tsx:68-69](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L68)
+- [index.tsx:259](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L259)
+- [index.tsx:362-367](file://crm-frontend/src/pages/Dashboard/index.tsx#L362-L367)
+
+### 暗色模式支持
+
+系统完全支持暗色模式，提供一致的视觉体验：
+
+```mermaid
+graph LR
+subgraph "暗色模式组件"
+DarkCard[深色卡片背景<br/>dark:bg-slate-900]
+DarkBorder[深色边框<br/>dark:border-slate-800]
+DarkText[深色文字<br/>dark:text-white]
+DarkTextGray[深色辅助文字<br/>dark:text-slate-400]
+DarkHover[深色悬停效果<br/>dark:hover:border-primary/30]
+DarkPlaceholder[深色占位符<br/>dark:text-slate-600]
+DarkBackground[深色背景<br/>dark:bg-slate-800]
+End
+end
+```
+
+**图表来源**
+- [index.tsx:68-69](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L68)
+- [index.tsx:32-32](file://crm-frontend/src/pages/Dashboard/index.tsx#L32)
+
+### 响应式设计优化
+
+系统采用移动优先的设计理念，支持多种屏幕尺寸：
+
+```mermaid
+graph TB
+subgraph "响应式布局"
+Mobile[移动端<br/>1列布局]
+Tablet[平板端<br/>2列布局]
+Desktop[桌面端<br/>4列布局]
+LargeDesktop[大桌面端<br/>网格自适应]
+End
+end
+```
+
+**图表来源**
+- [index.tsx:540-569](file://crm-frontend/src/pages/Dashboard/index.tsx#L540-L569)
+- [index.tsx:275-280](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L275-L280)
+
+**章节来源**
+- [index.tsx:32-48](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L32-L48)
+- [index.tsx:540-569](file://crm-frontend/src/pages/Dashboard/index.tsx#L540-L569)
+- [index.tsx:68-69](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L68)
+- [index.tsx:259](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L259)
+- [index.tsx:362-367](file://crm-frontend/src/pages/Dashboard/index.tsx#L362-L367)
+
 ## 性能优化策略
 
 ### 数据查询优化
@@ -541,6 +725,9 @@ Memo[记忆化计算]
 VirtualScroll[虚拟滚动]
 Debounce[防抖处理]
 OptimizedRender[优化渲染]
+AnimationOptimization[动画性能优化]
+DarkModeOptimization[暗色模式优化]
+IconOptimization[图标系统优化]
 end
 subgraph "AI性能优化"
 ModelOptimization[模型优化]
@@ -552,12 +739,28 @@ LazyLoad --> OptimizedRender
 Memo --> OptimizedRender
 VirtualScroll --> OptimizedRender
 Debounce --> OptimizedRender
+AnimationOptimization --> OptimizedRender
+DarkModeOptimization --> OptimizedRender
+IconOptimization --> OptimizedRender
 ModelOptimization --> Caching
 BatchProcessing --> Caching
 ParallelProcessing --> Caching
 ```
 
 **图表来源**
+- [dashboard.service.ts:29-49](file://crm-backend/src/services/dashboard.service.ts#L29-L49)
+- [presales.service.ts:440-503](file://crm-backend/src/services/presales.service.ts#L440-L503)
+
+### 动画性能优化
+
+系统特别优化了动画效果的性能：
+
+- **硬件加速**: 使用transform属性而非改变布局属性
+- **CSS动画**: 优先使用CSS动画而非JavaScript动画
+- **帧率优化**: 保持60fps的流畅动画效果
+- **内存管理**: 及时清理动画相关的事件监听器
+
+**章节来源**
 - [dashboard.service.ts:29-49](file://crm-backend/src/services/dashboard.service.ts#L29-L49)
 - [presales.service.ts:440-503](file://crm-backend/src/services/presales.service.ts#L440-L503)
 
@@ -607,6 +810,20 @@ ParallelProcessing --> Caching
 2. 验证二维码服务状态
 3. 确认数据验证规则
 
+#### 4. 视觉设计问题
+
+**问题症状**: 图标显示异常或动画效果不流畅
+
+**可能原因**:
+- Material Icons CDN连接问题
+- CSS类名冲突
+- 动画性能问题
+
+**解决步骤**:
+1. 检查网络连接和CDN状态
+2. 验证CSS类名的正确性
+3. 优化动画性能设置
+
 **章节来源**
 - [dashboard.controller.ts:45-47](file://crm-backend/src/controllers/dashboard.controller.ts#L45-L47)
 - [presalesActivity.controller.ts:19-21](file://crm-backend/src/controllers/presalesActivity.controller.ts#L19-L21)
@@ -622,6 +839,7 @@ ParallelProcessing --> Caching
 3. **预售活动管理**: 完整的活动生命周期管理，支持签到、问答、统计等功能
 4. **资源智能匹配**: 基于AI算法的资源智能匹配和自动分配
 5. **响应式设计**: 支持多种设备和屏幕尺寸的完美适配
+6. **现代化视觉设计**: 全面的视觉重新设计，包含渐变色彩、动画效果、图标集成等现代化元素
 
 ### 技术优势
 
@@ -629,5 +847,6 @@ ParallelProcessing --> Caching
 - **高性能设计**: 多种性能优化策略确保系统响应速度
 - **可扩展性**: 灵活的架构设计支持功能扩展和定制
 - **安全性**: 完善的权限控制和数据安全保障
+- **用户体验**: 现代化的视觉设计和流畅的交互体验
 
-预售仪表板功能为企业销售管理提供了强有力的技术支撑，通过智能化的数据分析和业务流程自动化，显著提升了销售效率和客户满意度。
+预售仪表板功能为企业销售管理提供了强有力的技术支撑，通过智能化的数据分析和业务流程自动化，显著提升了销售效率和客户满意度。全面的视觉重新设计和现代化改造进一步增强了系统的专业性和用户体验。

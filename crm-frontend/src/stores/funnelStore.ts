@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Opportunity, Stage } from '../types';
-import { mockOpportunities } from '../../data/opportunities';
+import { mockOpportunities } from '../data/opportunities';
 
 interface FunnelState {
   opportunities: Opportunity[];
@@ -58,7 +58,7 @@ export const useFunnelStore = create<FunnelState>()(
       },
       
       getStageStats: () => {
-        const stages: Stage[] = ['new_lead', 'contacted', 'solution', 'negotiation', 'won'];
+        const stages: Stage[] = ['new_lead', 'quoted', 'negotiation', 'procurement_process', 'contract_stage', 'won'];
         return stages.map((stage) => {
           const stageOpportunities = get().opportunities.filter((opp) => opp.stage === stage);
           return {

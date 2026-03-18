@@ -16,15 +16,19 @@
 - [errorHandler.ts](file://crm-backend/src/middlewares/errorHandler.ts)
 - [schema.prisma](file://crm-backend/prisma/schema.prisma)
 - [index.tsx](file://crm-frontend/src/pages/PreSales/index.tsx)
+- [ActivityForm.tsx](file://crm-frontend/src/pages/PreSales/Activities/ActivityForm.tsx)
+- [SignInPage.tsx](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx)
+- [Activities/index.tsx](file://crm-frontend/src/pages/PreSales/Activities/index.tsx)
+- [App.tsx](file://crm-frontend/src/App.tsx)
+- [index.css](file://crm-frontend/src/index.css)
 </cite>
 
 ## 更新摘要
 **所做更改**
-- 新增完整的预销售活动管理系统架构分析
-- 添加活动生命周期管理、QR码签到、问题管理等新功能模块
-- 更新API接口规范以包含活动管理相关接口
-- 扩展数据模型设计以支持活动、签到、问题等新实体
-- 更新前端集成指南以反映新的活动管理页面结构
+- 更新前端界面现代化改造部分，包括活动表单设计、签到页面多步骤流程、资源概览卡片等视觉增强
+- 新增前端组件架构分析，展示现代化的设计元素和交互体验
+- 更新前端路由配置和页面结构说明
+- 扩展视觉设计指南，涵盖渐变色彩、阴影效果、动画过渡等现代UI元素
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -36,10 +40,11 @@
 7. [活动生命周期管理](#活动生命周期管理)
 8. [QR码签到系统](#qrcode签到系统)
 9. [问题管理系统](#问题管理系统)
-10. [错误处理机制](#错误处理机制)
-11. [性能优化策略](#性能优化策略)
-12. [前端集成指南](#前端集成指南)
-13. [部署与配置](#部署与配置)
+10. [前端界面现代化改造](#前端界面现代化改造)
+11. [错误处理机制](#错误处理机制)
+12. [性能优化策略](#性能优化策略)
+13. [前端集成指南](#前端集成指南)
+14. [部署与配置](#部署与配置)
 
 ## 项目概述
 
@@ -56,6 +61,7 @@
 - **AI增强**：利用机器学习算法进行精准资源分配和问题分类
 - **统计分析**：提供实时的活动参与情况和问题处理统计
 - **工作负载监控**：跟踪资源的工作负载和可用性
+- **现代化前端界面**：支持活动表单设计、签到页面多步骤流程、资源概览卡片等视觉增强
 
 ## 架构概览
 
@@ -67,6 +73,7 @@ subgraph "前端层"
 FE[React 前端应用]
 PS[售前中心页面]
 PA[活动管理页面]
+AF[活动表单组件]
 SI[签到页面]
 QM[问题管理页面]
 end
@@ -89,6 +96,7 @@ end
 FE --> RC
 PS --> RC
 PA --> RC
+AF --> RC
 SI --> RC
 QM --> RC
 RC --> PC
@@ -543,6 +551,143 @@ Priority --> Assign
 - [presalesActivity.controller.ts:258-319](file://crm-backend/src/controllers/presalesActivity.controller.ts#L258-L319)
 - [presalesActivity.service.ts:675-691](file://crm-backend/src/services/presalesActivity.service.ts#L675-L691)
 
+## 前端界面现代化改造
+
+### 活动表单设计
+
+前端活动表单采用了现代化的设计理念，提供了直观易用的用户体验。
+
+#### 表单组件架构
+
+```mermaid
+graph TB
+AF[活动表单组件] --> TF[标题字段]
+AF --> TF2[类型选择]
+AF --> TS[时间设置]
+TS --> ST[开始时间]
+TS --> ET[结束时间]
+AF --> LOC[地点输入]
+AF --> DESC[描述文本域]
+AF --> CUST[客户关联]
+AF --> BTN[操作按钮]
+BTN --> SAVE[保存草稿]
+BTN --> SUBMIT[提交审批]
+```
+
+**图表来源**
+- [ActivityForm.tsx:17-242](file://crm-frontend/src/pages/PreSales/Activities/ActivityForm.tsx#L17-L242)
+
+#### 视觉设计特点
+
+- **渐变色彩**：使用蓝色到青色的渐变背景
+- **圆角设计**：16px圆角边框营造柔和感
+- **阴影效果**：16px阴影增加立体感
+- **动画过渡**：0.3秒过渡动画提升交互体验
+- **响应式布局**：支持移动端和桌面端适配
+
+**章节来源**
+- [ActivityForm.tsx:95-242](file://crm-frontend/src/pages/PreSales/Activities/ActivityForm.tsx#L95-L242)
+
+### 签到页面多步骤流程
+
+签到页面实现了完整的多步骤流程，从二维码验证到问题收集的完整体验。
+
+#### 多步骤流程设计
+
+```mermaid
+stateDiagram-v2
+[*] --> loading : 验证二维码
+loading --> form : 验证成功
+loading --> form : 验证失败
+form --> questions : 填写签到信息
+questions --> success : 提交问题
+success --> [*]
+```
+
+**图表来源**
+- [SignInPage.tsx:34-366](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx#L34-L366)
+
+#### 流程组件结构
+
+```mermaid
+graph TB
+SP[签到页面] --> LOADING[加载状态]
+SP --> FORM[签到表单]
+SP --> QUESTIONS[问题收集]
+SP --> SUCCESS[成功页面]
+FORM --> NAME[姓名输入]
+FORM --> PHONE[手机号输入]
+FORM --> EMAIL[邮箱输入]
+FORM --> COMPANY[公司输入]
+FORM --> TITLE[职位输入]
+FORM --> NOTES[备注输入]
+```
+
+**图表来源**
+- [SignInPage.tsx:34-366](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx#L34-L366)
+
+#### 交互设计特点
+
+- **状态管理**：使用SignInStep枚举管理页面状态
+- **错误处理**：统一的错误提示和处理机制
+- **加载状态**：旋转动画提供即时反馈
+- **渐变背景**：从primary到white的渐变背景
+- **卡片设计**：圆角卡片营造现代感
+
+**章节来源**
+- [SignInPage.tsx:34-366](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx#L34-L366)
+
+### 资源概览卡片
+
+资源概览卡片提供了美观的资源状态展示和统计信息。
+
+#### 卡片组件设计
+
+```mermaid
+graph TB
+RO[资源概览] --> STATS[统计信息]
+RO --> RESOURCES[资源列表]
+STATS --> TOTAL[总数统计]
+STATS --> AVAILABLE[可用统计]
+STATS --> BUSY[忙碌统计]
+RESOURCES --> AVAIL[可用资源]
+RESOURCES --> BUSYR[忙碌资源]
+RESOURCES --> OFFLINE[离线资源]
+AVAIL --> AVAIL_DOT[可用状态点]
+BUSYR --> BUSY_DOT[忙碌状态点]
+OFFLINE --> OFF_DOT[离线状态点]
+```
+
+**图表来源**
+- [index.tsx:370-418](file://crm-frontend/src/pages/PreSales/index.tsx#L370-L418)
+
+#### 设计元素分析
+
+- **渐变背景**：每个统计卡片都有独特的渐变背景
+- **装饰元素**：圆形装饰和半透明背景增加层次感
+- **动画效果**：悬停时的缩放和阴影变化
+- **状态指示**：圆形状态点清晰标识资源状态
+- **响应式网格**：2列到4列的自适应布局
+
+**章节来源**
+- [index.tsx:370-418](file://crm-frontend/src/pages/PreSales/index.tsx#L370-L418)
+
+### 整体视觉设计系统
+
+前端采用了统一的视觉设计系统，确保一致的用户体验。
+
+#### 设计系统特点
+
+- **主题色彩**：使用#1152d4作为主色调
+- **字体系统**：Inter字体提供现代感
+- **Material Symbols**：使用Material Symbols图标
+- **暗黑模式**：完整的深色主题支持
+- **动画系统**：统一的动画时长和缓动函数
+
+**章节来源**
+- [index.css:10-18](file://crm-frontend/src/index.css#L10-L18)
+- [index.css:34-39](file://crm-frontend/src/index.css#L34-L39)
+
 ## 错误处理机制
 
 系统实现了完善的错误处理机制，确保了系统的稳定性和用户体验。
@@ -646,7 +791,27 @@ QM --> QC[问题分类]
 ```
 
 **图表来源**
-- [index.tsx:1-447](file://crm-frontend/src/pages/PreSales/index.tsx#L1-L447)
+- [index.tsx:1-511](file://crm-frontend/src/pages/PreSales/index.tsx#L1-L511)
+
+### 路由配置
+
+前端使用React Router进行路由管理，支持嵌套路由和参数传递。
+
+#### 路由配置分析
+
+```mermaid
+graph TB
+APP[App组件] --> PRES[售前路由]
+PRES --> HOME[首页]
+PRES --> ACTLIST[活动列表]
+PRES --> ACTCREATE[创建活动]
+PRES --> ACTEDIT[编辑活动]
+PRES --> ACTQRCODE[二维码管理]
+PRES --> SIGNIN[签到页面]
+```
+
+**图表来源**
+- [App.tsx:35-78](file://crm-frontend/src/App.tsx#L35-L78)
 
 ### API集成示例
 
@@ -676,7 +841,7 @@ fetch('/api/v1/presales/activities', {
 ```
 
 **章节来源**
-- [index.tsx:1-447](file://crm-frontend/src/pages/PreSales/index.tsx#L1-L447)
+- [index.tsx:1-511](file://crm-frontend/src/pages/PreSales/index.tsx#L1-L511)
 
 ## 部署与配置
 
@@ -724,10 +889,11 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || '*';
 
 1. **功能完整性高**：从资源管理扩展为完整的活动管理生态系统
 2. **智能化程度高**：通过AI算法实现精准的资源匹配、问题分类和活动优化
-3. **扩展性强**：模块化设计便于功能扩展和维护
-4. **性能优异**：采用多种优化策略确保系统的高性能运行
-5. **用户体验好**：前后端分离设计提供优秀的用户界面
-6. **安全性可靠**：完善的认证授权和错误处理机制
-7. **数据驱动**：提供全面的统计分析和业务洞察
+3. **前端界面现代化**：采用渐变色彩、阴影效果、动画过渡等现代UI元素
+4. **用户体验优秀**：多步骤流程设计、响应式布局、暗黑模式支持
+5. **扩展性强**：模块化设计便于功能扩展和维护
+6. **性能优异**：采用多种优化策略确保系统的高性能运行
+7. **安全性可靠**：完善的认证授权和错误处理机制
+8. **数据驱动**：提供全面的统计分析和业务洞察
 
-该模块为企业的售前管理工作提供了强有力的技术支撑，有助于提升销售效率和服务质量，特别是在活动管理、客户互动和问题处理方面提供了完整的解决方案。
+该模块为企业的售前管理工作提供了强有力的技术支撑，有助于提升销售效率和服务质量，特别是在活动管理、客户互动和问题处理方面提供了完整的解决方案。现代化的前端界面设计进一步增强了用户的操作体验，使整个系统更加专业和易用。
