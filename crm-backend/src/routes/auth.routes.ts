@@ -143,15 +143,22 @@ router.post('/change-password', authMiddleware, validateBody(changePasswordSchem
  * @swagger
  * /auth/refresh:
  *   post:
- *     summary: Refresh access token
+ *     summary: Refresh access token using refresh token
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
  *     responses:
  *       200:
  *         description: Token refreshed successfully
  */
-router.post('/refresh', authMiddleware, authController.refreshToken);
+router.post('/refresh', authController.refreshTokenWithRefreshToken);
 
 /**
  * @swagger

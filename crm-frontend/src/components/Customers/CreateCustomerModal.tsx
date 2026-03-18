@@ -186,12 +186,24 @@ export default function CreateCustomerModal({
 
   // 提交表单
   const handleSubmit = async () => {
+    // 自动同步：如果企业名称为空但搜索框有输入值，自动使用搜索框的值
+    let finalName = formData.name.trim();
+    let finalShortName = formData.shortName.trim();
+    
+    if (!finalName && companySearchKeyword.trim()) {
+      finalName = companySearchKeyword.trim();
+      // 如果简称也为空，自动截取企业名称前10个字符作为简称
+      if (!finalShortName) {
+        finalShortName = finalName.substring(0, 10);
+      }
+    }
+
     // 验证必填字段
-    if (!formData.name.trim()) {
+    if (!finalName) {
       setError('请输入企业名称');
       return;
     }
-    if (!formData.shortName.trim()) {
+    if (!finalShortName) {
       setError('请输入企业简称');
       return;
     }
@@ -205,8 +217,8 @@ export default function CreateCustomerModal({
 
     try {
       await customerApi.create({
-        name: formData.name.trim(),
-        shortName: formData.shortName.trim(),
+        name: finalName,
+        shortName: finalShortName,
         contactPerson: formData.contactPerson.trim(),
         phone: formData.phone.trim() || undefined,
         email: formData.email.trim() || undefined,
@@ -218,7 +230,7 @@ export default function CreateCustomerModal({
         customerType: formData.customerType,
         priority: formData.priority,
         source: formData.source as any,
-        companyFullName: formData.name.trim() || undefined,
+        companyFullName: finalName || undefined,
         creditCode: formData.creditCode.trim() || undefined,
         registeredCapital: formData.registeredCapital ? parseFloat(formData.registeredCapital) : undefined,
         establishDate: formData.establishDate || undefined,

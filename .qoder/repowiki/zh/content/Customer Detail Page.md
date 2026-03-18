@@ -4,9 +4,13 @@
 **本文档引用的文件**
 - [CustomerDetail.tsx](file://crm-frontend/src/pages/Customers/CustomerDetail.tsx)
 - [CreateOpportunityModal.tsx](file://crm-frontend/src/components/Customers/CreateOpportunityModal.tsx)
+- [CreateCustomerModal.tsx](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx)
 - [customerStore.ts](file://crm-frontend/src/stores/customerStore.ts)
 - [customer.controller.ts](file://crm-backend/src/controllers/customer.controller.ts)
 - [customer.service.ts](file://crm-backend/src/services/customer.service.ts)
+- [companySearch.controller.ts](file://crm-backend/src/controllers/companySearch.controller.ts)
+- [companySearch.service.ts](file://crm-backend/src/services/companySearch.service.ts)
+- [companySearch.routes.ts](file://crm-backend/src/routes/companySearch.routes.ts)
 - [opportunity.controller.ts](file://crm-backend/src/controllers/opportunity.controller.ts)
 - [opportunity.service.ts](file://crm-backend/src/services/opportunity.service.ts)
 - [opportunities.routes.ts](file://crm-backend/src/routes/opportunities.routes.ts)
@@ -22,10 +26,10 @@
 
 ## 更新摘要
 **变更内容**
-- 新增"新建机会"按钮和完整的创建机会工作流程
-- 集成CreateOpportunityModal模态框组件
-- 实现机会列表的实时更新和状态管理
-- 完善商机API集成和数据验证
+- 新增企业搜索集成，支持企业信息自动填充和智能搜索
+- 增强客户创建表单的企业信息展示功能
+- 完善企业客户信息展示和管理能力
+- 集成完整的企业搜索API和数据验证
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -33,14 +37,15 @@
 3. [核心组件](#核心组件)
 4. [架构概览](#架构概览)
 5. [详细组件分析](#详细组件分析)
-6. [依赖关系分析](#依赖关系分析)
-7. [性能考虑](#性能考虑)
-8. [故障排除指南](#故障排除指南)
-9. [结论](#结论)
+6. [企业搜索功能](#企业搜索功能)
+7. [依赖关系分析](#依赖关系分析)
+8. [性能考虑](#性能考虑)
+9. [故障排除指南](#故障排除指南)
+10. [结论](#结论)
 
 ## 项目概述
 
-销售AI CRM系统是一个基于现代Web技术栈构建的企业客户关系管理平台。该系统集成了AI智能分析功能，为销售团队提供客户洞察、流失预警、商机评分等智能化服务。客户详情页面作为系统的核心界面之一，展示了完整的客户信息管理和AI辅助决策功能，现已集成了完整的商机创建和管理工作流。
+销售AI CRM系统是一个基于现代Web技术栈构建的企业客户关系管理平台。该系统集成了AI智能分析功能，为销售团队提供客户洞察、流失预警、商机评分等智能化服务。客户详情页面作为系统的核心界面之一，展示了完整的客户信息管理和AI辅助决策功能，现已集成了完整的商机创建和管理工作流以及企业搜索集成功能。
 
 ## 项目结构
 
@@ -54,6 +59,8 @@ Store[状态管理 Zustand]
 Components[UI组件]
 Services[API服务]
 Modal[CreateOpportunityModal]
+CustomerModal[CreateCustomerModal]
+CompanySearch[企业搜索API]
 end
 subgraph "后端层"
 BE[Express服务器]
@@ -76,7 +83,10 @@ Repositories --> Database
 FE --> Components
 Components --> Store
 FE --> Modal
-Modal --> Services
+FE --> CustomerModal
+FE --> CompanySearch
+CustomerModal --> CompanySearch
+CompanySearch --> Services
 Services --> AIService
 AIService --> MockAI
 AIService --> RealAI
@@ -86,6 +96,7 @@ AIService --> RealAI
 - [CustomerDetail.tsx:1-337](file://crm-frontend/src/pages/Customers/CustomerDetail.tsx#L1-L337)
 - [customer.controller.ts:1-59](file://crm-backend/src/controllers/customer.controller.ts#L1-L59)
 - [opportunity.controller.ts:1-59](file://crm-backend/src/controllers/opportunity.controller.ts#L1-L59)
+- [companySearch.controller.ts:1-46](file://crm-backend/src/controllers/companySearch.controller.ts#L1-L46)
 
 ## 核心组件
 
@@ -103,9 +114,16 @@ AIService --> RealAI
 **章节来源**
 - [CreateOpportunityModal.tsx:1-316](file://crm-frontend/src/components/Customers/CreateOpportunityModal.tsx#L1-L316)
 
+### 企业搜索集成组件
+
+新增的企业搜索功能允许用户通过企业名称、简称或统一社会信用代码快速搜索和填充企业信息，显著提升了客户创建的效率和准确性。
+
+**章节来源**
+- [CreateCustomerModal.tsx:91-176](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx#L91-L176)
+
 ### 状态管理系统
 
-系统使用Zustand作为轻量级状态管理解决方案，提供了高效的全局状态管理能力，现已扩展支持商机数据的本地状态管理。
+系统使用Zustand作为轻量级状态管理解决方案，提供了高效的全局状态管理能力，现已扩展支持商机数据和企业搜索状态的本地管理。
 
 **章节来源**
 - [customerStore.ts:15-53](file://crm-frontend/src/stores/customerStore.ts#L15-L53)
@@ -120,37 +138,51 @@ AIService --> RealAI
 
 ## 架构概览
 
-系统采用分层架构设计，确保了代码的可维护性和扩展性。现已集成了完整的商机创建工作流。
+系统采用分层架构设计，确保了代码的可维护性和扩展性。现已集成了完整的商机创建工作流和企业搜索功能。
 
 ```mermaid
 sequenceDiagram
 participant User as 用户
 participant Frontend as 前端应用
-participant Modal as 新建机会模态框
+participant CustomerModal as 客户创建模态框
+participant CompanySearch as 企业搜索API
 participant API as API服务
 participant Backend as 后端服务
 participant Database as 数据库
-User->>Frontend : 点击"新建商机"按钮
-Frontend->>Modal : 显示模态框
-User->>Modal : 输入商机信息并提交
-Modal->>API : 发送创建请求
-API->>Backend : 转发请求
+User->>Frontend : 在客户创建表单中输入企业名称
+Frontend->>CustomerModal : 触发企业搜索
+CustomerModal->>CompanySearch : 发送搜索请求
+CompanySearch->>API : 转发搜索请求
+API->>Backend : 调用企业搜索控制器
 Backend->>Backend : 验证JWT令牌
 Backend->>Backend : 参数验证
-Backend->>Backend : 调用商机服务
-Backend->>Database : 创建商机记录
-Database-->>Backend : 返回新商机数据
+Backend->>Backend : 调用企业搜索服务
+Backend->>Database : 查询企业信息
+Database-->>Backend : 返回搜索结果
 Backend-->>API : 返回JSON响应
-API-->>Modal : 响应数据
-Modal->>Modal : 关闭模态框
-Modal->>Frontend : 更新机会列表
-Frontend->>Frontend : 刷新页面显示
-Frontend-->>User : 显示新创建的商机
+API-->>CompanySearch : 响应数据
+CompanySearch-->>CustomerModal : 搜索结果
+CustomerModal->>CustomerModal : 显示搜索下拉框
+User->>CustomerModal : 选择企业或手动输入
+CustomerModal->>CustomerModal : 自动填充企业信息
+CustomerModal->>API : 发送创建客户请求
+API->>Backend : 转发客户创建请求
+Backend->>Backend : 验证JWT令牌
+Backend->>Backend : 参数验证
+Backend->>Backend : 调用客户服务
+Backend->>Database : 创建客户记录
+Database-->>Backend : 返回新客户数据
+Backend-->>API : 返回JSON响应
+API-->>CustomerModal : 响应数据
+CustomerModal->>CustomerModal : 关闭模态框
+CustomerModal->>Frontend : 刷新客户列表
+Frontend-->>User : 显示新创建的客户
 ```
 
 **图表来源**
-- [CustomerDetail.tsx:162-168](file://crm-frontend/src/pages/Customers/CustomerDetail.tsx#L162-L168)
-- [CreateOpportunityModal.tsx:80-109](file://crm-frontend/src/components/Customers/CreateOpportunityModal.tsx#L80-L109)
+- [CreateCustomerModal.tsx:100-136](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx#L100-L136)
+- [companySearchApi.search:1221-1226](file://crm-frontend/src/services/api.ts#L1221-L1226)
+- [companySearch.controller.search:10-21](file://crm-backend/src/controllers/companySearch.controller.ts#L10-L21)
 
 ## 详细组件分析
 
@@ -248,6 +280,65 @@ CreateOpportunityModal --> OpportunityApi
 
 **章节来源**
 - [CreateOpportunityModal.tsx:50-316](file://crm-frontend/src/components/Customers/CreateOpportunityModal.tsx#L50-L316)
+
+### 企业搜索集成组件
+
+新增的企业搜索功能为客户提供了一站式的搜索体验，支持多种搜索方式和智能填充。
+
+#### 搜索功能设计
+
+组件实现了智能的企业搜索功能，包括：
+
+1. **实时搜索** - 输入时自动触发搜索，支持防抖优化
+2. **多字段匹配** - 支持企业名称、简称、统一社会信用代码搜索
+3. **智能下拉** - 搜索结果以友好界面展示
+4. **自动填充** - 选择企业后自动填充所有相关信息
+5. **手动输入** - 支持手动输入企业名称作为备选方案
+
+```mermaid
+classDiagram
+class CreateCustomerModal {
++companySearchKeyword : string
++companySearchResults : CompanySearchResult[]
++isSearching : boolean
++showSearchDropdown : boolean
++searchInputRef : Ref
++dropdownRef : Ref
++debounceTimerRef : Ref
++searchCompanies() void
++handleSelectCompany() void
++handleManualInput() void
+}
+class CompanySearchResult {
++name : string
++shortName : string
++creditCode : string
++legalPerson : string
++registeredCapital : number
++establishDate : string
++status : string
++industry : string
++city : string
++province : string
++address : string
++businessScope : string
++phone : string
++email : string
+}
+class CompanySearchApi {
++search(keyword, limit) Promise
++getDetail(creditCode) Promise
+}
+CreateCustomerModal --> CompanySearchResult
+CreateCustomerModal --> CompanySearchApi
+```
+
+**图表来源**
+- [CreateCustomerModal.tsx:91-176](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx#L91-L176)
+- [api.ts:1219-1230](file://crm-frontend/src/services/api.ts#L1219-L1230)
+
+**章节来源**
+- [CreateCustomerModal.tsx:100-176](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx#L100-L176)
 
 ### AI智能分析组件
 
@@ -417,11 +508,52 @@ OpportunityService --> OpportunityRepository
 - [opportunity.controller.ts:5-59](file://crm-backend/src/controllers/opportunity.controller.ts#L5-L59)
 - [opportunity.service.ts:5-165](file://crm-backend/src/services/opportunity.service.ts#L5-L165)
 
+#### 企业搜索服务
+
+新增的企业搜索服务提供了智能的企业信息查询功能，支持多种搜索条件和精确匹配。
+
+```mermaid
+classDiagram
+class CompanySearchController {
++search(req, res) Promise
++getDetail(req, res) Promise
+}
+class CompanySearchService {
++searchCompanies(keyword, limit) Promise
++getCompanyByCreditCode(creditCode) Promise
++getCompanyByName(name) Promise
+}
+class CompanySearchResult {
++name : string
++shortName : string
++creditCode : string
++legalPerson : string
++registeredCapital : number
++establishDate : string
++status : string
++industry : string
++city : string
++province : string
++address : string
++businessScope : string
++phone : string
++email : string
+}
+CompanySearchController --> CompanySearchService
+CompanySearchService --> CompanySearchResult
+```
+
+**图表来源**
+- [companySearch.controller.ts:5-44](file://crm-backend/src/controllers/companySearch.controller.ts#L5-L44)
+- [companySearch.service.ts:268-325](file://crm-backend/src/services/companySearch.service.ts#L268-L325)
+
 **章节来源**
 - [customer.controller.ts:1-59](file://crm-backend/src/controllers/customer.controller.ts#L1-L59)
 - [opportunity.controller.ts:1-59](file://crm-backend/src/controllers/opportunity.controller.ts#L1-L59)
+- [companySearch.controller.ts:1-46](file://crm-backend/src/controllers/companySearch.controller.ts#L1-L46)
 - [customer.service.ts:1-179](file://crm-backend/src/services/customer.service.ts#L1-L179)
 - [opportunity.service.ts:1-165](file://crm-backend/src/services/opportunity.service.ts#L1-L165)
+- [companySearch.service.ts:1-327](file://crm-backend/src/services/companySearch.service.ts#L1-L327)
 
 ### 数据验证和类型安全
 
@@ -430,21 +562,100 @@ OpportunityService --> OpportunityRepository
 **章节来源**
 - [customer.validator.ts:1-47](file://crm-backend/src/validators/customer.validator.ts#L1-L47)
 - [opportunity.validator.ts:1-43](file://crm-backend/src/validators/opportunity.validator.ts#L1-L43)
-- [index.ts:19-677](file://crm-frontend/src/types/index.ts#L19-L677)
+- [index.ts:19-774](file://crm-frontend/src/types/index.ts#L19-L774)
+
+## 企业搜索功能
+
+### 功能概述
+
+企业搜索功能是本次更新的重要组成部分，为用户提供了智能的企业信息搜索和填充能力。该功能支持多种搜索方式，包括企业名称、简称、统一社会信用代码等，并能够自动填充相关的企业信息。
+
+### 技术实现
+
+#### 前端实现
+
+前端实现了智能的搜索组件，具有以下特性：
+
+1. **防抖搜索** - 防止频繁的API调用，提升性能
+2. **智能下拉** - 搜索结果显示友好的下拉菜单
+3. **自动填充** - 选择企业后自动填充所有相关信息
+4. **手动输入** - 支持手动输入企业名称作为备选方案
+5. **错误处理** - 完善的错误处理和用户反馈机制
+
+#### 后端实现
+
+后端提供了完整的企业搜索API，支持：
+
+1. **关键词搜索** - 支持模糊匹配企业名称、简称、信用代码
+2. **精确查询** - 支持根据统一社会信用代码精确查询
+3. **结果限制** - 支持搜索结果数量限制
+4. **数据验证** - 完整的参数验证和错误处理
+
+### API接口
+
+#### 搜索企业
+
+```
+GET /api/v1/companies/search?keyword=华为&limit=10
+```
+
+**请求参数**：
+- `keyword` (string, 必填): 搜索关键词
+- `limit` (integer, 可选): 返回结果数量限制，默认10
+
+**响应数据**：
+```typescript
+CompanySearchResult[] {
+  name: string;              // 企业名称
+  shortName: string;         // 企业简称
+  creditCode: string;        // 统一社会信用代码
+  legalPerson: string;       // 法人代表
+  registeredCapital: number; // 注册资本（万元）
+  establishDate: string;     // 成立日期
+  status: string;            // 企业状态
+  industry: string;          // 行业
+  city: string;              // 城市
+  province: string;          // 省份
+  address: string;           // 详细地址
+  businessScope: string;     // 经营范围
+  phone?: string;            // 联系电话
+  email?: string;            // 邮箱
+}
+```
+
+#### 获取企业详情
+
+```
+GET /api/v1/companies/{creditCode}
+```
+
+**路径参数**：
+- `creditCode` (string, 必填): 统一社会信用代码
+
+**响应数据**：
+与搜索结果相同的企业信息结构
+
+**章节来源**
+- [companySearch.controller.ts:10-43](file://crm-backend/src/controllers/companySearch.controller.ts#L10-L43)
+- [companySearch.routes.ts:7-55](file://crm-backend/src/routes/companySearch.routes.ts#L7-L55)
+- [companySearchApi.search:1221-1229](file://crm-frontend/src/services/api.ts#L1221-L1229)
 
 ## 依赖关系分析
 
-系统各组件之间的依赖关系清晰明确，遵循了单一职责原则和依赖倒置原则。现已集成了商机创建相关的依赖关系。
+系统各组件之间的依赖关系清晰明确，遵循了单一职责原则和依赖倒置原则。现已集成了商机创建和企业搜索相关的依赖关系。
 
 ```mermaid
 graph LR
 subgraph "前端依赖"
 CustomerDetail[CustomerDetail.tsx]
 CreateOpportunityModal[CreateOpportunityModal.tsx]
+CreateCustomerModal[CreateCustomerModal.tsx]
 CustomerInsight[CustomerInsightPanel.tsx]
 ChurnAlert[ChurnAlertCard.tsx]
 CustomerStore[customerStore.ts]
 OpportunityApi[opportunityApi]
+CompanySearchApi[companySearchApi]
+CustomerApi[customerApi]
 AIService[aiService.ts]
 Types[index.ts]
 Modal[CreateOpportunityModal]
@@ -452,12 +663,15 @@ end
 subgraph "后端依赖"
 CustomerController[customer.controller.ts]
 OpportunityController[opportunity.controller.ts]
+CompanySearchController[companySearch.controller.ts]
 CustomerService[customer.service.ts]
 OpportunityService[opportunity.service.ts]
+CompanySearchService[companySearch.service.ts]
 CustomerValidator[customer.validator.ts]
 OpportunityValidator[opportunity.validator.ts]
 Routes[customers.routes.ts]
 OpportunityRoutes[opportunities.routes.ts]
+CompanySearchRoutes[companySearch.routes.ts]
 Prisma[prisma.ts]
 end
 CustomerDetail --> CustomerStore
@@ -466,11 +680,19 @@ CustomerDetail --> CustomerInsight
 CustomerDetail --> ChurnAlert
 CreateOpportunityModal --> OpportunityApi
 CreateOpportunityModal --> Types
+CreateCustomerModal --> CompanySearchApi
+CreateCustomerModal --> CustomerApi
+CreateCustomerModal --> Types
 OpportunityApi --> OpportunityRoutes
 OpportunityRoutes --> OpportunityController
 OpportunityController --> OpportunityService
 OpportunityService --> Prisma
 OpportunityService --> OpportunityValidator
+CompanySearchApi --> CompanySearchRoutes
+CompanySearchRoutes --> CompanySearchController
+CompanySearchController --> CompanySearchService
+CompanySearchService --> Prisma
+CompanySearchService --> CompanySearchResult
 CustomerDetail --> Routes
 Routes --> CustomerController
 CustomerController --> CustomerService
@@ -481,14 +703,16 @@ CustomerService --> CustomerValidator
 **图表来源**
 - [CustomerDetail.tsx:8-11](file://crm-frontend/src/pages/Customers/CustomerDetail.tsx#L8-L11)
 - [opportunity.controller.ts:2-3](file://crm-backend/src/controllers/opportunity.controller.ts#L2-L3)
+- [companySearch.controller.ts:2-3](file://crm-backend/src/controllers/companySearch.controller.ts#L2-L3)
 
 **章节来源**
 - [CustomerDetail.tsx:1-337](file://crm-frontend/src/pages/Customers/CustomerDetail.tsx#L1-L337)
 - [opportunity.controller.ts:1-59](file://crm-backend/src/controllers/opportunity.controller.ts#L1-L59)
+- [companySearch.controller.ts:1-46](file://crm-backend/src/controllers/companySearch.controller.ts#L1-L46)
 
 ## 性能考虑
 
-系统在设计时充分考虑了性能优化，采用了多种策略来提升用户体验。新增的商机创建功能也包含了相应的性能优化考虑：
+系统在设计时充分考虑了性能优化，采用了多种策略来提升用户体验。新增的商机创建功能和企业搜索功能也包含了相应的性能优化考虑：
 
 ### 前端性能优化
 
@@ -497,6 +721,8 @@ CustomerService --> CustomerValidator
 3. **状态缓存** - 使用Zustand进行高效的状态管理
 4. **虚拟滚动** - 对大量数据进行虚拟化处理
 5. **模态框优化** - 模态框按需渲染，避免不必要的DOM操作
+6. **防抖搜索** - 企业搜索实现防抖机制，减少API调用频率
+7. **搜索结果缓存** - 搜索结果在一定时间内缓存，提升重复搜索性能
 
 ### 后端性能优化
 
@@ -505,6 +731,8 @@ CustomerService --> CustomerValidator
 3. **连接池** - 使用数据库连接池提高并发处理能力
 4. **缓存策略** - 对静态数据进行缓存
 5. **批量操作** - 支持批量商机创建和更新
+6. **搜索优化** - 企业搜索实现模糊匹配优化
+7. **响应压缩** - API响应数据进行压缩传输
 
 ## 故障排除指南
 
@@ -541,6 +769,23 @@ CustomerService --> CustomerValidator
 4. 检查网络连接状态
 5. 查看后端服务日志
 
+#### 企业搜索失败
+
+**问题症状**：企业搜索功能无法正常工作
+
+**可能原因**：
+1. 企业搜索API服务不可用
+2. 搜索关键词格式不正确
+3. 网络连接问题
+4. 后端数据库查询异常
+
+**解决步骤**：
+1. 检查浏览器控制台是否有JavaScript错误
+2. 验证搜索关键词长度和格式
+3. 确认网络连接状态
+4. 检查后端服务日志
+5. 验证数据库连接状态
+
 #### AI功能异常
 
 **问题症状**：AI分析组件显示加载失败或空白
@@ -566,6 +811,8 @@ CustomerService --> CustomerValidator
 3. **使用浏览器开发者工具** - 分析网络请求和性能
 4. **检查API响应** - 验证后端接口返回的数据格式
 5. **监控模态框状态** - 确保模态框正确显示和关闭
+6. **调试企业搜索** - 使用浏览器网络面板检查搜索请求
+7. **验证数据流** - 确保企业搜索结果正确填充到表单
 
 ## 结论
 
@@ -573,16 +820,19 @@ CustomerService --> CustomerValidator
 
 **主要功能增强**：
 1. **完整的商机创建工作流** - 新增"新建商机"按钮和模态框组件
-2. **实时机会列表更新** - 创建成功后自动刷新商机列表
-3. **完整的数据验证** - 前后端双重验证确保数据完整性
-4. **用户友好的界面设计** - 直观的表单设计和反馈机制
+2. **智能企业搜索功能** - 支持企业信息自动填充和智能搜索
+3. **实时机会列表更新** - 创建成功后自动刷新商机列表
+4. **企业客户信息管理** - 完整的企业信息展示和管理能力
+5. **完整的数据验证** - 前后端双重验证确保数据完整性
+6. **用户友好的界面设计** - 直观的表单设计和反馈机制
 
 **系统优势**：
-1. **完整的功能覆盖** - 从基础客户信息管理到高级AI分析和商机创建
+1. **完整的功能覆盖** - 从基础客户信息管理到高级AI分析、企业搜索和商机创建
 2. **良好的用户体验** - 响应式设计和流畅的交互体验
 3. **可扩展的架构** - 清晰的分层设计便于功能扩展
 4. **类型安全保证** - TypeScript提供编译时类型检查
 5. **性能优化** - 多种策略确保系统的高效运行
+6. **智能搜索能力** - 企业搜索功能大幅提升工作效率
 
 **未来发展方向**：
 - 更丰富的AI分析功能
@@ -591,3 +841,5 @@ CustomerService --> CustomerValidator
 - 更多的自定义配置选项
 - 批量商机管理功能
 - 商机预测和分析功能
+- 企业信息深度分析功能
+- 智能推荐和匹配功能

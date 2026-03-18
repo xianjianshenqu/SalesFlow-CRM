@@ -10,6 +10,7 @@
 - [20260317051358_add_sales_performance_and_coaching/migration.sql](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql)
 - [20260317083220_add_presales_activity_management/migration.sql](file://crm-backend/prisma/migrations/20260317083220_add_presales_activity_management/migration.sql)
 - [20260318060044_add_proposal_workflow_stages/migration.sql](file://crm-backend/prisma/migrations/20260318060044_add_proposal_workflow_stages/migration.sql)
+- [20260318104850_add_customer_type_and_company_info/migration.sql](file://crm-backend/prisma/migrations/20260318104850_add_customer_type_and_company_info/migration.sql)
 - [proposal.controller.ts](file://crm-backend/src/controllers/proposal.controller.ts)
 - [proposal.service.ts](file://crm-backend/src/services/proposal.service.ts)
 - [proposals.routes.ts](file://crm-backend/src/routes/proposals.routes.ts)
@@ -28,14 +29,19 @@
 - [opportunity.service.ts](file://crm-backend/src/services/opportunity.service.ts)
 - [payment.service.ts](file://crm-backend/src/services/payment.service.ts)
 - [schedule.service.ts](file://crm-backend/src/services/schedule.service.ts)
+- [companySearch.controller.ts](file://crm-backend/src/controllers/companySearch.controller.ts)
+- [companySearch.service.ts](file://crm-backend/src/services/companySearch.service.ts)
+- [companySearch.routes.ts](file://crm-backend/src/routes/companySearch.routes.ts)
+- [customer.validator.ts](file://crm-backend/src/validators/customer.validator.ts)
+- [index.ts](file://crm-frontend/src/types/index.ts)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- 新增完整的提案工作流程相关的新表和枚举类型
-- 新增提案模板、需求分析、内部审核、客户提案记录、谈判跟踪等完整数据模型
-- 新增完整的API接口和业务逻辑实现
-- 更新数据库关系图以反映新的实体关系
+- 新增完整的企业客户管理功能，包括customerType、companyFullName、creditCode等九个新字段
+- 新增完整的公司搜索API系统，支持企业信息查询和匹配
+- 更新数据库关系图以反映新的企业客户分类和搜索功能
+- 增强客户数据模型以支持B2B企业客户管理
 
 ## 目录
 1. [简介](#简介)
@@ -50,16 +56,18 @@
 
 ## 简介
 
-这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**和**提案工作流程管理**等多个业务模块。
+这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**、**提案工作流程管理**和**企业客户管理**等多个业务模块。
 
 系统的核心特点包括：
-- 全面的客户关系管理功能
+- 全面的客户关系管理功能，支持个人和企业客户
 - AI驱动的智能分析和建议
 - 完整的销售生命周期跟踪
 - 实时的团队协作和绩效监控
 - 智能的资源匹配和预销售支持
 - **完整的预销售活动管理功能**，包括活动创建、二维码签到、问题收集和统计分析
 - **完整的提案工作流程管理**，涵盖从需求分析到商务谈判的全流程跟踪
+- **完善的企业客户管理功能**，支持统一社会信用代码、企业全称、注册资本等企业信息管理
+- **完整的公司搜索API系统**，提供企业信息查询和匹配功能
 
 ## 项目结构
 
@@ -88,11 +96,11 @@ FRONTEND --> CONTROLLERS
 ```
 
 **图表来源**
-- [schema.prisma:1-1076](file://crm-backend/prisma/schema.prisma#L1-L1076)
+- [schema.prisma:1-1088](file://crm-backend/prisma/schema.prisma#L1-L1088)
 - [app.ts](file://crm-backend/src/app.ts)
 
 **章节来源**
-- [schema.prisma:1-1076](file://crm-backend/prisma/schema.prisma#L1-L1076)
+- [schema.prisma:1-1088](file://crm-backend/prisma/schema.prisma#L1-L1088)
 - [20260315081326_init/migration.sql:1-381](file://crm-backend/prisma/migrations/20260315081326_init/migration.sql#L1-L381)
 
 ## 核心组件
@@ -118,13 +126,27 @@ CUSTOMERS {
 varchar id PK
 varchar name
 varchar company
-decimal estimatedValue
+varchar shortName
+varchar email
 varchar stage
+decimal estimatedValue
+varchar nextFollowUp
+varchar source
 varchar priority
+varchar contactPerson
+varchar phone
+varchar address
 varchar city
-decimal lat
-decimal lng
+varchar province
+varchar district
+varchar industry
+varchar notes
+datetime lastContactDate
+datetime nextFollowUp
+float lat
+float lng
 varchar ownerId FK
+varchar createdById FK
 datetime createdAt
 datetime updatedAt
 }
@@ -133,9 +155,16 @@ varchar id PK
 varchar customerId FK
 varchar title
 varchar stage
+varchar status
 decimal value
 int probability
 varchar ownerId FK
+varchar priority
+datetime expectedCloseDate
+datetime lastActivity
+varchar description
+varchar nextStep
+varchar createdById FK
 datetime createdAt
 datetime updatedAt
 }
@@ -147,7 +176,11 @@ decimal totalAmount
 decimal paidAmount
 decimal balance
 varchar status
+varchar planType
 datetime dueDate
+datetime paidDate
+datetime lastReminder
+varchar notes
 datetime createdAt
 datetime updatedAt
 }
@@ -157,12 +190,12 @@ varchar title
 varchar customerId FK
 decimal value
 enum status
-text description
+varchar description
 json products
-text terms
+varchar terms
 datetime validUntil
 datetime sentAt
-text notes
+varchar notes
 varchar ownerId FK
 varchar createdById FK
 datetime createdAt
@@ -172,10 +205,10 @@ PROPOSAL_TEMPLATES {
 varchar id PK
 varchar name
 varchar category
-text description
+varchar description
 text content
 json products
-text terms
+varchar terms
 json tags
 int usageCount
 boolean isActive
@@ -208,7 +241,7 @@ varchar reviewerId
 json sharedWith
 json comments
 varchar result
-text resultNotes
+varchar resultNotes
 datetime reviewedAt
 datetime createdAt
 datetime updatedAt
@@ -302,10 +335,30 @@ varchar answeredBy FK
 datetime createdAt
 datetime updatedAt
 }
+COMPANY_SEARCH {
+varchar id PK
+varchar name
+varchar shortName
+varchar creditCode
+varchar legalPerson
+decimal registeredCapital
+varchar establishDate
+varchar status
+varchar industry
+varchar city
+varchar province
+varchar address
+varchar businessScope
+varchar phone
+varchar email
+datetime createdAt
+datetime updatedAt
+}
 USERS ||--o{ CUSTOMERS : "拥有"
 CUSTOMERS ||--o{ OPPORTUNITIES : "包含"
 CUSTOMERS ||--o{ PAYMENTS : "支付"
 CUSTOMERS ||--o{ PROPOSALS : "创建"
+CUSTOMERS ||--o{ COMPANY_SEARCH : "搜索"
 OPPORTUNITIES ||--|| PAYMENTS : "关联"
 USERS ||--o{ PROPOSALS : "创建"
 USERS ||--o{ PRESALES_ACTIVITIES : "创建"
@@ -329,6 +382,7 @@ ACTIVITY_SIGN_INS ||--o{ ACTIVITY_QUESTIONS : "产生"
 - [schema.prisma:1052-1076](file://crm-backend/prisma/schema.prisma#L1052-L1076)
 - [schema.prisma:822-853](file://crm-backend/prisma/schema.prisma#L822-L853)
 - [schema.prisma:856-931](file://crm-backend/prisma/schema.prisma#L856-L931)
+- [schema.prisma:1088](file://crm-backend/prisma/schema.prisma#L1088)
 
 ### 枚举类型系统
 
@@ -403,11 +457,18 @@ class ApprovalStatus {
 +approved
 +rejected
 }
+class CustomerType {
++user
++non_user
++valid_non_user
++invalid_non_user
+}
 ```
 
 **图表来源**
 - [schema.prisma:43-56](file://crm-backend/prisma/schema.prisma#L43-L56)
 - [schema.prisma:15-140](file://crm-backend/prisma/schema.prisma#L15-L140)
+- [customer.validator.ts:3-4](file://crm-backend/src/validators/customer.validator.ts#L3-L4)
 
 **章节来源**
 - [schema.prisma:13-140](file://crm-backend/prisma/schema.prisma#L13-L140)
@@ -451,6 +512,7 @@ CUSTOMERS[Customers]
 CONTACTS[Contacts]
 BUSINESS_CARDS[Business Cards]
 AUDIO_RECORDINGS[Audio Recordings]
+COMPANY_SEARCH[Company Search]
 end
 subgraph "销售管理"
 OPPORTUNITIES[Opportunities]
@@ -513,6 +575,7 @@ CUSTOMERS --> CHURN_ALERTS
 CUSTOMERS --> CUSTOMER_INSIGHTS
 CUSTOMERS --> PRESALES_ACTIVITIES
 CUSTOMERS --> PROPOSALS
+CUSTOMERS --> COMPANY_SEARCH
 OPPORTUNITIES --> PROPOSALS
 OPPORTUNITIES --> OPPORTUNITY_SCORES
 OPPORTUNITIES --> PAYMENTS
@@ -540,9 +603,161 @@ NEGOTIATION_RECORDS --> PROPOSALS
 ```
 
 **图表来源**
-- [schema.prisma:377-1076](file://crm-backend/prisma/schema.prisma#L377-L1076)
+- [schema.prisma:377-1088](file://crm-backend/prisma/schema.prisma#L377-L1088)
 
 ## 详细组件分析
+
+### 企业客户管理
+
+**新增** 企业客户管理模块显著增强了系统的B2B客户支持能力，通过在Customer模型中添加九个企业相关信息字段，实现了完整的B2B客户信息管理。
+
+#### 企业信息字段设计
+
+```mermaid
+erDiagram
+CUSTOMERS {
+varchar id PK
+varchar name
+varchar company
+varchar shortName
+varchar email
+varchar stage
+decimal estimatedValue
+varchar nextFollowUp
+varchar source
+varchar priority
+varchar contactPerson
+varchar phone
+varchar address
+varchar city
+varchar province
+varchar district
+varchar industry
+varchar notes
+datetime lastContactDate
+datetime nextFollowUp
+float lat
+float lng
+varchar ownerId FK
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+CUSTOMER_TYPE {
+varchar customerType
+enum user
+enum non_user
+enum valid_non_user
+enum invalid_non_user
+}
+COMPANY_INFO {
+varchar companyFullName
+varchar creditCode
+decimal registeredCapital
+datetime establishDate
+varchar businessScope
+varchar legalPerson
+varchar companyStatus
+}
+CUSTOMERS ||--|| CUSTOMER_TYPE : "分类"
+CUSTOMERS ||--|| COMPANY_INFO : "包含"
+```
+
+**图表来源**
+- [schema.prisma:221-231](file://crm-backend/prisma/schema.prisma#L221-L231)
+- [customer.validator.ts:23-32](file://crm-backend/src/validators/customer.validator.ts#L23-L32)
+
+#### 企业客户分类系统
+
+```mermaid
+stateDiagram-v2
+[*] --> 用户客户
+用户客户 --> 非用户客户 : 无购买行为
+非用户客户 --> 有效非用户客户 : 有购买潜力
+非用户客户 --> 无效非用户客户 : 无购买意向
+有效非用户客户 --> 用户客户 : 转为购买
+有效非用户客户 --> 无效非用户客户 : 失去兴趣
+无效非用户客户 --> [*]
+```
+
+#### 企业信息验证规则
+
+```mermaid
+flowchart TD
+Start([企业信息验证]) --> ValidateName[验证企业全称]
+ValidateName --> ValidateCreditCode[验证统一社会信用代码]
+ValidateCreditCode --> ValidateCapital[验证注册资本]
+ValidateCapital --> ValidateDate[验证成立日期]
+ValidateDate --> ValidateScope[验证经营范围]
+ValidateScope --> ValidateLegalPerson[验证法人代表]
+ValidateLegalPerson --> ValidateStatus[验证企业状态]
+ValidateStatus --> Complete[验证完成]
+```
+
+**章节来源**
+- [schema.prisma:221-231](file://crm-backend/prisma/schema.prisma#L221-L231)
+- [customer.validator.ts:23-32](file://crm-backend/src/validators/customer.validator.ts#L23-L32)
+- [index.ts:41-48](file://crm-frontend/src/types/index.ts#L41-L48)
+
+### 公司搜索API系统
+
+**新增** 公司搜索API系统提供了完整的B2B企业信息查询功能，支持基于关键词的企业搜索和基于统一社会信用代码的企业详情查询。
+
+#### 搜索功能架构
+
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant SearchAPI as 搜索API
+participant MockDB as 模拟数据库
+participant Validator as 验证器
+Client->>SearchAPI : POST /api/v1/companies/search
+SearchAPI->>Validator : 验证搜索参数
+Validator-->>SearchAPI : 参数验证通过
+SearchAPI->>MockDB : 搜索企业信息
+MockDB-->>SearchAPI : 返回匹配结果
+SearchAPI-->>Client : 返回搜索结果
+```
+
+#### 企业详情查询流程
+
+```mermaid
+flowchart TD
+Start([企业详情查询]) --> ValidateParams[验证信用代码参数]
+ValidateParams --> CheckCache[检查缓存]
+CheckCache --> CacheHit{缓存命中?}
+CacheHit --> |是| ReturnCached[返回缓存结果]
+CacheHit --> |否| QueryDB[查询模拟数据库]
+QueryDB --> ProcessResult[处理查询结果]
+ProcessResult --> UpdateCache[更新缓存]
+UpdateCache --> ReturnResult[返回查询结果]
+ReturnCached --> End([查询完成])
+ReturnResult --> End
+```
+
+#### 搜索算法实现
+
+```mermaid
+flowchart TD
+Search([企业搜索]) --> InputValidation[输入参数验证]
+InputValidation --> TrimKeyword[清理搜索关键词]
+TrimKeyword --> LowercaseKeyword[转换为小写]
+LowercaseKeyword --> SimulateDelay[模拟查询延迟]
+SimulateDelay --> FilterCompanies[过滤匹配企业]
+FilterCompanies --> ExtractFields[提取关键字段]
+ExtractFields --> LimitResults[限制返回数量]
+LimitResults --> ReturnResults[返回搜索结果]
+```
+
+**图表来源**
+- [companySearch.controller.ts:10-21](file://crm-backend/src/controllers/companySearch.controller.ts#L10-L21)
+- [companySearch.service.ts:274-292](file://crm-backend/src/services/companySearch.service.ts#L274-L292)
+- [companySearch.routes.ts:7-32](file://crm-backend/src/routes/companySearch.routes.ts#L7-L32)
+
+**章节来源**
+- [companySearch.controller.ts:1-46](file://crm-backend/src/controllers/companySearch.controller.ts#L1-L46)
+- [companySearch.service.ts:1-327](file://crm-backend/src/services/companySearch.service.ts#L1-L327)
+- [companySearch.routes.ts:1-57](file://crm-backend/src/routes/companySearch.routes.ts#L1-L57)
 
 ### 客户管理系统
 
@@ -962,6 +1177,7 @@ Customers[Customers]
 Contacts[Contacts]
 BusinessCards[Business Cards]
 AudioRecordings[Audio Recordings]
+CompanySearch[Company Search]
 end
 subgraph "销售相关"
 Opportunities[Opportunities]
@@ -1007,6 +1223,7 @@ Customers --> Payments
 Customers --> ScheduleTasks
 Customers --> PresalesActivities
 Customers --> Proposals
+Customers --> CompanySearch
 Opportunities --> Proposals
 Opportunities --> Payments
 Opportunities --> OpportunityScores
@@ -1028,7 +1245,7 @@ NegotiationRecords --> Proposals
 ```
 
 **图表来源**
-- [schema.prisma:377-1076](file://crm-backend/prisma/schema.prisma#L377-L1076)
+- [schema.prisma:377-1088](file://crm-backend/prisma/schema.prisma#L377-L1088)
 
 ### 控制器-服务层依赖
 
@@ -1150,6 +1367,10 @@ class ProposalController {
 +updateAgreedTerms()
 +completeNegotiation()
 }
+class CompanySearchController {
++search()
++getDetail()
+}
 CustomerController --> CustomerService
 ContactController --> ContactService
 OpportunityController --> OpportunityService
@@ -1157,6 +1378,7 @@ PaymentController --> PaymentService
 ScheduleController --> ScheduleService
 PresalesActivityController --> PresalesActivityService
 ProposalController --> ProposalService
+CompanySearchController --> CompanySearchService
 ```
 
 **图表来源**
@@ -1167,6 +1389,7 @@ ProposalController --> ProposalService
 - [schedule.controller.ts:9-153](file://crm-backend/src/controllers/schedule.controller.ts#L9-L153)
 - [presalesActivity.controller.ts:9-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L9-L338)
 - [proposal.controller.ts:9-636](file://crm-backend/src/controllers/proposal.controller.ts#L9-L636)
+- [companySearch.controller.ts:5-46](file://crm-backend/src/controllers/companySearch.controller.ts#L5-L46)
 
 **章节来源**
 - [customer.controller.ts:1-58](file://crm-backend/src/controllers/customer.controller.ts#L1-L58)
@@ -1176,6 +1399,7 @@ ProposalController --> ProposalService
 - [schedule.controller.ts:1-153](file://crm-backend/src/controllers/schedule.controller.ts#L1-L153)
 - [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
 - [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
+- [companySearch.controller.ts:1-46](file://crm-backend/src/controllers/companySearch.controller.ts#L1-L46)
 
 ## 性能考虑
 
@@ -1184,7 +1408,7 @@ ProposalController --> ProposalService
 系统在关键字段上建立了适当的索引以优化查询性能：
 
 - **用户表**: email(唯一索引), role(普通索引)
-- **客户表**: stage, priority, city, ownerId, createdById
+- **客户表**: stage, priority, city, ownerId, createdById, **新增**: customerType(复合索引)
 - **机会表**: customerId, stage, ownerId, status
 - **支付表**: customerId, status, dueDate(唯一索引)
 - **音频记录表**: customerId, sentiment, status
@@ -1198,6 +1422,7 @@ ProposalController --> ProposalService
 - **二维码表**: activityId, codeType(复合索引)
 - **签到表**: activityId, customerId, phone(复合索引)
 - **问题表**: activityId, signInId, customerId, category, status(复合索引)
+- **企业搜索表**: name, shortName, creditCode(复合索引)
 
 ### 查询优化
 
@@ -1206,6 +1431,7 @@ ProposalController --> ProposalService
 3. **关联查询**: 使用include选项进行必要的关联数据加载
 4. **聚合查询**: 使用groupBy和aggregate函数进行高效的数据统计
 5. **批量操作**: 支持批量分类和批量更新操作
+6. ****新增** 企业搜索优化**: 企业搜索使用模糊匹配和索引优化，支持按名称、简称和统一社会信用代码的快速检索
 
 ### 缓存策略
 
@@ -1214,6 +1440,7 @@ ProposalController --> ProposalService
 - 对于静态配置数据进行内存缓存
 - 对于复杂的聚合查询结果进行定期缓存更新
 - 对于二维码验证结果进行短期缓存
+- **新增** 对于企业搜索结果进行缓存，提高搜索响应速度
 
 ## 故障排除指南
 
@@ -1228,13 +1455,18 @@ ProposalController --> ProposalService
 - 查看具体的SQL错误信息
 - 确认MySQL版本兼容性
 - 检查是否有重复的索引或约束
-- **新增**: 检查提案工作流程相关的新表是否正确创建
+- **新增**: 检查企业客户相关的新字段是否正确创建
 
 #### 查询超时
 - 分析慢查询日志
 - 检查WHERE条件是否使用了合适的索引
 - 考虑添加复合索引优化复杂查询
-- **新增**: 检查提案工作流程相关查询的索引使用情况
+- **新增**: 检查企业搜索相关查询的索引使用情况
+
+#### 企业搜索异常
+- **新增**: 检查搜索关键词的长度和格式
+- **新增**: 验证统一社会信用代码的格式正确性
+- **新增**: 确认模拟数据库中的企业数据完整性
 
 ### 错误处理机制
 
@@ -1259,14 +1491,16 @@ ErrorHandler --> Response[标准化错误响应]
 
 该销售AI CRM系统的数据库架构设计合理，具有以下优势：
 
-1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了预销售活动管理和提案工作流程管理模块**
+1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了企业客户管理和公司搜索API系统**
 2. **灵活的扩展性**: 基于Prisma的Schema设计便于后续功能扩展
 3. **强大的AI集成**: 内置的智能分析功能提升了系统的自动化水平
 4. **良好的性能设计**: 合理的索引策略和查询优化保证了系统的响应速度
 5. **清晰的架构分离**: 控制器-服务层-数据层的职责分离提高了代码的可维护性
-6. **完整的API支持**: **新增了提案工作流程的完整RESTful API接口**
+6. **完整的API支持**: **新增了企业客户管理和公司搜索的完整RESTful API接口**
 
 **新增功能优势**:
+- **完整的B2B客户管理**: 支持企业客户分类、统一社会信用代码管理、注册资本等企业信息
+- **智能企业搜索**: 支持按名称、简称、信用代码的快速企业信息查询
 - **完整的提案生命周期管理**: 从需求分析到商务谈判的全流程跟踪
 - **智能模板系统**: 支持模板创建、匹配和应用
 - **AI驱动的需求分析**: 自动从录音和跟进记录中提取需求
@@ -1282,7 +1516,8 @@ ErrorHandler --> Response[标准化错误响应]
 - 添加数据备份和恢复机制
 - 考虑引入审计日志功能
 - 优化大数据量场景下的查询性能
-- **新增**: 扩展预销售活动的移动端支持
-- **新增**: 增强AI分析功能以支持更多业务场景
-- **新增**: 优化提案工作流程的自动化程度
-- **新增**: 增加更多报表和分析功能
+- **新增** 扩展企业搜索的实时数据源集成
+- **新增** 增强AI分析功能以支持更多业务场景
+- **新增** 优化提案工作流程的自动化程度
+- **新增** 增加更多报表和分析功能
+- **新增** 实现企业客户的分级管理和风险评估功能

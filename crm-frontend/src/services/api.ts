@@ -25,10 +25,50 @@ const API_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT || '10000');
 class ApiService {
   private baseUrl: string;
   private timeout: number;
+  private isRefreshing: boolean = false;
+  private failedQueue: Array<{
+    resolve: (value: unknown) => void;
+    reject: (reason: unknown) => void;
+  }> = [];
 
   constructor(baseUrl: string, timeout: number) {
     this.baseUrl = baseUrl;
     this.timeout = timeout;
+  }
+
+  private async refreshAccessToken(): Promise<boolean> {
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!refreshToken) return false;
+
+    try {
+      const response = await fetch(`${this.baseUrl}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (!response.ok) return false;
+
+      const result = await response.json();
+      localStorage.setItem('auth_token', result.data.accessToken);
+      if (result.data.refreshToken) {
+        localStorage.setItem('refresh_token', result.data.refreshToken);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private processQueue(error: Error | null, token: string | null = null) {
+    this.failedQueue.forEach((promise) => {
+      if (error) {
+        promise.reject(error);
+      } else {
+        promise.resolve(token);
+      }
+    });
+    this.failedQueue = [];
   }
 
   private async request<T>(
@@ -52,6 +92,34 @@ class ApiService {
       });
 
       clearTimeout(timeoutId);
+
+      // 处理 401 错误 - 尝试刷新 token
+      if (response.status === 401 && !endpoint.includes('/auth/')) {
+        if (this.isRefreshing) {
+          // 等待正在刷新的请求完成
+          return new Promise((resolve, reject) => {
+            this.failedQueue.push({ resolve, reject });
+          }).then(() => this.request<T>(endpoint, options));
+        }
+
+        this.isRefreshing = true;
+        const refreshed = await this.refreshAccessToken();
+        this.isRefreshing = false;
+
+        if (refreshed) {
+          this.processQueue(null, localStorage.getItem('auth_token'));
+          // 使用新 token 重试请求
+          return this.request<T>(endpoint, options);
+        } else {
+          this.processQueue(new Error('Token refresh failed'));
+          // 清除认证状态
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('refresh_token');
+          // 跳转到登录页
+          window.location.href = '/login';
+          throw new Error('认证已过期，请重新登录');
+        }
+      }
 
       const result = await response.json();
 
@@ -122,7 +190,10 @@ export const authApi = {
   changePassword: (data: { currentPassword: string; newPassword: string }) =>
     api.post('/auth/change-password', data),
 
-  refreshToken: () => api.post<{ accessToken: string; refreshToken: string }>('/auth/refresh'),
+  refreshToken: () => {
+    const refreshToken = localStorage.getItem('refresh_token');
+    return api.post<{ accessToken: string; refreshToken: string }>('/auth/refresh', { refreshToken });
+  },
 };
 
 // ==================== 客户API ====================

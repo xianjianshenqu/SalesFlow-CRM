@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import authService from '../services/auth.service';
-import { asyncHandler, sendResponse, sendPaginatedResponse } from '../utils/response';
+import { asyncHandler, sendResponse, sendPaginatedResponse, BadRequestError } from '../utils/response';
 
 export class AuthController {
   register = asyncHandler(async (req: Request, res: Response) => {
@@ -34,6 +34,15 @@ export class AuthController {
   refreshToken = asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.userId;
     const tokens = await authService.refreshToken(userId);
+    sendResponse(res, 200, tokens, 'Token refreshed successfully');
+  });
+
+  refreshTokenWithRefreshToken = asyncHandler(async (req: Request, res: Response) => {
+    const { refreshToken } = req.body;
+    if (!refreshToken) {
+      throw new BadRequestError('Refresh token is required');
+    }
+    const tokens = await authService.refreshTokenWithToken(refreshToken);
     sendResponse(res, 200, tokens, 'Token refreshed successfully');
   });
 

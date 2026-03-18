@@ -1,5 +1,5 @@
 import prisma from '../repositories/prisma';
-import { hashPassword, comparePassword, generateTokens } from '../utils/jwt';
+import { hashPassword, comparePassword, generateTokens, verifyToken } from '../utils/jwt';
 import { ConflictError, UnauthorizedError, BadRequestError, NotFoundError } from '../utils/response';
 import type { RegisterInput, LoginInput, UpdateProfileInput, ChangePasswordInput } from '../validators/auth.validator';
 
@@ -187,6 +187,35 @@ export class AuthService {
     });
 
     return tokens;
+  }
+
+  async refreshTokenWithToken(refreshToken: string) {
+    try {
+      // 验证 refreshToken
+      const decoded = verifyToken(refreshToken);
+      
+      // 获取用户信息
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: { id: true, email: true, role: true, isActive: true },
+      });
+
+      if (!user || !user.isActive) {
+        throw new UnauthorizedError('User not found or inactive');
+      }
+
+      // 生成新的 tokens
+      const tokens = generateTokens({
+        id: user.id,
+        userId: user.id,
+        email: user.email,
+        role: user.role,
+      });
+
+      return tokens;
+    } catch (error) {
+      throw new UnauthorizedError('Invalid or expired refresh token');
+    }
   }
 
   async getAllUsers(page: number = 1, pageSize: number = 10) {

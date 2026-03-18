@@ -15,6 +15,7 @@ interface User {
 interface AuthState {
   user: User | null;
   token: string | null;
+  refreshToken: string | null; // 存储 refreshToken
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
@@ -32,6 +33,7 @@ interface AuthState {
   logout: () => void;
   getProfile: () => Promise<void>;
   setToken: (token: string) => void;
+  refreshAccessToken: () => Promise<boolean>; // 刷新 token
   clearError: () => void;
   setHasHydrated: (state: boolean) => void; // 设置 hydration 状态
 }
@@ -41,6 +43,7 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       token: null,
+      refreshToken: null, // 存储 refreshToken
       isAuthenticated: false,
       isLoading: false,
       error: null,
@@ -53,9 +56,11 @@ export const useAuthStore = create<AuthState>()(
         try {
           const { data } = await authApi.login({ email, password });
           localStorage.setItem('auth_token', data.tokens.accessToken);
+          localStorage.setItem('refresh_token', data.tokens.refreshToken); // 存储 refreshToken
           set({
             user: data.user,
             token: data.tokens.accessToken,
+            refreshToken: data.tokens.refreshToken,
             isAuthenticated: true,
             isLoading: false,
           });
@@ -72,9 +77,11 @@ export const useAuthStore = create<AuthState>()(
         try {
           const response = await authApi.register(data);
           localStorage.setItem('auth_token', response.data.tokens.accessToken);
+          localStorage.setItem('refresh_token', response.data.tokens.refreshToken); // 存储 refreshToken
           set({
             user: response.data.user,
             token: response.data.tokens.accessToken,
+            refreshToken: response.data.tokens.refreshToken,
             isAuthenticated: true,
             isLoading: false,
           });
@@ -88,9 +95,11 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         localStorage.removeItem('auth_token');
+        localStorage.removeItem('refresh_token');
         set({
           user: null,
           token: null,
+          refreshToken: null,
           isAuthenticated: false,
           error: null,
         });
@@ -104,15 +113,40 @@ export const useAuthStore = create<AuthState>()(
           const { data } = await authApi.getProfile();
           set({ user: data, isAuthenticated: true });
         } catch {
-          // Token可能已过期
-          set({ user: null, token: null, isAuthenticated: false });
-          localStorage.removeItem('auth_token');
+          // Token可能已过期，尝试刷新
+          const refreshed = await get().refreshAccessToken();
+          if (!refreshed) {
+            // 刷新失败，清除状态
+            set({ user: null, token: null, refreshToken: null, isAuthenticated: false });
+            localStorage.removeItem('auth_token');
+            localStorage.removeItem('refresh_token');
+          }
         }
       },
 
       setToken: (token: string) => {
         localStorage.setItem('auth_token', token);
         set({ token, isAuthenticated: true });
+      },
+
+      refreshAccessToken: async () => {
+        const { refreshToken } = get();
+        if (!refreshToken) return false;
+
+        try {
+          const { data } = await authApi.refreshToken();
+          localStorage.setItem('auth_token', data.accessToken);
+          if (data.refreshToken) {
+            localStorage.setItem('refresh_token', data.refreshToken);
+          }
+          set({
+            token: data.accessToken,
+            refreshToken: data.refreshToken || refreshToken,
+          });
+          return true;
+        } catch {
+          return false;
+        }
       },
 
       clearError: () => set({ error: null }),
@@ -122,6 +156,7 @@ export const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         token: state.token,
+        refreshToken: state.refreshToken, // 持久化 refreshToken
         user: state.user,
         isAuthenticated: !!state.token, // 有 token 就认为已认证
       }),
