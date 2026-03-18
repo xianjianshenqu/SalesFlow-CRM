@@ -104,6 +104,27 @@ export default function InternalReview({ proposalId, proposal, onComplete }: Int
     }
   };
 
+  // 进入客户提案阶段
+  const handleProceedToCustomerProposal = async () => {
+    if (!proposal.customer?.email) {
+      alert('客户邮箱不存在，请先完善客户信息');
+      return;
+    }
+    
+    try {
+      setLoading(true);
+      await proposalApi.createCustomerProposal(proposalId, {
+        emailTo: proposal.customer.email,
+      });
+      onComplete();
+    } catch (err) {
+      console.error('进入客户提案阶段失败:', err);
+      alert('操作失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // 驳回评审
   const handleReject = async () => {
     if (!resultNotes.trim()) {
@@ -308,6 +329,28 @@ export default function InternalReview({ proposalId, proposal, onComplete }: Int
                   审批结果: {review.status === 'approved' ? '通过' : '驳回'}
                 </p>
                 <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{review.resultNotes}</p>
+              </div>
+            )}
+
+            {/* 评审通过后进入客户提案阶段 */}
+            {review.status === 'approved' && (
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                <button
+                  onClick={handleProceedToCustomerProposal}
+                  disabled={loading}
+                  className="w-full py-2.5 bg-primary text-white rounded-lg font-medium disabled:opacity-50 hover:bg-primary/90 transition-colors"
+                >
+                  {loading ? '处理中...' : '进入客户提案阶段'}
+                </button>
+              </div>
+            )}
+
+            {/* 评审驳回后返回设计阶段 */}
+            {review.status === 'rejected' && (
+              <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+                  方案已被驳回，请修改后重新提交评审
+                </p>
               </div>
             )}
           </div>

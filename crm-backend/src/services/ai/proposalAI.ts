@@ -3,12 +3,13 @@
  * 提供基于客户信息的智能报价、方案内容生成、竞品分析等功能
  */
 
-import {
+import type {
   SmartQuotationInput,
   SmartQuotationResult,
   ProposalGenerationInput,
   ProposalGenerationResult,
 } from './types';
+import aiClient, { ChatMessage } from './client';
 
 // 行业定价基准数据
 const INDUSTRY_PRICING_BENCHMARKS: Record<string, { avgDiscount: number; priceElasticity: number }> = {
@@ -56,7 +57,97 @@ class ProposalAIService {
    * 基于客户信息、历史数据、市场行情生成智能报价建议
    */
   async generateSmartQuotation(input: SmartQuotationInput): Promise<SmartQuotationResult> {
-    // 模拟AI处理延迟
+    // 如果AI客户端已配置，调用真实API
+    if (aiClient.isConfigured()) {
+      try {
+        return await this.callRealQuotation(input);
+      } catch (error) {
+        console.error('[Proposal AI] 真实API调用失败，降级到模拟模式:', error);
+        return this.mockQuotation(input);
+      }
+    }
+
+    // 降级到模拟模式
+    return this.mockQuotation(input);
+  }
+
+  /**
+   * 调用真实AI生成智能报价
+   */
+  private async callRealQuotation(input: SmartQuotationInput): Promise<SmartQuotationResult> {
+    const systemPrompt = `你是一位专业的商业报价分析师，擅长根据客户信息、行业特点、竞争环境等因素制定最优报价策略。
+请根据提供的客户信息，生成一份详细的智能报价分析。
+你需要返回一个JSON对象，包含以下字段：
+- recommendedPrice: 推荐价格（数字）
+- priceRange: 价格范围对象
+  - min: 最低价格
+  - max: 最高价格
+  - recommended: 推荐价格
+- discountStrategy: 折扣策略对象
+  - suggestedDiscount: 建议折扣（0-1之间的小数）
+  - reason: 折扣原因
+  - conditions: 折扣条件数组（可选）
+- pricingFactors: 定价因子数组，每项包含factor、impact(increase/decrease/neutral)、weight、description
+- competitorComparison: 竞品对比数组（可选），每项包含competitor、theirPrice、ourAdvantage、pricePosition
+- recommendations: 建议数组，每项包含type(pricing/bundling/discount/upsell)、suggestion、expectedImpact
+- confidence: 置信度（0-1之间的小数）`;
+
+    const userPrompt = `请为以下客户生成智能报价分析：
+
+【客户信息】
+- 客户ID：${input.customerId}
+- 客户名称：${input.customerName || '未知'}
+- 所属行业：${input.industry || '未知'}
+- 公司：${input.company || '未知'}
+- 预估价值：¥${input.estimatedValue || '未知'}
+
+【产品需求】
+${input.products && input.products.length > 0
+  ? input.products.map(p => `- ${p.name}：${p.quantity}个，单价¥${p.unitPrice || '待定'}`).join('\n')
+  : '- 待确定产品'}
+
+【需求描述】
+${input.requirements?.join('、') || '- 无具体需求描述'}
+
+【预算范围】
+${input.budget 
+  ? `¥${input.budget.min || 0} - ¥${input.budget.max || '不限'}`
+  : '- 未提供预算信息'}
+
+【竞争对手】
+${input.competitors && input.competitors.length > 0
+  ? input.competitors.map(c => `- ${c.name}${c.price ? `：¥${c.price}` : ''}`).join('\n')
+  : '- 暂无竞品信息'}
+
+【历史合作】
+${input.previousDeals && input.previousDeals.length > 0
+  ? `已合作${input.previousDeals.length}次`
+  : '- 新客户'}
+
+请生成JSON格式的报价分析报告。`;
+
+    const messages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ];
+
+    const response = await aiClient.chatForJson<SmartQuotationResult>(messages, {
+      temperature: 0.6,
+      maxTokens: 2000,
+    });
+
+    // 验证响应格式
+    if (response.recommendedPrice === undefined || !response.priceRange) {
+      throw new Error('AI响应格式不完整');
+    }
+
+    return response;
+  }
+
+  /**
+   * 模拟报价生成
+   */
+  private async mockQuotation(input: SmartQuotationInput): Promise<SmartQuotationResult> {
     await this.simulateDelay(800, 1500);
 
     // 获取行业定价基准
@@ -81,15 +172,15 @@ class ProposalAIService {
     // 折扣策略
     const discountStrategy = this.calculateDiscountStrategy(input, adjustedPrice, benchmark);
 
-    // 竞品比较
-    const competitorComparison = this.analyzeCompetitorPricing(input, adjustedPrice);
-
     // 价格范围
     const priceRange = {
       min: Math.round(adjustedPrice * 0.85),
       max: Math.round(adjustedPrice * 1.15),
       recommended: Math.round(adjustedPrice),
     };
+
+    // 竞品比较
+    const competitorComparison = this.analyzeCompetitorPricing(input, adjustedPrice);
 
     // 推荐建议
     const recommendations = this.generatePricingRecommendations(input, adjustedPrice, discountStrategy);
@@ -110,7 +201,90 @@ class ProposalAIService {
    * AI生成完整的商务方案内容
    */
   async generateProposalContent(input: ProposalGenerationInput): Promise<ProposalGenerationResult> {
-    // 模拟AI处理延迟
+    // 如果AI客户端已配置，调用真实API
+    if (aiClient.isConfigured()) {
+      try {
+        return await this.callRealProposalGeneration(input);
+      } catch (error) {
+        console.error('[Proposal AI] 真实API调用失败，降级到模拟模式:', error);
+        return this.mockProposalGeneration(input);
+      }
+    }
+
+    // 降级到模拟模式
+    return this.mockProposalGeneration(input);
+  }
+
+  /**
+   * 调用真实AI生成方案内容
+   */
+  private async callRealProposalGeneration(input: ProposalGenerationInput): Promise<ProposalGenerationResult> {
+    const systemPrompt = `你是一位专业的商务方案撰写专家，擅长为客户定制解决方案。
+请根据提供的客户信息，生成一份完整的商务方案。
+你需要返回一个JSON对象，包含以下字段：
+- executiveSummary: 执行摘要
+- problemStatement: 问题陈述
+- proposedSolution: 解决方案
+- productRecommendations: 产品推荐数组，每项包含name、description、quantity、unitPrice、totalPrice、benefit、priority(essential/recommended/optional)
+- implementationPlan: 实施计划数组，每项包含phase、duration、deliverables数组、milestones数组
+- terms: 合同条款
+- serviceLevel: 服务等级对象，包含responseTime、supportHours、warranty、training
+- roiProjection: ROI预测对象，包含investment、expectedReturn、paybackPeriod、benefits数组
+- nextSteps: 下一步行动数组`;
+
+    const userPrompt = `请为以下客户生成商务方案：
+
+【客户信息】
+- 客户ID：${input.customerId}
+- 客户名称：${input.customerName || '未知'}
+- 所属行业：${input.industry || '未知'}
+- 公司：${input.company || '未知'}
+
+【方案信息】
+- 方案标题：${input.title}
+- 方案价值：¥${input.value.toLocaleString()}
+- 方案描述：${input.description || '待补充'}
+
+【产品清单】
+${input.products && input.products.length > 0
+  ? input.products.map(p => `- ${p.name}：${p.quantity}个 × ¥${p.unitPrice} = ¥${p.totalPrice}`).join('\n')
+  : '- 待确定产品'}
+
+【客户需求】
+${input.customerNeeds?.join('、') || '- 待了解'}
+
+【痛点分析】
+${input.painPoints?.join('、') || '- 待分析'}
+
+【时间规划】
+${input.timeline?.startDate && input.timeline?.endDate
+  ? `${input.timeline.startDate} 至 ${input.timeline.endDate}`
+  : '- 待确定'}
+
+请生成JSON格式的商务方案。`;
+
+    const messages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ];
+
+    const response = await aiClient.chatForJson<ProposalGenerationResult>(messages, {
+      temperature: 0.7,
+      maxTokens: 3000,
+    });
+
+    // 验证响应格式
+    if (!response.executiveSummary || !response.proposedSolution) {
+      throw new Error('AI响应格式不完整');
+    }
+
+    return response;
+  }
+
+  /**
+   * 模拟方案生成
+   */
+  private async mockProposalGeneration(input: ProposalGenerationInput): Promise<ProposalGenerationResult> {
     await this.simulateDelay(1000, 2000);
 
     // 执行摘要
@@ -156,7 +330,7 @@ class ProposalAIService {
   /**
    * 分析竞品定价
    */
-  async analyzeCompetitorPricing(input: SmartQuotationInput, ourPrice: number): Promise<SmartQuotationResult['competitorComparison'] | undefined> {
+  private analyzeCompetitorPricing(input: SmartQuotationInput, ourPrice: number): SmartQuotationResult['competitorComparison'] | undefined {
     if (!input.competitors || input.competitors.length === 0) {
       return undefined;
     }
@@ -441,7 +615,7 @@ class ProposalAIService {
   /**
    * 生成条款
    */
-  private generateTerms(input: ProposalGenerationInput): string {
+  private generateTerms(_input: ProposalGenerationInput): string {
     return `一、合同条款
 
 1. 付款方式
@@ -507,7 +681,7 @@ class ProposalAIService {
   /**
    * 生成下一步行动
    */
-  private generateNextSteps(input: ProposalGenerationInput): string[] {
+  private generateNextSteps(_input: ProposalGenerationInput): string[] {
     return [
       '安排双方技术团队对接会议，深入讨论需求细节',
       '提供产品演示环境，供客户体验测试',

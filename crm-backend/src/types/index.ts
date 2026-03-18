@@ -6,7 +6,8 @@ export type PaymentStatus = 'paid' | 'partial' | 'pending' | 'overdue';
 export type Sentiment = 'positive' | 'neutral' | 'negative';
 export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled';
 export type TaskType = 'call' | 'meeting' | 'visit' | 'task';
-export type ProposalStatus = 'draft' | 'pending_review' | 'sent' | 'accepted' | 'rejected';
+// ProposalStatus - 匹配 Prisma schema 中的完整状态列表
+export type ProposalStatus = 'draft' | 'requirement_analysis' | 'designing' | 'pending_review' | 'review_passed' | 'review_rejected' | 'customer_proposal' | 'negotiation' | 'sent' | 'accepted' | 'rejected' | 'expired';
 export type ServiceProjectStatus = 'active' | 'pending' | 'completed';
 export type MilestoneStatus = 'completed' | 'in_progress' | 'pending';
 export type RecordingStatus = 'analyzed' | 'pending' | 'processing';

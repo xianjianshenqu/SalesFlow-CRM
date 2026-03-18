@@ -16,9 +16,11 @@ class ProposalService {
 
   /**
    * 创建商务方案
+   * 创建后直接进入需求分析阶段
    */
   async create(data: CreateProposalInput, userId: string) {
-    return this.prisma.proposal.create({
+    // 创建方案并设置状态为需求分析阶段
+    const proposal = await this.prisma.proposal.create({
       data: {
         customerId: data.customerId,
         title: data.title,
@@ -28,7 +30,7 @@ class ProposalService {
         terms: data.terms,
         validUntil: data.validUntil ? new Date(data.validUntil) : null,
         notes: data.notes,
-        status: 'draft',
+        status: 'requirement_analysis' as any, // 直接进入需求分析阶段
         createdById: userId,
       },
       include: {
@@ -40,6 +42,18 @@ class ProposalService {
         },
       },
     });
+
+    // 自动创建初始需求分析记录
+    await (this.prisma as any).requirementAnalysis.create({
+      data: {
+        proposalId: proposal.id,
+        customerId: data.customerId,
+        sourceType: 'manual',
+        status: 'draft',
+      },
+    });
+
+    return proposal;
   }
 
   /**

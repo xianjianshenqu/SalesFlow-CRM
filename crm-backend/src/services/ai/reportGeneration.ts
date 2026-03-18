@@ -4,10 +4,11 @@
  */
 
 import type { DailyReportInput, DailyReportResult } from './types';
+import aiClient, { ChatMessage } from './client';
 
 // AI配置
 const AI_CONFIG = {
-  useRealAPI: process.env.TENCENT_SECRET_ID && process.env.TENCENT_SECRET_KEY,
+  useRealAPI: process.env.DASHSCOPE_API_KEY,
 };
 
 /**
@@ -18,18 +19,95 @@ class ReportGenerationService {
    * 生成日报/周报
    */
   async generateReport(input: DailyReportInput): Promise<DailyReportResult> {
-    if (AI_CONFIG.useRealAPI) {
-      return this.callRealGeneration(input);
+    if (AI_CONFIG.useRealAPI && aiClient.isConfigured()) {
+      try {
+        return await this.callRealGeneration(input);
+      } catch (error) {
+        console.error('[Report Generation] 真实API调用失败，降级到模拟模式:', error);
+        return this.mockGeneration(input);
+      }
     }
     return this.mockGeneration(input);
   }
 
   /**
-   * 调用真实AI API
+   * 调用真实AI API生成报告
    */
   private async callRealGeneration(input: DailyReportInput): Promise<DailyReportResult> {
-    // TODO: 实现腾讯云混元API调用
-    return this.mockGeneration(input);
+    const { userName, type, activities, stats } = input;
+    const isWeekly = type === 'weekly';
+    const period = isWeekly ? '本周' : '今日';
+
+    const systemPrompt = `你是一位专业的销售数据分析师和报告撰写专家。
+请根据提供的销售活动数据生成一份专业的${isWeekly ? '周报' : '日报'}。
+你需要返回一个JSON对象，包含以下字段：
+- summary: 工作摘要（1-2句话概括整体工作情况）
+- content: 详细工作内容（包含客户跟进、商机进展、任务执行等，使用换行分隔各部分）
+- highlights: 重点事项数组，每项包含type(success/warning/info)、title、description
+- risks: 风险提示数组，每项包含level(high/medium/low)、description、suggestion
+- nextActions: 下一步行动数组，每项包含priority(high/medium/low)、action、可选的customer字段`;
+
+    const userPrompt = `请为以下销售数据生成${period}工作报告：
+
+【销售人员】${userName}
+
+【统计数据】
+- 电话沟通：${stats.totalCalls}次
+- 会议：${stats.totalMeetings}次
+- 客户拜访：${stats.totalVisits}次
+- 通话录音：${stats.totalRecordings}条
+- 新增客户：${stats.newCustomers}个
+- 推进商机金额：¥${stats.opportunityValue}
+- 成交单数：${stats.closedDeals}单
+
+【客户跟进】
+${activities.customers.length > 0 
+  ? activities.customers.slice(0, 5).map(c => `- ${c.name}（${c.stage}阶段）`).join('\n')
+  : '- 暂无客户跟进记录'}
+
+【商机进展】
+${activities.opportunities.length > 0
+  ? activities.opportunities.slice(0, 5).map(o => `- ${o.customerName}的"${o.title}"（${o.stage}阶段，¥${o.value}）`).join('\n')
+  : '- 暂无商机进展'}
+
+【任务执行】
+${activities.tasks.length > 0
+  ? activities.tasks.slice(0, 5).map(t => `- ${t.title}（${t.status === 'completed' ? '已完成' : '待处理'}）`).join('\n')
+  : '- 暂无任务记录'}
+
+【通话分析】
+${activities.recordings.length > 0
+  ? `共${activities.recordings.length}条录音，积极态度${activities.recordings.filter(r => r.sentiment === 'positive').length}次，需关注${activities.recordings.filter(r => r.sentiment === 'negative').length}次`
+  : '- 暂无通话录音'}
+
+【回款情况】
+${activities.payments.length > 0
+  ? activities.payments.slice(0, 3).map(p => `- ${p.customerName}：¥${p.amount}（${p.status === 'paid' ? '已到账' : '待收款'}）`).join('\n')
+  : '- 暂无回款记录'}
+
+请生成JSON格式的工作报告。`;
+
+    const messages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ];
+
+    try {
+      const response = await aiClient.chatForJson<DailyReportResult>(messages, {
+        temperature: 0.6,
+        maxTokens: 2000,
+      });
+
+      // 验证响应格式
+      if (!response.summary || !response.content) {
+        throw new Error('AI响应格式不完整');
+      }
+
+      return response;
+    } catch (error) {
+      console.error('[Report Generation] 生成失败:', error);
+      throw error;
+    }
   }
 
   /**

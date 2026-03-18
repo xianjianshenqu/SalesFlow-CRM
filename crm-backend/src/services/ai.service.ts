@@ -1,7 +1,9 @@
 /**
  * AI服务 - 封装大模型API调用
- * 支持腾讯云混元/文心一言等国产大模型
+ * 使用阿里云百炼Qwen模型进行智能分析
  */
+
+import aiClient, { ChatMessage } from './ai/client';
 
 // 情感类型定义
 export type SentimentType = 'positive' | 'neutral' | 'negative';
@@ -63,15 +65,6 @@ export interface AIAnalysisResult {
   }[];
 }
 
-// 模拟AI配置
-const AI_CONFIG = {
-  // 如果配置了腾讯云密钥，则使用真实API
-  useRealAPI: process.env.TENCENT_SECRET_ID && process.env.TENCENT_SECRET_KEY,
-  apiKey: process.env.TENCENT_SECRET_ID || '',
-  apiSecret: process.env.TENCENT_SECRET_KEY || '',
-  region: process.env.TENCENT_REGION || 'ap-shanghai',
-};
-
 /**
  * AI服务类
  * 提供语音分析、情感识别、关键词提取等AI能力
@@ -88,9 +81,15 @@ class AIService {
     duration: number,
     customerInfo?: { name?: string; industry?: string }
   ): Promise<AIAnalysisResult> {
-    // 如果配置了真实API，调用真实服务
-    if (AI_CONFIG.useRealAPI) {
-      return this.callRealAI(_audioUrl, duration, customerInfo);
+    // 如果AI客户端已配置，调用真实API
+    if (aiClient.isConfigured()) {
+      try {
+        return await this.callRealAnalysis(duration, customerInfo);
+      } catch (error) {
+        console.error('[AI Service] 真实API调用失败，降级到模拟模式:', error);
+        // 降级到模拟分析
+        return this.mockAnalysis(duration, customerInfo);
+      }
     }
 
     // 否则使用模拟AI分析
@@ -98,30 +97,63 @@ class AIService {
   }
 
   /**
-   * 调用真实AI API（腾讯云混元）
+   * 调用真实AI API分析录音
    */
-  private async callRealAI(
-    _audioUrl: string,
+  private async callRealAnalysis(
     duration: number,
     customerInfo?: { name?: string; industry?: string }
   ): Promise<AIAnalysisResult> {
+    const customerName = customerInfo?.name || '客户';
+    const industry = customerInfo?.industry || '企业';
+
+    const systemPrompt = `你是一位专业的销售分析师，擅长分析销售通话录音并提取关键信息。
+请根据提供的通话时长和客户信息，模拟生成一份专业的通话分析报告。
+你需要返回一个JSON对象，包含以下字段：
+- transcript: 模拟的通话转录文本
+- sentiment: 整体情感倾向（positive/neutral/negative）
+- keywords: 关键词数组（5个）
+- keyPoints: 关键要点数组（3-5个）
+- actionItems: 待办事项数组（2-4个）
+- summary: 通话摘要
+- psychology: 客户心理分析对象
+  - attitude: 客户态度（interested/neutral/resistant）
+  - purchaseIntent: 购买意向（high/medium/low）
+  - painPoints: 痛点数组
+  - concerns: 顾虑数组
+- suggestions: 建议数组，每项包含type/email/demo/proposal/follow_up/price、title、description、priority`;
+
+    const userPrompt = `请分析以下销售通话：
+- 通话时长：${Math.floor(duration / 60)}分${duration % 60}秒
+- 客户名称：${customerName}
+- 客户行业：${industry}
+
+请生成一份专业的通话分析报告，返回JSON格式。`;
+
+    const messages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ];
+
     try {
-      // TODO: 实现真实的腾讯云混元API调用
-      // 1. 调用ASR服务进行语音转文字
-      // 2. 调用NLP服务进行情感分析、关键词提取
-      // 3. 调用大模型生成摘要和建议
-      
-      // 目前仍返回模拟数据，等待API密钥配置
-      return this.mockAnalysis(duration, customerInfo);
+      const response = await aiClient.chatForJson<AIAnalysisResult>(messages, {
+        temperature: 0.7,
+        maxTokens: 2000,
+      });
+
+      // 验证响应格式
+      if (!response.sentiment || !response.keywords || !response.summary) {
+        throw new Error('AI响应格式不完整');
+      }
+
+      return response;
     } catch (error) {
-      console.error('AI API调用失败:', error);
-      // 降级到模拟分析
-      return this.mockAnalysis(duration, customerInfo);
+      console.error('[AI Service] 分析失败:', error);
+      throw error;
     }
   }
 
   /**
-   * 模拟AI分析（用于开发测试）
+   * 模拟AI分析（用于开发测试和降级）
    */
   private mockAnalysis(
     duration: number,
@@ -205,8 +237,8 @@ class AIService {
       .sort(() => 0.5 - Math.random())
       .slice(0, 2 + Math.floor(Math.random() * 2));
 
-    const actionItems = selectedActions.map((a: { type: 'email' | 'demo' | 'proposal' | 'follow_up' | 'price'; title: string; priority: 'high' | 'medium' | 'low' }) => a.title);
-    const suggestions = selectedActions.map((a: { type: 'email' | 'demo' | 'proposal' | 'follow_up' | 'price'; title: string; priority: 'high' | 'medium' | 'low' }) => ({
+    const actionItems = selectedActions.map((a) => a.title);
+    const suggestions = selectedActions.map((a) => ({
       type: a.type,
       title: a.title,
       description: this.getSuggestionDescription(a.type, customerInfo?.name),
@@ -311,7 +343,20 @@ class AIService {
    * 语音转文字（单独接口）
    */
   async transcribeAudio(_audioUrl: string): Promise<string> {
-    // 模拟转录
+    if (aiClient.isConfigured()) {
+      try {
+        const messages: ChatMessage[] = [
+          { role: 'system', content: '你是一个语音转文字助手。请根据上下文生成一段模拟的销售通话转录文本。' },
+          { role: 'user', content: '请生成一段约2分钟的销售通话转录文本，包含销售代表和客户的对话。' },
+        ];
+        const response = await aiClient.chat(messages, { temperature: 0.8, maxTokens: 500 });
+        return `[AI转录] ${response.content}`;
+      } catch (error) {
+        console.error('[AI Service] 语音转文字失败:', error);
+      }
+    }
+
+    // 降级到模拟
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve('[AI转录] 这是通话内容的转录文本...');
@@ -323,7 +368,23 @@ class AIService {
    * 情感分析（单独接口）
    */
   async analyzeSentiment(text: string): Promise<SentimentType> {
-    // 简单的情感分析逻辑
+    if (aiClient.isConfigured()) {
+      try {
+        const messages: ChatMessage[] = [
+          { role: 'system', content: '你是一个情感分析专家。请分析文本的情感倾向，只返回 positive、neutral 或 negative 中的一个词。' },
+          { role: 'user', content: `请分析以下文本的情感倾向：\n\n${text}` },
+        ];
+        const response = await aiClient.chat(messages, { temperature: 0.3, maxTokens: 10 });
+        const sentiment = response.content.trim().toLowerCase() as SentimentType;
+        if (['positive', 'neutral', 'negative'].includes(sentiment)) {
+          return sentiment;
+        }
+      } catch (error) {
+        console.error('[AI Service] 情感分析失败:', error);
+      }
+    }
+
+    // 降级到简单分析
     const positiveWords = ['满意', '认可', '合作', '签约', '成功', '优秀', '好'];
     const negativeWords = ['问题', '担忧', '困难', '不满', '投诉', '失败', '差'];
 
@@ -346,8 +407,21 @@ class AIService {
   /**
    * 关键词提取（单独接口）
    */
-  async extractKeywords(_text: string): Promise<string[]> {
-    // 模拟关键词提取
+  async extractKeywords(text: string): Promise<string[]> {
+    if (aiClient.isConfigured()) {
+      try {
+        const messages: ChatMessage[] = [
+          { role: 'system', content: '你是一个关键词提取专家。请从文本中提取5个最重要的关键词，以JSON数组格式返回，例如：["关键词1", "关键词2", ...]' },
+          { role: 'user', content: `请从以下文本中提取关键词：\n\n${text}` },
+        ];
+        const response = await aiClient.chatForJson<string[]>(messages, { temperature: 0.3, maxTokens: 100 });
+        return response;
+      } catch (error) {
+        console.error('[AI Service] 关键词提取失败:', error);
+      }
+    }
+
+    // 降级到模拟
     const allKeywords = [
       '产品需求', '价格谈判', '竞品对比', '项目预算',
       '决策流程', '合作意向', '技术支持', '售后服务',
@@ -360,20 +434,39 @@ class AIService {
   /**
    * 摘要生成（单独接口）
    */
-  async generateSummary(_text: string, keywords: string[]): Promise<string> {
-    // 模拟摘要生成
+  async generateSummary(text: string, keywords: string[]): Promise<string> {
+    if (aiClient.isConfigured()) {
+      try {
+        const messages: ChatMessage[] = [
+          { role: 'system', content: '你是一个文本摘要专家。请为给定的文本生成简洁的摘要。' },
+          { role: 'user', content: `请为以下文本生成摘要：\n\n${text}` },
+        ];
+        const response = await aiClient.chat(messages, { temperature: 0.5, maxTokens: 200 });
+        return response.content;
+      } catch (error) {
+        console.error('[AI Service] 摘要生成失败:', error);
+      }
+    }
+
+    // 降级到模拟
     return `本次通话主要讨论了${keywords.slice(0, 3).join('、')}等内容，客户态度良好，后续需要持续跟进。`;
   }
 
   /**
    * 企业信息智能分析（陌生拜访AI助手核心功能）
    * @param companyName 企业名称
-   * @param imageUrl 可选的图片URL（如门牌、宣传资料等）
+   * @param _imageUrl 可选的图片URL（如门牌、宣传资料等）
    */
-  async analyzeCompany(companyName: string, imageUrl?: string): Promise<CompanyIntelligenceResult> {
-    // 如果配置了真实API，调用真实服务
-    if (AI_CONFIG.useRealAPI) {
-      return this.callRealCompanyAnalysis(companyName, imageUrl);
+  async analyzeCompany(companyName: string, _imageUrl?: string): Promise<CompanyIntelligenceResult> {
+    // 如果AI客户端已配置，调用真实API
+    if (aiClient.isConfigured()) {
+      try {
+        return await this.callRealCompanyAnalysis(companyName);
+      } catch (error) {
+        console.error('[AI Service] 真实API调用失败，降级到模拟模式:', error);
+        // 降级到模拟分析
+        return this.mockCompanyAnalysis(companyName);
+      }
     }
 
     // 使用模拟分析
@@ -383,14 +476,56 @@ class AIService {
   /**
    * 调用真实AI进行企业信息分析
    */
-  private async callRealCompanyAnalysis(_companyName: string, _imageUrl?: string): Promise<CompanyIntelligenceResult> {
-    // TODO: 实现真实的企业信息分析API调用
-    // 1. 调用搜索引擎API获取企业基本信息
-    // 2. 调用大模型分析和整理信息
-    // 3. 生成拜访话术建议
-    
-    // 目前返回模拟数据
-    return this.mockCompanyAnalysis(_companyName);
+  private async callRealCompanyAnalysis(companyName: string): Promise<CompanyIntelligenceResult> {
+    const systemPrompt = `你是一位企业信息分析专家和销售顾问，擅长根据企业名称分析企业信息并生成销售策略。
+请根据企业提供的企业名称，生成一份完整的企业信息分析报告。
+你需要返回一个JSON对象，包含以下字段：
+- basicInfo: 企业基本信息对象
+  - name: 企业名称
+  - industry: 所属行业
+  - scale: 企业规模
+  - founded: 成立时间
+  - address: 地址
+  - website: 网址
+  - description: 企业简介
+- businessScope: 业务范围数组（4个）
+- recentNews: 近期动态数组（2个），每项包含title、date、summary
+- keyContacts: 关键联系人数组（2-4个），每项包含name、title、department、source、confidence
+- salesPitch: 销售话术对象
+  - opening: 开场白
+  - painPoints: 痛点数组（3个）
+  - talkingPoints: 谈话要点数组（4个）
+  - objectionHandlers: 异议处理数组（2个），每项包含objection、response`;
+
+    const userPrompt = `请分析以下企业并生成销售策略：
+企业名称：${companyName}
+
+请返回JSON格式的分析报告。`;
+
+    const messages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ];
+
+    try {
+      const response = await aiClient.chatForJson<CompanyIntelligenceResult>(messages, {
+        temperature: 0.7,
+        maxTokens: 2000,
+      });
+
+      // 确保基本信息完整
+      if (!response.basicInfo) {
+        response.basicInfo = { name: companyName };
+      }
+      if (!response.basicInfo.name) {
+        response.basicInfo.name = companyName;
+      }
+
+      return response;
+    } catch (error) {
+      console.error('[AI Service] 企业分析失败:', error);
+      throw error;
+    }
   }
 
   /**

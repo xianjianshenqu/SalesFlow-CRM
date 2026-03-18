@@ -2,7 +2,6 @@ import type { ProposalStatus } from '../../../../services/api';
 
 interface StageProgressProps {
   currentStatus: ProposalStatus;
-  onStageClick?: (stage: number) => void;
 }
 
 // 阶段配置
@@ -10,14 +9,14 @@ const STAGES = [
   { num: 1, title: '需求分析', icon: 'assignment', statuses: ['requirement_analysis'] as ProposalStatus[] },
   { num: 2, title: '方案设计', icon: 'design_services', statuses: ['designing'] as ProposalStatus[] },
   { num: 3, title: '内部评审', icon: 'rate_review', statuses: ['pending_review', 'review_passed', 'review_rejected'] as ProposalStatus[] },
-  { num: 4, title: '客户提案', icon: 'send', statuses: ['customer_proposal'] as ProposalStatus[] },
+  { num: 4, title: '客户提案', icon: 'send', statuses: ['customer_proposal', 'sent'] as ProposalStatus[] },
   { num: 5, title: '商务谈判', icon: 'handshake', statuses: ['negotiation'] as ProposalStatus[] },
 ];
 
 // 终态
-const TERMINAL_STATUSES: ProposalStatus[] = ['sent', 'accepted', 'rejected', 'expired'];
+const TERMINAL_STATUSES: ProposalStatus[] = ['accepted', 'rejected', 'expired'];
 
-export default function StageProgress({ currentStatus, onStageClick }: StageProgressProps) {
+export default function StageProgress({ currentStatus }: StageProgressProps) {
   // 判断当前阶段
   const getCurrentStage = (): number => {
     if (currentStatus === 'draft') return 0;
@@ -70,10 +69,7 @@ export default function StageProgress({ currentStatus, onStageClick }: StageProg
             
             return (
               <div key={stage.num} className="flex items-center">
-                <div 
-                  onClick={() => isCompleted && onStageClick?.(stage.num)}
-                  className={`flex flex-col items-center ${isCompleted ? 'cursor-pointer' : ''}`}
-                >
+                <div className="flex flex-col items-center">
                   <div className={`size-12 rounded-xl flex items-center justify-center ${
                     isCompleted 
                       ? 'bg-emerald-500 text-white' 

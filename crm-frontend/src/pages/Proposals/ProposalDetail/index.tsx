@@ -48,7 +48,6 @@ export default function ProposalDetail() {
   const navigate = useNavigate();
   const [proposal, setProposal] = useState<Proposal | null>(null);
   const [loading, setLoading] = useState(true);
-  const [activeStage, setActiveStage] = useState<number | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
 
   // 加载方案详情
@@ -60,14 +59,6 @@ export default function ProposalDetail() {
         setLoading(true);
         const response = await proposalApi.getById(id);
         setProposal(response.data);
-        
-        // 设置当前阶段
-        const status = response.data.status;
-        if (status === 'requirement_analysis') setActiveStage(1);
-        else if (status === 'designing') setActiveStage(2);
-        else if (['pending_review', 'review_passed', 'review_rejected'].includes(status)) setActiveStage(3);
-        else if (status === 'customer_proposal') setActiveStage(4);
-        else if (status === 'negotiation') setActiveStage(5);
       } catch (err) {
         console.error('加载方案失败:', err);
       } finally {
@@ -148,29 +139,10 @@ export default function ProposalDetail() {
       </div>
 
       {/* 阶段进度 */}
-      <StageProgress 
-        currentStatus={proposal.status} 
-        onStageClick={setActiveStage}
-      />
+      <StageProgress currentStatus={proposal.status} />
 
-      {/* 阶段内容 */}
-      {proposal.status === 'draft' && (
-        <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-          <div className="text-center py-8">
-            <span className="material-symbols-outlined text-4xl text-amber-500">lightbulb</span>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mt-4">开始需求分析</h3>
-            <p className="text-slate-500 dark:text-slate-400 mt-2 mb-4">创建方案后，首先需要进行需求分析</p>
-            <RequirementAnalysis 
-              proposalId={proposal.id} 
-              customerId={proposal.customerId}
-              onComplete={refreshProposal}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* 阶段1: 需求分析 */}
-      {activeStage === 1 && proposal.status === 'requirement_analysis' && (
+      {/* 阶段1: 需求分析 - 方案创建后默认进入此阶段 */}
+      {proposal.status === 'requirement_analysis' && (
         <RequirementAnalysis 
           proposalId={proposal.id} 
           customerId={proposal.customerId}
@@ -179,7 +151,7 @@ export default function ProposalDetail() {
       )}
 
       {/* 阶段2: 方案设计 */}
-      {activeStage === 2 && proposal.status === 'designing' && (
+      {proposal.status === 'designing' && (
         <ProposalDesign 
           proposalId={proposal.id}
           proposal={proposal}
@@ -188,7 +160,7 @@ export default function ProposalDetail() {
       )}
 
       {/* 阶段3: 内部评审 */}
-      {activeStage === 3 && ['pending_review', 'review_passed', 'review_rejected'].includes(proposal.status) && (
+      {['pending_review', 'review_passed', 'review_rejected'].includes(proposal.status) && (
         <InternalReview 
           proposalId={proposal.id}
           proposal={proposal}
@@ -197,7 +169,7 @@ export default function ProposalDetail() {
       )}
 
       {/* 阶段4: 客户提案 */}
-      {activeStage === 4 && proposal.status === 'customer_proposal' && (
+      {proposal.status === 'customer_proposal' && (
         <CustomerProposalStage 
           proposalId={proposal.id}
           proposal={proposal}
@@ -206,7 +178,7 @@ export default function ProposalDetail() {
       )}
 
       {/* 阶段5: 商务谈判 */}
-      {activeStage === 5 && proposal.status === 'negotiation' && (
+      {proposal.status === 'negotiation' && (
         <NegotiationStage 
           proposalId={proposal.id}
           proposal={proposal}
@@ -214,8 +186,33 @@ export default function ProposalDetail() {
         />
       )}
 
+      {/* 已发送状态 - 可进入商务谈判 */}
+      {proposal.status === 'sent' && (
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
+          <div className="text-center">
+            <span className="material-symbols-outlined text-4xl text-blue-500">mail</span>
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white mt-4">方案已发送</h3>
+            <p className="text-slate-500 dark:text-slate-400 mt-2 mb-4">等待客户回复，可随时开始商务谈判</p>
+            <button
+              onClick={async () => {
+                try {
+                  await proposalApi.createNegotiation(proposal.id);
+                  refreshProposal();
+                } catch (err) {
+                  console.error('进入商务谈判失败:', err);
+                  alert('操作失败');
+                }
+              }}
+              className="px-6 py-2.5 bg-primary text-white rounded-lg font-medium hover:bg-primary/90 transition-colors"
+            >
+              进入商务谈判
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 终态显示 */}
-      {['sent', 'accepted', 'rejected', 'expired'].includes(proposal.status) && (
+      {['accepted', 'rejected', 'expired'].includes(proposal.status) && (
         <div className="bg-white dark:bg-slate-900 rounded-xl p-8 border border-slate-200 dark:border-slate-800 text-center">
           <span className={`material-symbols-outlined text-6xl ${
             proposal.status === 'accepted' ? 'text-emerald-500' : 
