@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { authApi } from '../services/api';
 
 interface User {
@@ -18,6 +18,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
+  _hasHydrated: boolean; // 跟踪 hydration 状态
   
   // Actions
   login: (email: string, password: string) => Promise<boolean>;
@@ -32,6 +33,7 @@ interface AuthState {
   getProfile: () => Promise<void>;
   setToken: (token: string) => void;
   clearError: () => void;
+  setHasHydrated: (state: boolean) => void; // 设置 hydration 状态
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -42,6 +44,9 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      _hasHydrated: false, // 初始为 false，hydration 完成后变为 true
+
+      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
@@ -114,10 +119,22 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'crm-auth',
+      storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         token: state.token,
         user: state.user,
+        isAuthenticated: !!state.token, // 有 token 就认为已认证
       }),
+      // hydration 完成后的回调
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+        // 如果有 token，验证其有效性
+        if (state?.token) {
+          state.getProfile().catch(() => {
+            // token 无效时会自动清除状态
+          });
+        }
+      },
     }
   )
 );

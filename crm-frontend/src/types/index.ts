@@ -7,6 +7,9 @@ export type Priority = 'high' | 'medium' | 'low';
 // 客户来源枚举
 export type CustomerSource = 'direct' | 'referral' | 'website' | 'conference' | 'partner';
 
+// 客户分类类型
+export type CustomerType = 'user' | 'non_user' | 'valid_non_user' | 'invalid_non_user';
+
 // 付款状态枚举
 export type PaymentStatus = 'paid' | 'partial' | 'pending' | 'overdue';
 
@@ -27,11 +30,22 @@ export interface Customer {
   nextFollowUp: string;
   source: CustomerSource;
   priority: Priority;
+  customerType: CustomerType;
   contactPerson: string;
   phone?: string;
   address?: string;
   city?: string;
+  province?: string;
+  district?: string;
   industry?: string;
+  // 企业信息字段
+  companyFullName?: string;
+  creditCode?: string;
+  registeredCapital?: number;
+  establishDate?: string;
+  businessScope?: string;
+  legalPerson?: string;
+  companyStatus?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -674,4 +688,87 @@ export interface CustomerInsight {
   analyzedAt: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// ==================== 客户分类相关类型 ====================
+
+// 客户分类标签
+export const CUSTOMER_TYPE_LABELS: Record<CustomerType, string> = {
+  user: '用户',
+  non_user: '非用户',
+  valid_non_user: '有效非用户',
+  invalid_non_user: '无效非用户',
+};
+
+// 客户分类颜色映射
+export const CUSTOMER_TYPE_COLORS: Record<CustomerType, { bg: string; text: string; description: string }> = {
+  user: { 
+    bg: 'bg-emerald-100 dark:bg-emerald-900/30', 
+    text: 'text-emerald-700 dark:text-emerald-400',
+    description: '已购买产品/服务的客户'
+  },
+  non_user: { 
+    bg: 'bg-slate-100 dark:bg-slate-800', 
+    text: 'text-slate-700 dark:text-slate-300',
+    description: '未购买但有接触的潜在客户'
+  },
+  valid_non_user: { 
+    bg: 'bg-blue-100 dark:bg-blue-900/30', 
+    text: 'text-blue-700 dark:text-blue-400',
+    description: '有购买潜力的潜在客户'
+  },
+  invalid_non_user: { 
+    bg: 'bg-red-100 dark:bg-red-900/30', 
+    text: 'text-red-700 dark:text-red-400',
+    description: '无购买意向或不符合条件的客户'
+  },
+};
+
+// ==================== 企业搜索相关类型 ====================
+
+// 企业搜索结果
+export interface CompanySearchResult {
+  name: string;              // 企业名称
+  shortName: string;         // 企业简称
+  creditCode: string;        // 统一社会信用代码
+  legalPerson: string;       // 法人代表
+  registeredCapital: number; // 注册资本（万元）
+  establishDate: string;     // 成立日期
+  status: string;            // 企业状态
+  industry: string;          // 行业
+  city: string;              // 城市
+  province: string;          // 省份
+  address: string;           // 详细地址
+  businessScope: string;     // 经营范围
+  phone?: string;            // 联系电话
+  email?: string;            // 邮箱
+}
+
+// 创建客户输入
+export interface CreateCustomerInput {
+  name: string;
+  shortName: string;
+  email?: string;
+  stage?: Stage;
+  estimatedValue?: number;
+  nextFollowUp?: string;
+  source?: CustomerSource;
+  priority?: Priority;
+  customerType?: CustomerType;
+  contactPerson: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+  province?: string;
+  district?: string;
+  industry?: string;
+  notes?: string;
+  // 企业信息字段
+  companyFullName?: string;
+  creditCode?: string;
+  registeredCapital?: number;
+  establishDate?: string;
+  businessScope?: string;
+  legalPerson?: string;
+  companyStatus?: string;
 }

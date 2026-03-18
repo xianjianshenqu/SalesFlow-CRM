@@ -218,6 +218,18 @@ model Customer {
   riskScore       Int?       // 流失风险评分 0-100
   engagementScore Int?       // 互动活跃度评分 0-100
 
+  // 客户分类字段
+  customerType    String   @default("non_user") // user, non_user, valid_non_user, invalid_non_user
+
+  // 企业信息字段
+  companyFullName  String?  // 企业全称
+  creditCode       String?  // 统一社会信用代码
+  registeredCapital Decimal? @db.Decimal(15, 2) // 注册资本（万元）
+  establishDate    DateTime? // 成立日期
+  businessScope    String?  @db.Text // 经营范围
+  legalPerson      String?  // 法人代表
+  companyStatus    String?  // 企业状态（存续、注销等）
+
   // Relations
   owner           User?              @relation("CustomerOwner", fields: [ownerId], references: [id])
   createdBy       User?              @relation("CustomerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)

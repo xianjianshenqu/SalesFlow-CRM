@@ -13,7 +13,9 @@ import type {
   KeyContact,
   SalesPitch,
   CompanyIntelligence,
-  AnalyzeCompanyInput
+  AnalyzeCompanyInput,
+  CompanySearchResult,
+  CreateCustomerInput
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3002/api/v1';
@@ -138,7 +140,8 @@ export const customerApi = {
     if (params?.stage) query.set('stage', params.stage);
     if (params?.priority) query.set('priority', params.priority);
     if (params?.search) query.set('search', params.search);
-    return api.get<{ items: Customer[]; total: number }>(`/customers?${query}`);
+    // api.request 已解包后端 { data: [...] }，所以这里返回 Customer[]
+    return api.get<Customer[]>(`/customers?${query}`);
   },
 
   getById: (id: string) => api.get<Customer>(`/customers/${id}`),
@@ -319,20 +322,6 @@ interface Customer {
   ownerId?: string;
   createdAt: string;
   updatedAt: string;
-}
-
-interface CreateCustomerInput {
-  name: string;
-  shortName?: string;
-  email?: string;
-  stage?: string;
-  estimatedValue?: number;
-  priority?: string;
-  contactPerson: string;
-  phone?: string;
-  city?: string;
-  industry?: string;
-  notes?: string;
 }
 
 interface CustomerStats {
@@ -1225,6 +1214,19 @@ export const proposalApi = {
 
   completeNegotiation: (proposalId: string) => 
     api.post<Proposal>(`/proposals/${proposalId}/negotiation/complete`),
+};
+
+// ==================== 企业搜索API ====================
+export const companySearchApi = {
+  search: (keyword: string, limit?: number) => {
+    const query = new URLSearchParams();
+    query.set('keyword', keyword);
+    if (limit) query.set('limit', String(limit));
+    return api.get<CompanySearchResult[]>(`/companies/search?${query}`);
+  },
+  
+  getDetail: (creditCode: string) => 
+    api.get<CompanySearchResult>(`/companies/${creditCode}`),
 };
 
 // ==================== 类型导出 ====================

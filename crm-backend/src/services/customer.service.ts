@@ -74,10 +74,33 @@ export class CustomerService {
   }
 
   async create(data: CreateCustomerInput, ownerId?: string) {
-    const customer = await prisma.customer.create({
+    // Use any to bypass type check until Prisma client is regenerated
+    const customer = await (prisma.customer as any).create({
       data: {
-        ...data,
+        name: data.name,
+        shortName: data.shortName,
+        email: data.email || null,
+        stage: data.stage || 'new',
+        estimatedValue: data.estimatedValue || 0,
         nextFollowUp: data.nextFollowUp ? new Date(data.nextFollowUp) : null,
+        source: data.source || null,
+        priority: data.priority || 'medium',
+        contactPerson: data.contactPerson || null,
+        phone: data.phone || null,
+        address: data.address || null,
+        city: data.city || null,
+        province: data.province || null,
+        district: data.district || null,
+        industry: data.industry || null,
+        notes: data.notes || null,
+        customerType: data.customerType || 'non_user',
+        companyFullName: data.companyFullName || null,
+        creditCode: data.creditCode || null,
+        registeredCapital: data.registeredCapital || null,
+        establishDate: data.establishDate ? new Date(data.establishDate) : null,
+        businessScope: data.businessScope || null,
+        legalPerson: data.legalPerson || null,
+        companyStatus: data.companyStatus || null,
         ownerId,
       },
     });
@@ -94,12 +117,35 @@ export class CustomerService {
       throw new NotFoundError('Customer');
     }
 
-    const customer = await prisma.customer.update({
+    const updateData: any = {};
+    if (data.name !== undefined) updateData.name = data.name;
+    if (data.shortName !== undefined) updateData.shortName = data.shortName;
+    if (data.email !== undefined) updateData.email = data.email || null;
+    if (data.stage !== undefined) updateData.stage = data.stage;
+    if (data.estimatedValue !== undefined) updateData.estimatedValue = data.estimatedValue;
+    if (data.nextFollowUp !== undefined) updateData.nextFollowUp = data.nextFollowUp ? new Date(data.nextFollowUp) : null;
+    if (data.source !== undefined) updateData.source = data.source || null;
+    if (data.priority !== undefined) updateData.priority = data.priority;
+    if (data.contactPerson !== undefined) updateData.contactPerson = data.contactPerson || null;
+    if (data.phone !== undefined) updateData.phone = data.phone || null;
+    if (data.address !== undefined) updateData.address = data.address || null;
+    if (data.city !== undefined) updateData.city = data.city || null;
+    if (data.province !== undefined) updateData.province = data.province || null;
+    if (data.district !== undefined) updateData.district = data.district || null;
+    if (data.industry !== undefined) updateData.industry = data.industry || null;
+    if (data.notes !== undefined) updateData.notes = data.notes || null;
+    if (data.customerType !== undefined) updateData.customerType = data.customerType;
+    if (data.companyFullName !== undefined) updateData.companyFullName = data.companyFullName || null;
+    if (data.creditCode !== undefined) updateData.creditCode = data.creditCode || null;
+    if (data.registeredCapital !== undefined) updateData.registeredCapital = data.registeredCapital || null;
+    if (data.establishDate !== undefined) updateData.establishDate = data.establishDate ? new Date(data.establishDate) : null;
+    if (data.businessScope !== undefined) updateData.businessScope = data.businessScope || null;
+    if (data.legalPerson !== undefined) updateData.legalPerson = data.legalPerson || null;
+    if (data.companyStatus !== undefined) updateData.companyStatus = data.companyStatus || null;
+
+    const customer = await (prisma.customer as any).update({
       where: { id },
-      data: {
-        ...data,
-        nextFollowUp: data.nextFollowUp ? new Date(data.nextFollowUp) : undefined,
-      },
+      data: updateData,
     });
 
     return customer;

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { mockCustomers, filterCustomersByStage, getCustomerColor } from '../../data/customers';
 import { STAGE_LABELS, STAGE_COLORS, type Stage, type Customer } from '../../types';
 import { ColdVisitAssistant } from '../../components/ColdVisitAssistant';
+import CreateCustomerModal from '../../components/Customers/CreateCustomerModal';
 
 // 格式化金额
 function formatCurrency(value: number): string {
@@ -61,6 +62,7 @@ export default function Customers() {
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [showColdVisitAssistant, setShowColdVisitAssistant] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const itemsPerPage = 10;
 
   // 筛选客户
@@ -108,7 +110,10 @@ export default function Customers() {
             <span className="material-symbols-outlined text-sm">document_scanner</span>
             扫描名片
           </button>
-          <button className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+          >
             <span className="material-symbols-outlined text-sm">add</span>
             添加客户
           </button>
@@ -320,6 +325,16 @@ export default function Customers() {
       <ColdVisitAssistant
         isOpen={showColdVisitAssistant}
         onClose={() => setShowColdVisitAssistant(false)}
+      />
+
+      {/* 添加客户弹窗 */}
+      <CreateCustomerModal
+        isOpen={showCreateModal}
+        onClose={() => setShowCreateModal(false)}
+        onSuccess={() => {
+          // TODO: 刷新客户列表
+          console.log('客户创建成功');
+        }}
       />
     </div>
   );

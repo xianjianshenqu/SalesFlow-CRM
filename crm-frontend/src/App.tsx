@@ -23,9 +23,23 @@ import AIAssistant from './pages/AIAssistant';
 
 // 路由守卫组件
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, token } = useAuthStore();
+  const { isAuthenticated, token, _hasHydrated } = useAuthStore();
   const location = useLocation();
 
+  // 等待 hydration 完成，避免因状态未恢复而误判
+  // 在 hydration 完成前显示加载状态
+  if (!_hasHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="text-sm text-slate-500">正在恢复登录状态...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // hydration 完成后，检查认证状态
   // 未登录则重定向到登录页，并记录来源页面
   if (!isAuthenticated || !token) {
     return <Navigate to="/login" state={{ from: location }} replace />;

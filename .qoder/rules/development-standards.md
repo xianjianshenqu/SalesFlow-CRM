@@ -358,6 +358,8 @@ function CustomerDetail({ id }: { id: string }) {
 
 ### 4.4 状态管理 (Zustand)
 
+#### 4.4.1 基本结构
+
 ```tsx
 // ✅ Store 结构
 interface CustomerState {
@@ -394,6 +396,102 @@ export const useCustomerStore = create<CustomerState>()(
   )
 );
 ```
+
+#### 4.4.2 Persist Hydration 最佳实践（重要！）
+
+**问题描述：**
+使用 Zustand 的 persist 中间件时，页面刷新后状态从 localStorage 恢复需要时间（hydration）。在 hydration 完成前，React 组件已经开始渲染，此时状态仍是初始值，导致路由守卫误判为未登录而重定向到登录页。
+
+**解决方案：**
+
+```tsx
+// ✅ 正确：添加 hydration 状态跟踪
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  _hasHydrated: boolean; // 跟踪 hydration 状态
+  
+  // Actions
+  setHasHydrated: (state: boolean) => void;
+  getProfile: () => Promise<void>;
+  // ...其他 actions
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      token: null,
+      isAuthenticated: false,
+      _hasHydrated: false,
+
+      setHasHydrated: (state: boolean) => set({ _hasHydrated: state }),
+      
+      getProfile: async () => {
+        // 验证 token 有效性
+      },
+      // ...其他实现
+    }),
+    {
+      name: 'crm-auth',
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({
+        token: state.token,
+        user: state.user,
+        isAuthenticated: !!state.token, // 有 token 就认为已认证
+      }),
+      // hydration 完成后的回调
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+        // 如果有 token，验证其有效性
+        if (state?.token) {
+          state.getProfile().catch(() => {
+            // token 无效时会自动清除状态
+          });
+        }
+      },
+    }
+  )
+);
+
+// ✅ 路由守卫中等待 hydration 完成
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, token, _hasHydrated } = useAuthStore();
+  const location = useLocation();
+
+  // 等待 hydration 完成，避免因状态未恢复而误判
+  if (!_hasHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="text-sm text-slate-500">正在恢复登录状态...</span>
+      </div>
+    );
+  }
+
+  // hydration 完成后再检查认证状态
+  if (!isAuthenticated || !token) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
+```
+
+**关键要点：**
+1. 添加 `_hasHydrated` 状态跟踪 hydration 是否完成
+2. 使用 `onRehydrateStorage` 回调在 hydration 完成后设置状态
+3. 在 `partialize` 中持久化 `isAuthenticated`（或基于 token 计算）
+4. 路由守卫必须等待 `_hasHydrated === true` 再做判断
+5. hydration 完成后验证 token 有效性
+
+**相关文件：**
+- `crm-frontend/src/stores/authStore.ts` - 认证状态管理
+- `crm-frontend/src/App.tsx` - 路由守卫实现
 
 ---
 

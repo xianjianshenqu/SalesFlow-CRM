@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// Customer type enum
+export const CustomerTypeSchema = z.enum(['user', 'non_user', 'valid_non_user', 'invalid_non_user']);
+
 export const createCustomerSchema = z.object({
   name: z.string().min(1, 'Customer name is required'),
   shortName: z.string().min(1, 'Short name is required').max(10),
@@ -13,8 +16,20 @@ export const createCustomerSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
+  province: z.string().optional(),
+  district: z.string().optional(),
   industry: z.string().optional(),
   notes: z.string().optional(),
+  // Customer type field
+  customerType: CustomerTypeSchema.default('non_user'),
+  // Company info fields
+  companyFullName: z.string().optional(),
+  creditCode: z.string().optional(),
+  registeredCapital: z.number().min(0).optional(),
+  establishDate: z.string().optional(),
+  businessScope: z.string().optional(),
+  legalPerson: z.string().optional(),
+  companyStatus: z.string().optional(),
 });
 
 export const updateCustomerSchema = z.object({
@@ -30,8 +45,20 @@ export const updateCustomerSchema = z.object({
   phone: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
+  province: z.string().optional(),
+  district: z.string().optional(),
   industry: z.string().optional(),
   notes: z.string().optional(),
+  // Customer type field
+  customerType: CustomerTypeSchema.optional(),
+  // Company info fields
+  companyFullName: z.string().optional(),
+  creditCode: z.string().optional(),
+  registeredCapital: z.number().min(0).optional(),
+  establishDate: z.string().optional(),
+  businessScope: z.string().optional(),
+  legalPerson: z.string().optional(),
+  companyStatus: z.string().optional(),
 });
 
 export const customerQuerySchema = z.object({
