@@ -24,10 +24,15 @@
 - [AIAssistant/index.tsx](file://crm-frontend/src/pages/AIAssistant/index.tsx)
 - [AIAudio/index.tsx](file://crm-frontend/src/pages/AIAudio/index.tsx)
 - [package.json](file://crm-frontend/package.json)
+- [.env](file://crm-backend/.env)
+- [.env](file://crm-frontend/.env)
+- [aiService.ts](file://crm-frontend/src/services/aiService.ts)
+- [api.ts](file://crm-frontend/src/services/api.ts)
 </cite>
 
 ## 更新摘要
 **所做更改**
+- 更新API基础URL配置：所有AI相关服务的API基础URL已更新为http://localhost:3002/api/v1
 - 新增智能报价与提案生成功能，提供基于客户信息的智能报价和完整商务方案生成
 - 新增销售绩效AI教练功能，提供个性化销售培训和改进建议
 - 新增售前资源智能匹配功能，实现多维度资源匹配和最优分配
@@ -43,10 +48,11 @@
 5. [详细组件分析](#详细组件分析)
 6. [新增AI功能详解](#新增ai功能详解)
 7. [前端组件架构](#前端组件架构)
-8. [依赖关系分析](#依赖关系分析)
-9. [性能考虑](#性能考虑)
-10. [故障排除指南](#故障排除指南)
-11. [结论](#结论)
+8. [API基础URL配置](#api基础url配置)
+9. [依赖关系分析](#依赖关系分析)
+10. [性能考虑](#性能考虑)
+11. [故障排除指南](#故障排除指南)
+12. [结论](#结论)
 
 ## 简介
 本项目是一个基于AI的销售CRM系统，现已发展为完整的AI助手生态系统，重点实现了智能AI助手功能，包括：
@@ -722,6 +728,50 @@ AP --> SL
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 - [AIAudio/index.tsx:1-441](file://crm-frontend/src/pages/AIAudio/index.tsx#L1-L441)
 
+## API基础URL配置
+
+### 配置概述
+系统现已统一配置API基础URL为`http://localhost:3002/api/v1`，确保所有AI相关服务的正常运行。此配置在前后端均得到一致实现：
+
+#### 后端配置
+- **端口设置**：`PORT=3002` - AI服务监听在3002端口
+- **API前缀**：`API_PREFIX=/api/v1` - 所有API路由前缀为/api/v1
+- **完整URL**：`http://localhost:3002/api/v1` - 最终API访问地址
+
+#### 前端配置
+- **环境变量**：`VITE_API_BASE_URL=http://localhost:3002/api/v1`
+- **默认回退**：代码中硬编码的默认值确保开发环境稳定性
+- **Axios配置**：所有API请求统一使用此基础URL
+
+#### 配置文件位置
+- **后端**：`crm-backend/.env` - 环境变量配置
+- **前端**：`crm-frontend/.env` - 前端环境变量配置
+- **代码回退**：`aiService.ts` 和 `api.ts` 中的硬编码默认值
+
+### 配置影响分析
+此API基础URL配置变更对系统的影响：
+
+#### 服务发现
+- **统一端口**：所有AI服务集中在3002端口，便于服务发现和负载均衡
+- **版本化API**：使用/api/v1前缀，支持API版本管理和向后兼容
+- **域名一致性**：localhost域名确保开发环境的一致性和可移植性
+
+#### 开发体验
+- **简化配置**：开发者无需额外配置即可访问AI服务
+- **环境隔离**：开发、测试、生产环境可通过不同端口区分
+- **调试便利**：统一的端口和路径便于调试和问题排查
+
+#### 部署考虑
+- **容器化支持**：统一端口便于Docker容器部署
+- **反向代理**：支持Nginx等反向代理配置
+- **微服务架构**：为未来的微服务拆分奠定基础
+
+**章节来源**
+- [.env:4-6](file://crm-backend/.env#L4-L6)
+- [.env:1-4](file://crm-frontend/.env#L1-L4)
+- [aiService.ts:13-14](file://crm-frontend/src/services/aiService.ts#L13-L14)
+- [api.ts:18-19](file://crm-frontend/src/services/api.ts#L18-L19)
+
 ## 依赖关系分析
 系统依赖关系清晰，现已扩展为多层架构：
 
@@ -841,6 +891,16 @@ APP --> ENDPOINT
 2. 配置适当的并发限制
 3. 优化AI模型参数
 4. 实施AI分析缓存策略
+
+### API基础URL配置问题
+**症状**：AI功能无法访问或返回404错误
+**原因**：API基础URL配置不正确
+**解决方案**：
+1. 检查后端配置：`PORT=3002` 和 `API_PREFIX=/api/v1`
+2. 验证前端配置：`VITE_API_BASE_URL=http://localhost:3002/api/v1`
+3. 确认服务正在3002端口运行
+4. 检查防火墙和网络连接
+5. 验证API路由是否正确映射
 
 ### 新功能集成问题
 **症状**：智能报价、销售教练、资源匹配功能无法使用

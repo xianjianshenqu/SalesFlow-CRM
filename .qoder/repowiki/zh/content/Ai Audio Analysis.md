@@ -32,16 +32,20 @@
 - [20260315135448_add_contacts_and_business_cards/migration.sql](file://crm-backend/prisma/migrations/20260315135448_add_contacts_and_business_cards/migration.sql)
 - [20260315155023_add_cold_visit_records/migration.sql](file://crm-backend/prisma/migrations/20260315155023_add_cold_visit_records/migration.sql)
 - [20260317051358_add_sales_performance_and_coaching/migration.sql](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql)
+- [vite.config.ts](file://crm-frontend/vite.config.ts)
+- [api.ts](file://crm-frontend/src/services/api.ts)
+- [FollowUpWidget.tsx](file://crm-frontend/src/components/AI/FollowUpWidget.tsx)
+- [ScriptGenerator.tsx](file://crm-frontend/src/components/AI/ScriptGenerator.tsx)
+- [AIAssistant/index.tsx](file://crm-frontend/src/pages/AIAssistant/index.tsx)
+- [start.js](file://start.js)
+- [test-report.md](file://test-report.md)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- 新增AI智能分析功能：智能报价与提案生成、销售绩效AI教练、售前资源智能匹配三大AI功能模块
-- 新增AI问题分类服务，集成智能分类功能，支持对客户咨询问题进行自动分类和情感分析
-- 扩展AI服务架构，增加报价生成、方案设计、教练建议、资源匹配、问题分类等高级AI分析功能
-- 更新数据库迁移和AI功能相关组件的详细说明，新增销售绩效、教练建议、资源匹配记录表
-- 增强AI分析结果的数据持久化机制，支持完整的AI助手功能集合
-- 更新前端界面与AI功能的集成说明，支持智能报价、AI教练、资源匹配、问题分类等功能
+- 更新API基础URL配置：将VITE_API_BASE_URL默认端口从3001更新为3002，确保前端组件与后端服务正确通信
+- 后端服务默认端口已从3001更新为3002，与前端配置保持一致
+- 一键启动脚本自动检测端口并配置前后端服务，确保端口冲突时的兼容性
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -1175,224 +1179,23 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 | 更新活动问题 | PUT | `/api/v1/presales/activities/:id/questions/:questionId` | 更新活动问题 |
 | 删除活动问题 | DELETE | `/api/v1/presales/activities/:id/questions/:questionId` | 删除活动问题 |
 
-### 请求和响应示例
+### API基础URL配置
 
-**获取录音列表请求**
-```json
-GET /api/v1/recordings?page=1&limit=10&sentiment=positive
-Authorization: Bearer <token>
-```
+**更新** API基础URL配置已从默认端口3001更新为3002，确保前后端服务正确通信。
 
-**AI分析响应**
-```json
-{
-  "id": "recording-id",
-  "customerId": "customer-id",
-  "sentiment": "positive",
-  "summary": "通话摘要内容",
-  "keywords": ["关键词1", "关键词2"],
-  "keyPoints": ["关键点1", "关键点2"],
-  "actionItems": ["行动项1", "行动项2"],
-  "transcript": "完整转录文本",
-  "psychology": {
-    "attitude": "interested",
-    "purchaseIntent": "high",
-    "painPoints": ["痛点1", "痛点2"],
-    "concerns": ["顾虑1", "顾虑2"]
-  },
-  "suggestions": [
-    {
-      "type": "demo",
-      "title": "安排产品演示",
-      "description": "安排30分钟的产品演示会议",
-      "priority": "high"
-    }
-  ],
-  "notes": "{\"psychology\": {...}, \"suggestions\": [...]}"
-}
-```
+系统采用统一的API基础URL配置，所有前端组件都使用相同的配置：
 
-**智能报价响应**
-```json
-{
-  "recommendedPrice": 120000,
-  "priceRange": {
-    "min": 102000,
-    "max": 138000,
-    "recommended": 120000
-  },
-  "discountStrategy": {
-    "suggestedDiscount": 0.15,
-    "reason": "基于大客户优惠、老客户回馈、市场竞争策略，建议给予15%折扣",
-    "conditions": ["需要财务审批"]
-  },
-  "pricingFactors": [
-    {
-      "factor": "行业特性",
-      "impact": "decrease",
-      "weight": 8,
-      "description": "信息技术行业的价格敏感度为80%"
-    },
-    {
-      "factor": "客户价值",
-      "impact": "increase",
-      "weight": 5,
-      "description": "高价值客户，建议提供更优质的服务方案"
-    }
-  ],
-  "competitorComparison": [
-    {
-      "competitor": "竞品A",
-      "theirPrice": 115000,
-      "ourAdvantage": "相比竞品A，我们的产品在功能完整性、服务响应速度和行业适配性方面具有明显优势",
-      "pricePosition": "higher"
-    }
-  ],
-  "recommendations": [
-    {
-      "type": "pricing",
-      "suggestion": "建议报价120,000元，可提供最高15%折扣",
-      "expectedImpact": "在保持利润的同时提高成交概率"
-    },
-    {
-      "type": "bundling",
-      "suggestion": "推荐增加技术培训和维护服务，形成完整解决方案",
-      "expectedImpact": "提升客单价20-30%，增强客户粘性"
-    }
-  ],
-  "confidence": 0.85
-}
-```
-
-**销售教练建议响应**
-```json
-{
-  "overallScore": 78,
-  "performanceLevel": "good",
-  "metrics": {
-    "revenue": {
-      "actual": 1200000,
-      "target": 1500000,
-      "achievement": 80,
-      "trend": "up"
-    },
-    "deals": {
-      "actual": 12,
-      "target": 15,
-      "achievement": 80,
-      "avgDealSize": 100000
-    },
-    "activities": {
-      "calls": {
-        "actual": 80,
-        "target": 100,
-        "efficiency": 80
-      },
-      "meetings": {
-        "actual": 15,
-        "target": 20,
-        "efficiency": 75
-      },
-      "proposals": {
-        "actual": 12,
-        "conversionRate": 25
-      }
-    }
-  },
-  "strengths": [
-    {
-      "area": "收入达成",
-      "score": 80,
-      "description": "收入达成率80%，表现良好"
-    }
-  ],
-  "weaknesses": [
-    {
-      "area": "电话活动量",
-      "score": 80,
-      "description": "电话量80通，低于目标",
-      "impact": "商机获取渠道受限，影响后续转化"
-    }
-  ],
-  "trends": {
-    "revenueTrend": "up",
-    "activityTrend": "stable",
-    "conversionTrend": "down",
-    "predictedNextMonth": {
-      "revenue": 1300000,
-      "deals": 13,
-      "confidence": 0.75
-    }
-  }
-}
-```
-
-**资源匹配响应**
-```json
-{
-  "matchedResources": [
-    {
-      "resource": {
-        "id": "resource-1",
-        "name": "张三",
-        "skills": ["技术演示", "需求分析", "方案设计"],
-        "experience": 5,
-        "location": "北京",
-        "currentWorkload": 60,
-        "successRate": 0.85,
-        "status": "available"
-      },
-      "matchScore": 92,
-      "matchedSkills": ["技术演示", "需求分析", "方案设计"],
-      "missingSkills": [],
-      "factors": {
-        "skillMatch": { "score": 95, "weight": 40, "details": "技能匹配良好" },
-        "experienceMatch": { "score": 85, "weight": 20, "details": "经验丰富" },
-        "locationMatch": { "score": 100, "weight": 15, "details": "同城市，便于现场支持" },
-        "workloadFit": { "score": 70, "weight": 15, "details": "工作较满，需协调时间" },
-        "successHistory": { "score": 85, "weight": 10, "details": "完成15个项目，成功率85%" }
-      },
-      "recommendation": "highly_recommended",
-      "availabilityWindow": {
-        "availableFrom": "2026-03-15T00:00:00Z",
-        "availableUntil": null
-      }
-    }
-  ],
-  "bestMatch": {
-    "resourceId": "resource-1",
-    "confidence": 0.92,
-    "reason": "综合评分92分，具备技术演示、需求分析、方案设计等关键技能，经验丰富，地理位置优势"
-  },
-  "alternatives": [
-    {
-      "resourceId": "resource-2",
-      "score": 88,
-      "tradeoffs": "评分低4分，缺少1项所需技能"
-    }
-  ],
-  "recommendations": [
-    "匹配结果良好，建议尽快确认资源",
-    "资源地理位置优势明显，便于现场支持"
-  ]
-}
-```
-
-**问题分类响应**
-```json
-{
-  "category": "product",
-  "priority": "high",
-  "confidence": 0.95,
-  "keywords": ["功能", "特性", "支持"],
-  "suggestedAnswer": "针对产品相关问题，建议详细说明产品功能特性和技术支持方案",
-  "sentiment": "neutral"
-}
-```
+- **默认配置**：`http://localhost:3002/api/v1`
+- **环境变量**：`VITE_API_BASE_URL` 
+- **超时设置**：`VITE_API_TIMEOUT=10000` 毫秒
 
 **章节来源**
 - [recordings.routes.ts:14-355](file://crm-backend/src/routes/recordings.routes.ts#L14-L355)
 - [recording.validator.ts:11-62](file://crm-backend/src/validators/recording.validator.ts#L11-L62)
+- [api.ts:19](file://crm-frontend/src/services/api.ts#L19)
+- [FollowUpWidget.tsx:59](file://crm-frontend/src/components/AI/FollowUpWidget.tsx#L59)
+- [ScriptGenerator.tsx:8](file://crm-frontend/src/components/AI/ScriptGenerator.tsx#L8)
+- [AIAssistant/index.tsx:8](file://crm-frontend/src/pages/AIAssistant/index.tsx#L8)
 
 ## 性能考虑
 
@@ -1431,6 +1234,19 @@ Authorization: Bearer <token>
 ## 故障排除指南
 
 ### 常见问题及解决方案
+
+#### API通信失败
+**问题描述**：前端无法与后端API通信
+**可能原因**：
+- API基础URL配置错误
+- 端口冲突或服务未启动
+- CORS跨域配置问题
+
+**解决步骤**：
+1. 检查VITE_API_BASE_URL环境变量是否正确设置为`http://localhost:3002/api/v1`
+2. 验证后端服务是否在3002端口运行
+3. 确认CORS_ORIGIN配置包含前端地址
+4. 查看浏览器开发者工具中的网络请求
 
 #### AI分析失败
 **问题描述**：AI分析过程中出现错误
