@@ -76,12 +76,15 @@ function FunnelOverview() {
   const stageStats = getStageStats();
   const totalValue = mockOpportunities.reduce((sum, o) => sum + o.value, 0);
   
-  const stages: Exclude<Stage, 'won'>[] = ['new_lead', 'contacted', 'solution', 'negotiation'];
+  const stages: Exclude<Stage, 'won'>[] = ['new_lead', 'contacted', 'solution', 'quoted', 'negotiation', 'procurement_process', 'contract_stage'];
   const stageColors: Record<Exclude<Stage, 'won'>, string> = {
     new_lead: 'bg-slate-500',
-    contacted: 'bg-indigo-500',
-    solution: 'bg-blue-500',
-    negotiation: 'bg-amber-500'
+    contacted: 'bg-cyan-500',
+    solution: 'bg-violet-500',
+    quoted: 'bg-indigo-500',
+    negotiation: 'bg-blue-500',
+    procurement_process: 'bg-amber-500',
+    contract_stage: 'bg-orange-500'
   };
 
   return (
@@ -281,7 +284,7 @@ function DailySchedule() {
 }
 
 // 客户地图迷你视图
-function CustomerMapMini() {
+export function _CustomerMapMini() {
   const cities = [
     { name: '深圳', count: 4, top: '45%', left: '70%' },
     { name: '杭州', count: 1, top: '55%', left: '80%' },

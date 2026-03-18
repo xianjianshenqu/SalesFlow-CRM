@@ -13,6 +13,8 @@ function formatCurrency(value: number): string {
 // 阶段颜色配置
 const STAGE_DOT_COLORS: Record<Stage, string> = {
   new_lead: 'bg-slate-500',
+  contacted: 'bg-cyan-500',
+  solution: 'bg-violet-500',
   quoted: 'bg-indigo-500',
   negotiation: 'bg-blue-500',
   procurement_process: 'bg-amber-500',
@@ -562,13 +564,17 @@ export default function SalesFunnel() {
     e.dataTransfer.dropEffect = 'move';
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent, newStage: Stage) => {
+  const handleDrop = useCallback(async (e: React.DragEvent, newStage: Stage) => {
     e.preventDefault();
     const opportunityId = e.dataTransfer.getData('opportunityId');
     const opportunity = opportunities.find(o => o.id === opportunityId);
     
     if (opportunity && opportunity.stage !== newStage) {
-      moveOpportunity(opportunityId, newStage);
+      try {
+        await moveOpportunity(opportunityId, newStage);
+      } catch (error) {
+        console.error('Failed to move opportunity:', error);
+      }
     }
     setDraggedOpportunity(null);
   }, [opportunities, moveOpportunity]);
@@ -577,7 +583,9 @@ export default function SalesFunnel() {
   const handleAddCustomer = useCallback((stage: Stage, customerName: string, title: string, value: number) => {
     const stageProbabilities: Record<Stage, number> = {
       new_lead: 20,
-      quoted: 40,
+      contacted: 30,
+      solution: 40,
+      quoted: 50,
       negotiation: 55,
       procurement_process: 70,
       contract_stage: 85,
@@ -604,18 +612,26 @@ export default function SalesFunnel() {
   }, [addOpportunity]);
 
   // 编辑保存
-  const handleEditSave = useCallback((data: Partial<Opportunity>) => {
+  const handleEditSave = useCallback(async (data: Partial<Opportunity>) => {
     if (editingOpportunity) {
-      updateOpportunity(editingOpportunity.id, data);
-      setEditingOpportunity(null);
+      try {
+        await updateOpportunity(editingOpportunity.id, data);
+        setEditingOpportunity(null);
+      } catch (error) {
+        console.error('Failed to update opportunity:', error);
+      }
     }
   }, [editingOpportunity, updateOpportunity]);
 
   // 删除确认
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (deletingOpportunity) {
-      deleteOpportunity(deletingOpportunity.id);
-      setDeletingOpportunity(null);
+      try {
+        await deleteOpportunity(deletingOpportunity.id);
+        setDeletingOpportunity(null);
+      } catch (error) {
+        console.error('Failed to delete opportunity:', error);
+      }
     }
   }, [deletingOpportunity, deleteOpportunity]);
 

@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChurnAlertCard, CustomerInsightPanel } from '../../components/AI';
+import CreateOpportunityModal from '../../components/Customers/CreateOpportunityModal';
 import { getCustomerColor } from '../../data/customers';
 import type { Customer, Opportunity } from '../../types';
 
@@ -51,6 +52,7 @@ export default function CustomerDetail() {
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'insights' | 'churn' | 'activities'>('overview');
   const [loading, setLoading] = useState(true);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     // 模拟获取客户数据
@@ -157,7 +159,10 @@ export default function CustomerDetail() {
             <span className="material-symbols-outlined text-sm">edit</span>
             编辑
           </button>
-          <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium shadow-lg shadow-primary/20">
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium shadow-lg shadow-primary/20 hover:bg-primary/90 transition-colors"
+          >
             <span className="material-symbols-outlined text-sm">add</span>
             新建商机
           </button>
@@ -300,6 +305,33 @@ export default function CustomerDetail() {
           )}
         </div>
       </div>
+
+      {/* 新建商机模态框 */}
+      {showCreateModal && customer && (
+        <CreateOpportunityModal
+          customerId={customer.id}
+          customerName={customer.name}
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={(newOpportunity) => {
+            // 将新创建的商机添加到列表
+            setOpportunities(prev => [...prev, {
+              id: newOpportunity.id,
+              customerId: customer.id,
+              customerName: customer.name,
+              title: newOpportunity.title,
+              stage: newOpportunity.stage,
+              value: Number(newOpportunity.value),
+              probability: newOpportunity.probability,
+              owner: '当前用户',
+              priority: newOpportunity.priority,
+              expectedCloseDate: newOpportunity.expectedCloseDate || '',
+              lastActivity: new Date().toISOString().split('T')[0],
+              description: newOpportunity.description || '',
+              nextStep: newOpportunity.nextStep || ''
+            }]);
+          }}
+        />
+      )}
     </div>
   );
 }

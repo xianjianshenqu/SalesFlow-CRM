@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Customer, Stage } from '../types';
-import { mockCustomers } from '../../data/customers';
+import { mockCustomers } from '../data/customers';
 
 interface CustomerState {
   customers: Customer[];

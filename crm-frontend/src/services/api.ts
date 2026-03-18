@@ -371,6 +371,7 @@ interface CreateOpportunityInput {
   priority?: string;
   expectedCloseDate?: string;
   description?: string;
+  nextStep?: string;
 }
 
 interface Payment {

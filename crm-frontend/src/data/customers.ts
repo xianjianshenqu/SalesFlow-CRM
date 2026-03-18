@@ -1,4 +1,4 @@
-import type { Customer, Stage, Priority, CustomerSource } from '../types';
+import type { Customer, Stage } from '../types';
 
 // 客户Mock数据
 export const mockCustomers: Customer[] = [

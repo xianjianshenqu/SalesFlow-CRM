@@ -121,7 +121,8 @@ export class OpportunityService {
   }
 
   async getStats() {
-    const stages = ['new_lead', 'contacted', 'solution', 'negotiation', 'won'] as const;
+    // 完整的销售阶段列表 - 与前端 types/index.ts 保持一致
+    const stages = ['new_lead', 'contacted', 'solution', 'quoted', 'negotiation', 'procurement_process', 'contract_stage', 'won'] as const;
     
     const stageStats = await Promise.all(
       stages.map(async (stage) => {

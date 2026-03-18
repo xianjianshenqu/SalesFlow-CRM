@@ -1,4 +1,3 @@
-import { Fragment } from 'react';
 import type { AudioRecording, Sentiment } from '../../../types';
 import { getCustomerColor } from '../../../data/customers';
 

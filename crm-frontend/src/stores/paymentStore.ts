@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Payment } from '../types';
-import { mockPayments } from '../../data/payments';
+import { mockPayments } from '../data/payments';
 
 interface PaymentState {
   payments: Payment[];

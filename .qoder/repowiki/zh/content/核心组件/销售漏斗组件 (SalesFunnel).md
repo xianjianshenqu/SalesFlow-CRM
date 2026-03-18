@@ -2,313 +2,348 @@
 
 <cite>
 **本文引用的文件**
-- [SalesFunnel.tsx](file://crm-frontend/src/components/SalesFunnel.tsx)
+- [index.tsx](file://crm-frontend/src/pages/SalesFunnel/index.tsx)
+- [funnelStore.ts](file://crm-frontend/src/stores/funnelStore.ts)
+- [index.ts](file://crm-frontend/src/types/index.ts)
+- [opportunities.ts](file://crm-frontend/src/data/opportunities.ts)
 - [App.tsx](file://crm-frontend/src/App.tsx)
-- [StatsCards.tsx](file://crm-frontend/src/components/StatsCards.tsx)
-- [Header.tsx](file://crm-frontend/src/components/Header.tsx)
-- [index.css](file://crm-frontend/src/index.css)
-- [package.json](file://crm-frontend/package.json)
-- [vite.config.ts](file://crm-frontend/vite.config.ts)
+- [Layout.tsx](file://crm-frontend/src/components/layout/Layout.tsx)
+- [index.ts](file://crm-frontend/src/stores/index.ts)
 </cite>
+
+## 更新摘要
+**所做变更**
+- 完全重构销售漏斗页面架构，从静态演示界面升级为交互式生产就绪应用
+- 新增基于Zustand的状态管理架构，实现完整的CRUD操作
+- 集成拖拽功能，支持卡片在不同阶段间移动
+- 实现编辑模态框和删除确认对话框
+- 新增客户添加表单，支持快速创建新的销售机会
+- 采用响应式设计和现代化UI组件
 
 ## 目录
 1. [简介](#简介)
-2. [项目结构](#项目结构)
+2. [架构总览](#架构总览)
 3. [核心组件](#核心组件)
-4. [架构总览](#架构总览)
-5. [详细组件分析](#详细组件分析)
-6. [依赖关系分析](#依赖关系分析)
-7. [性能考虑](#性能考虑)
-8. [故障排除指南](#故障排除指南)
-9. [结论](#结论)
-10. [附录](#附录)
+4. [状态管理架构](#状态管理架构)
+5. [交互功能详解](#交互功能详解)
+6. [数据模型与类型系统](#数据模型与类型系统)
+7. [拖拽与移动机制](#拖拽与移动机制)
+8. [用户界面组件](#用户界面组件)
+9. [统计与分析功能](#统计与分析功能)
+10. [路由与导航集成](#路由与导航集成)
+11. [样式与主题系统](#样式与主题系统)
+12. [扩展开发指南](#扩展开发指南)
 
 ## 简介
-本文件为销售AI CRM系统的 SalesFunnel（销售漏斗）组件提供完整的技术文档。该组件用于可视化展示销售流程的各个阶段及其转化情况，包括阶段标签、百分比进度条与颜色编码体系。文档涵盖组件的实现原理、数据流、交互逻辑、API 接口、配置选项、自定义样式方法、使用示例、数据格式要求以及扩展开发指南。
+SalesFunnel（销售漏斗）组件现已完全重构为交互式生产就绪应用，基于现代React生态系统构建。该组件提供完整的销售机会管理功能，包括实时拖拽、编辑、删除、添加等CRUD操作，以及丰富的统计分析和可视化展示。
 
-## 项目结构
-SalesFunnel 组件位于前端工程的组件目录中，采用函数式组件与 TypeScript 实现，配合 TailwindCSS 进行样式管理。组件在应用主页面中被引入并渲染，作为仪表盘的一部分展示销售概览。
-
-```mermaid
-graph TB
-subgraph "前端应用"
-App["App.tsx<br/>应用入口"]
-SF["SalesFunnel.tsx<br/>销售漏斗组件"]
-SC["StatsCards.tsx<br/>统计卡片组件"]
-HD["Header.tsx<br/>头部组件"]
-end
-subgraph "样式与主题"
-ICSS["index.css<br/>全局样式与主题变量"]
-end
-App --> SF
-App --> SC
-App --> HD
-SF --> ICSS
-SC --> ICSS
-HD --> ICSS
-```
-
-**图表来源**
-- [App.tsx:10-55](file://crm-frontend/src/App.tsx#L10-L55)
-- [SalesFunnel.tsx:29-63](file://crm-frontend/src/components/SalesFunnel.tsx#L29-L63)
-- [StatsCards.tsx:35-78](file://crm-frontend/src/components/StatsCards.tsx#L35-L78)
-- [Header.tsx:3-49](file://crm-frontend/src/components/Header.tsx#L3-L49)
-- [index.css:1-66](file://crm-frontend/src/index.css#L1-L66)
-
-**章节来源**
-- [App.tsx:10-55](file://crm-frontend/src/App.tsx#L10-L55)
-- [SalesFunnel.tsx:29-63](file://crm-frontend/src/components/SalesFunnel.tsx#L29-L63)
-- [index.css:1-66](file://crm-frontend/src/index.css#L1-L66)
-
-## 核心组件
-SalesFunnel 组件由两个主要部分组成：
-- FunnelStage 子组件：负责单个漏斗阶段的渲染，包括阶段名称、百分比数值与进度条。
-- SalesFunnel 主组件：负责整体布局、标题、指标展示与阶段列表渲染。
-
-组件通过一个阶段数组进行数据驱动渲染，每个阶段对象包含标签、百分比与颜色类名三项属性。
-
-**章节来源**
-- [SalesFunnel.tsx:3-27](file://crm-frontend/src/components/SalesFunnel.tsx#L3-L27)
-- [SalesFunnel.tsx:29-63](file://crm-frontend/src/components/SalesFunnel.tsx#L29-L63)
+**更新** 从静态演示界面升级为功能完整的交互式应用，集成了完整的状态管理和用户交互功能。
 
 ## 架构总览
-SalesFunnel 的数据流从主组件的阶段数组开始，逐项传递给 FunnelStage 子组件，子组件根据传入的百分比与颜色类名渲染进度条宽度与配色。主组件还负责顶部标题、指标与趋势展示区域的渲染。
-
-```mermaid
-sequenceDiagram
-participant App as "App.tsx"
-participant SF as "SalesFunnel 组件"
-participant FS as "FunnelStage 子组件"
-App->>SF : 渲染 SalesFunnel
-SF->>SF : 定义阶段数组
-loop 遍历阶段
-SF->>FS : 传递 {label, percentage, color}
-FS->>FS : 渲染标签与百分比
-FS->>FS : 计算进度条宽度
-FS-->>SF : 返回阶段行元素
-end
-SF-->>App : 渲染完成的整体漏斗
-```
-
-**图表来源**
-- [App.tsx:34-35](file://crm-frontend/src/App.tsx#L34-L35)
-- [SalesFunnel.tsx:29-63](file://crm-frontend/src/components/SalesFunnel.tsx#L29-L63)
-- [SalesFunnel.tsx:57-59](file://crm-frontend/src/components/SalesFunnel.tsx#L57-L59)
-
-## 详细组件分析
-
-### FunnelStage 子组件
-FunnelStage 负责单个漏斗阶段的 UI 渲染，接收以下属性：
-- label：阶段名称（字符串）
-- percentage：阶段转化百分比（数字）
-- color：颜色类名（字符串）
-
-渲染内容包括：
-- 左侧圆点徽标与阶段名称
-- 右侧百分比数值
-- 进度条容器与填充条，宽度由百分比决定
-
-进度条具备过渡动画效果，以提升视觉体验。
-
-```mermaid
-classDiagram
-class FunnelStage {
-+string label
-+number percentage
-+string color
-+render() void
-}
-```
-
-**图表来源**
-- [SalesFunnel.tsx:3-27](file://crm-frontend/src/components/SalesFunnel.tsx#L3-L27)
-
-**章节来源**
-- [SalesFunnel.tsx:9-27](file://crm-frontend/src/components/SalesFunnel.tsx#L9-L27)
-
-### SalesFunnel 主组件
-SalesFunnel 主组件负责整体布局与数据准备：
-- 定义阶段数组，包含多个阶段对象
-- 渲染标题与指标区域（含趋势图标与数值）
-- 遍历阶段数组，将每个阶段渲染为 FunnelStage 子组件
-
-阶段数组当前硬编码了五个典型销售阶段，分别对应不同的颜色类名，便于快速区分各阶段状态。
-
-```mermaid
-flowchart TD
-Start(["进入 SalesFunnel"]) --> DefineStages["定义阶段数组"]
-DefineStages --> RenderHeader["渲染标题与指标"]
-RenderHeader --> LoopStages{"遍历阶段"}
-LoopStages --> |是| RenderStage["渲染 FunnelStage"]
-RenderStage --> LoopStages
-LoopStages --> |否| End(["渲染完成"])
-```
-
-**图表来源**
-- [SalesFunnel.tsx:29-63](file://crm-frontend/src/components/SalesFunnel.tsx#L29-L63)
-
-**章节来源**
-- [SalesFunnel.tsx:29-63](file://crm-frontend/src/components/SalesFunnel.tsx#L29-L63)
-
-### 数据模型与类型定义
-组件使用 TypeScript 接口定义阶段属性，确保类型安全与可维护性。
-
-```mermaid
-erDiagram
-FUNNEL_STAGE {
-string label
-number percentage
-string color
-}
-```
-
-**图表来源**
-- [SalesFunnel.tsx:3-7](file://crm-frontend/src/components/SalesFunnel.tsx#L3-L7)
-
-**章节来源**
-- [SalesFunnel.tsx:3-7](file://crm-frontend/src/components/SalesFunnel.tsx#L3-L7)
-
-### 颜色编码系统
-组件通过颜色类名对不同阶段进行视觉编码，当前使用如下颜色类：
-- bg-primary-500
-- bg-cyan-500
-- bg-violet-500
-- bg-amber-500
-- bg-emerald-500
-
-这些类名依赖 TailwindCSS 的颜色系统，可在主题中进行统一调整。
-
-**章节来源**
-- [SalesFunnel.tsx:30-36](file://crm-frontend/src/components/SalesFunnel.tsx#L30-L36)
-
-### 进度条绘制技术
-进度条采用 HTML 结构与内联样式的组合：
-- 外层容器提供背景与圆角
-- 内层填充条根据 percentage 动态设置宽度
-- 使用过渡动画使宽度变化更平滑
-
-```mermaid
-flowchart TD
-Enter(["FunnelStage 渲染"]) --> Container["外层容器"]
-Container --> InnerBar["内层填充条"]
-InnerBar --> CalcWidth["根据 percentage 计算宽度"]
-CalcWidth --> Transition["应用过渡动画"]
-Transition --> Rendered["渲染完成"]
-```
-
-**图表来源**
-- [SalesFunnel.tsx:18-23](file://crm-frontend/src/components/SalesFunnel.tsx#L18-L23)
-
-**章节来源**
-- [SalesFunnel.tsx:18-23](file://crm-frontend/src/components/SalesFunnel.tsx#L18-L23)
-
-### 转化率计算算法
-当前组件中的百分比值为硬编码数据，未包含动态计算逻辑。若需实现动态转化率计算，建议在父组件或外部数据源中计算每个阶段的转化率，再传递给 SalesFunnel 组件。
-
-```mermaid
-flowchart TD
-Start(["开始计算"]) --> GetCounts["获取阶段数量"]
-GetCounts --> ComputeRate["计算转化率 = 当前阶段数量 / 上一阶段数量"]
-ComputeRate --> Clamp["限制范围 0-100"]
-Clamp --> PassToUI["传递给 UI 组件"]
-PassToUI --> End(["结束"])
-```
-
-[此图为概念性流程图，不直接映射到具体源码文件]
-
-## 依赖关系分析
-SalesFunnel 组件的运行依赖于以下外部库与工具：
-- React：组件框架
-- lucide-react：图标库
-- TailwindCSS：原子化样式系统
-- Vite：构建与开发服务器
+SalesFunnel采用分层架构设计，包含UI组件层、状态管理层、数据访问层和路由层：
 
 ```mermaid
 graph TB
-SF["SalesFunnel.tsx"] --> React["react"]
-SF --> Icons["lucide-react"]
-SF --> Tailwind["tailwindcss"]
-App["App.tsx"] --> SF
-Build["vite.config.ts"] --> Dev["Vite 开发服务器"]
+subgraph "UI组件层"
+SF["SalesFunnel 主组件"]
+SC["StageColumn 阶段列"]
+OC["OpportunityCard 机会卡片"]
+EM["EditOpportunityModal 编辑模态框"]
+DC["DeleteConfirmDialog 删除确认框"]
+ACF["AddCustomerForm 添加表单"]
+FS["FunnelStats 统计卡片"]
+end
+subgraph "状态管理层"
+US["useFunnelStore Zustand Store"]
+end
+subgraph "数据层"
+MO["mockOpportunities Mock数据"]
+OT["Opportunity 类型定义"]
+ST["Stage 类型定义"]
+end
+subgraph "路由层"
+AP["App 路由配置"]
+LY["Layout 布局组件"]
+end
+SF --> SC
+SC --> OC
+OC --> EM
+OC --> DC
+SC --> ACF
+SF --> FS
+SF --> US
+US --> MO
+US --> OT
+US --> ST
+AP --> LY
+LY --> SF
 ```
 
 **图表来源**
-- [SalesFunnel.tsx:1](file://crm-frontend/src/components/SalesFunnel.tsx#L1)
-- [package.json:12-17](file://crm-frontend/package.json#L12-L17)
-- [vite.config.ts:1-8](file://crm-frontend/vite.config.ts#L1-L8)
+- [index.tsx:542-676](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L542-L676)
+- [funnelStore.ts:18-76](file://crm-frontend/src/stores/funnelStore.ts#L18-L76)
+- [App.tsx:35-78](file://crm-frontend/src/App.tsx#L35-L78)
+
+## 核心组件
+SalesFunnel应用包含以下核心组件：
+
+### 主要组件结构
+- **SalesFunnel 主组件**：应用入口，管理全局状态和路由
+- **StageColumn 阶段列**：渲染单个销售阶段的所有机会卡片
+- **OpportunityCard 机会卡片**：显示单个销售机会的详细信息
+- **EditOpportunityModal 编辑模态框**：提供机会信息编辑功能
+- **DeleteConfirmDialog 删除确认框**：确认删除操作的安全机制
+- **AddCustomerForm 添加表单**：快速创建新的销售机会
+- **FunnelStats 统计卡片**：展示漏斗总体统计数据
 
 **章节来源**
-- [package.json:12-17](file://crm-frontend/package.json#L12-L17)
-- [vite.config.ts:1-8](file://crm-frontend/vite.config.ts#L1-L8)
+- [index.tsx:542-676](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L542-L676)
+- [index.tsx:244-342](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L244-L342)
+- [index.tsx:69-242](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L69-L242)
 
-## 性能考虑
-- 列表渲染：使用 map 遍历阶段数组，保持键值稳定（索引）即可满足基本需求。
-- 进度条动画：过渡动画时长固定，避免过度复杂的动画影响性能。
-- 样式复用：通过 Tailwind 类名减少自定义 CSS 数量，提高样式编译效率。
+## 状态管理架构
+应用采用Zustand状态管理库实现集中式状态管理：
 
-[本节为通用性能建议，不直接分析具体文件]
+### Zustand Store 设计
+```mermaid
+classDiagram
+class FunnelState {
++Opportunity[] opportunities
++Stage selectedStage
++addOpportunity(Opportunity) void
++updateOpportunity(string, Partial~Opportunity~) void
++deleteOpportunity(string) void
++moveOpportunity(string, Stage) void
++setSelectedStage(Stage | 'all') void
++getOpportunitiesByStage(Stage) Opportunity[]
++getStageStats() StageStats[]
+}
+class useFunnelStore {
++getState() FunnelState
++setState(FunnelState) void
++subscribe(Function) Function
++persist(Function) Function
+}
+```
 
-## 故障排除指南
-- 图标显示异常：确认 lucide-react 版本与导入路径正确。
-- 颜色类名无效：检查 TailwindCSS 配置是否包含所需颜色类，或在主题中添加自定义颜色。
-- 进度条不显示：确认 percentage 值在 0-100 范围内，且容器宽度设置正确。
-- 样式冲突：检查全局样式与组件局部样式的优先级，必要时使用更具体的选择器或层叠规则。
+**图表来源**
+- [funnelStore.ts:6-16](file://crm-frontend/src/stores/funnelStore.ts#L6-L16)
 
-**章节来源**
-- [SalesFunnel.tsx:18-23](file://crm-frontend/src/components/SalesFunnel.tsx#L18-L23)
-- [index.css:1-66](file://crm-frontend/src/index.css#L1-L66)
-
-## 结论
-SalesFunnel 组件通过清晰的数据驱动结构与简洁的 UI 设计，实现了销售漏斗的可视化展示。其模块化设计便于扩展与定制，建议在实际业务场景中结合外部数据源实现动态转化率计算，并通过主题系统统一管理颜色与样式。
-
-## 附录
-
-### 组件 API 接口与配置选项
-- FunnelStageProps
-  - label: string —— 阶段名称
-  - percentage: number —— 转化百分比（0-100）
-  - color: string —— 颜色类名（如 bg-primary-500）
-
-- SalesFunnel
-  - 无外部 props，内部维护阶段数组
-  - 支持通过修改阶段数组实现不同业务场景的漏斗配置
-
-**章节来源**
-- [SalesFunnel.tsx:3-7](file://crm-frontend/src/components/SalesFunnel.tsx#L3-L7)
-- [SalesFunnel.tsx:29-36](file://crm-frontend/src/components/SalesFunnel.tsx#L29-L36)
-
-### 自定义样式方法
-- 颜色系统：通过 TailwindCSS 的颜色类名控制阶段颜色；可在主题中添加自定义颜色变量。
-- 进度条样式：可通过修改容器与填充条的类名或内联样式调整尺寸与动画。
-- 布局样式：通过外层容器类名控制边框、阴影、圆角等外观。
+### Store 方法详解
+- **addOpportunity**：添加新的销售机会
+- **updateOpportunity**：更新现有机会信息
+- **deleteOpportunity**：删除指定机会
+- **moveOpportunity**：移动机会到新阶段
+- **getOpportunitiesByStage**：按阶段过滤机会
+- **getStageStats**：计算各阶段统计信息
 
 **章节来源**
-- [SalesFunnel.tsx:18-23](file://crm-frontend/src/components/SalesFunnel.tsx#L18-L23)
-- [index.css:1-15](file://crm-frontend/src/index.css#L1-L15)
+- [funnelStore.ts:18-76](file://crm-frontend/src/stores/funnelStore.ts#L18-L76)
 
-### 使用示例
-- 在应用中引入 SalesFunnel 并放置在合适的位置（如仪表盘网格布局中）。
-- 如需自定义阶段，请修改 SalesFunnel 中的阶段数组，确保每项包含 label、percentage、color 字段。
+## 交互功能详解
+应用提供了丰富的用户交互功能：
+
+### 拖拽功能实现
+```mermaid
+sequenceDiagram
+participant U as 用户
+participant OC as OpportunityCard
+participant SF as SalesFunnel
+participant US as useFunnelStore
+U->>OC : 拖拽机会卡片
+OC->>OC : handleDragStart()
+OC->>SF : onDragStart(event, opportunity)
+SF->>SF : 设置拖拽状态
+U->>SC : 拖拽到目标阶段
+SC->>SF : onDrop(event, stage)
+SF->>US : moveOpportunity(id, newStage)
+US->>US : 更新状态
+SF->>SF : 重新渲染界面
+```
+
+**图表来源**
+- [index.tsx:561-576](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L561-L576)
+
+### 编辑与删除功能
+- **编辑模态框**：提供完整的表单验证和数据持久化
+- **删除确认对话框**：防止误操作的安全机制
+- **实时状态同步**：所有操作立即反映在UI中
 
 **章节来源**
-- [App.tsx:34-35](file://crm-frontend/src/App.tsx#L34-L35)
-- [SalesFunnel.tsx:30-36](file://crm-frontend/src/components/SalesFunnel.tsx#L30-L36)
+- [index.tsx:69-242](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L69-L242)
+- [index.tsx:25-67](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L25-L67)
 
-### 数据格式要求
-- 阶段数组应为对象数组，对象包含以下字段：
-  - label: string
-  - percentage: number（0-100）
-  - color: string（TailwindCSS 颜色类名）
+## 数据模型与类型系统
+应用采用强类型设计，确保数据一致性和开发体验：
+
+### 核心数据类型
+```mermaid
+erDiagram
+OPPORTUNITY {
+string id PK
+string customerId
+string customerName
+string title
+Stage stage
+number value
+number probability
+string owner
+Priority priority
+string expectedCloseDate
+string lastActivity
+string description
+string nextStep
+}
+STAGE {
+string new_lead
+string contacted
+string solution
+string quoted
+string negotiation
+string procurement_process
+string contract_stage
+string won
+}
+PRIORITY {
+string high
+string medium
+string low
+}
+```
+
+**图表来源**
+- [index.ts:39-55](file://crm-frontend/src/types/index.ts#L39-L55)
+- [index.ts:1-2](file://crm-frontend/src/types/index.ts#L1-L2)
+- [index.ts:4-5](file://crm-frontend/src/types/index.ts#L4-L5)
+
+### Mock 数据系统
+应用使用mock数据提供初始状态，包含9个预定义的销售机会，覆盖所有销售阶段。
 
 **章节来源**
-- [SalesFunnel.tsx:30-36](file://crm-frontend/src/components/SalesFunnel.tsx#L30-L36)
+- [opportunities.ts:3-169](file://crm-frontend/src/data/opportunities.ts#L3-L169)
+- [index.ts:1-677](file://crm-frontend/src/types/index.ts#L1-L677)
 
-### 扩展开发指南
-- 动态数据源：在父组件中从后端 API 获取阶段数据，计算转化率后再传递给 SalesFunnel。
-- 交互增强：为阶段添加点击事件或悬停提示，展示更详细的统计信息。
-- 主题适配：通过主题变量统一管理颜色与字体，确保跨组件一致性。
-- 响应式优化：在小屏设备上调整布局与字体大小，保证可读性。
+## 拖拽与移动机制
+应用实现了完整的拖拽功能，支持跨阶段移动销售机会：
+
+### 拖拽事件处理
+- **handleDragStart**：设置拖拽数据传输
+- **handleDragOver**：允许放置操作
+- **handleDrop**：执行移动操作并更新状态
+
+### 阶段配置
+```javascript
+const stages: Stage[] = [
+  'new_lead',
+  'quoted', 
+  'negotiation',
+  'procurement_process',
+  'contract_stage',
+  'won'
+];
+```
 
 **章节来源**
-- [SalesFunnel.tsx:29-63](file://crm-frontend/src/components/SalesFunnel.tsx#L29-L63)
-- [index.css:1-66](file://crm-frontend/src/index.css#L1-L66)
+- [index.tsx:549-559](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L549-L559)
+- [index.tsx:561-576](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L561-L576)
+
+## 用户界面组件
+应用采用现代化的UI设计，提供良好的用户体验：
+
+### 主要UI组件
+- **机会卡片**：显示机会详情，支持悬停操作按钮
+- **阶段列**：组织和展示各阶段的机会
+- **统计卡片**：提供漏斗总体指标
+- **表单组件**：支持数据输入和验证
+
+### 响应式设计
+- 支持桌面和移动设备
+- 自适应布局和字体大小
+- 触摸友好的交互元素
+
+**章节来源**
+- [index.tsx:244-342](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L244-L342)
+- [index.tsx:424-509](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L424-L509)
+
+## 统计与分析功能
+应用内置多种统计分析功能：
+
+### 漏斗统计
+- **总机会数**：所有销售机会的总数
+- **总价值**：所有机会的金额总和
+- **加权价值**：考虑成交概率的价值计算
+- **平均成交率**：所有机会的平均成交概率
+
+### 计算公式
+- 加权价值 = Σ(机会价值 × 成交概率/100)
+- 平均成交率 = Σ(所有机会概率) / 机会总数
+
+**章节来源**
+- [index.tsx:511-540](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L511-L540)
+
+## 路由与导航集成
+应用通过React Router实现路由管理：
+
+### 路由配置
+```mermaid
+graph LR
+AP["App 路由"] --> LY["Layout 布局"]
+LY --> D["Dashboard 仪表盘"]
+LY --> C["Customers 客户管理"]
+LY --> F["SalesFunnel 销售漏斗"]
+LY --> P["Proposals 方案管理"]
+LY --> S["Service 服务管理"]
+LY --> M["Map 地图"]
+LY --> T["Team 团队"]
+```
+
+**图表来源**
+- [App.tsx:35-78](file://crm-frontend/src/App.tsx#L35-L78)
+
+### 导航集成
+- 通过Layout组件集成侧边栏导航
+- 支持面包屑导航和页面标题
+- 响应式移动端导航
+
+**章节来源**
+- [App.tsx:35-78](file://crm-frontend/src/App.tsx#L35-L78)
+- [Layout.tsx:9-24](file://crm-frontend/src/components/layout/Layout.tsx#L9-L24)
+
+## 样式与主题系统
+应用采用TailwindCSS和深色模式支持：
+
+### 主题配置
+- **浅色模式**：白色背景，深色文字
+- **深色模式**：深灰背景，浅色文字
+- **响应式设计**：自动适配不同屏幕尺寸
+
+### 颜色系统
+- **阶段颜色**：每个销售阶段有独特的颜色标识
+- **优先级颜色**：高、中、低优先级不同颜色
+- **状态颜色**：成功、警告、错误等状态色彩
+
+**章节来源**
+- [index.tsx:13-23](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L13-L23)
+- [index.ts:252-262](file://crm-frontend/src/types/index.ts#L252-L262)
+
+## 扩展开发指南
+应用提供了良好的扩展基础：
+
+### 状态扩展
+- 可添加更多业务状态字段
+- 支持复杂的数据过滤和排序
+- 集成实时数据同步
+
+### 功能扩展
+- 添加更多交互操作
+- 集成第三方API
+- 扩展报告生成功能
+
+### 性能优化
+- 实现虚拟滚动处理大量数据
+- 添加数据缓存机制
+- 优化渲染性能
+
+**章节来源**
+- [funnelStore.ts:18-76](file://crm-frontend/src/stores/funnelStore.ts#L18-L76)
+- [index.tsx:542-676](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L542-L676)

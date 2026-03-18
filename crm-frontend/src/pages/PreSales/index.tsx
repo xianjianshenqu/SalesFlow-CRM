@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 // 活动类型配置 - 更精致的渐变标签
@@ -49,7 +48,7 @@ const mockResources = [
 ];
 
 // 资源状态指示器
-function ResourceStatusDot({ status }: { status: 'available' | 'busy' | 'offline' }) {
+export function _ResourceStatusDot({ status }: { status: 'available' | 'busy' | 'offline' }) {
   const colors = {
     available: 'bg-emerald-500',
     busy: 'bg-amber-500',
@@ -340,7 +339,7 @@ function PendingQuestions() {
         </span>
       </div>
       <div className="divide-y divide-slate-100 dark:divide-slate-800">
-        {mockQuestions.map((q, index) => (
+        {mockQuestions.map((q) => (
           <div key={q.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all duration-300 group cursor-pointer">
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">

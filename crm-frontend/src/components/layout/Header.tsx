@@ -6,7 +6,7 @@ interface HeaderProps {
   title?: string;
 }
 
-export function Header({ title = '工作台' }: HeaderProps) {
+export function Header({ title: _title = '工作台' }: HeaderProps) {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const [searchValue, setSearchValue] = useState('');

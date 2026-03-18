@@ -13,11 +13,11 @@ const mockServiceItems = [
     endDate: '2024-06-30',
     techLead: '张工程师',
     milestones: [
-      { name: '需求调研', status: 'completed' },
-      { name: '系统部署', status: 'completed' },
-      { name: '数据迁移', status: 'in_progress' },
-      { name: '用户培训', status: 'pending' },
-      { name: '验收交付', status: 'pending' }
+      { name: '需求调研', status: 'completed' as const },
+      { name: '系统部署', status: 'completed' as const },
+      { name: '数据迁移', status: 'in_progress' as const },
+      { name: '用户培训', status: 'pending' as const },
+      { name: '验收交付', status: 'pending' as const }
     ]
   },
   {
@@ -31,10 +31,10 @@ const mockServiceItems = [
     endDate: '2023-12-31',
     techLead: '李工程师',
     milestones: [
-      { name: '环境搭建', status: 'completed' },
-      { name: '模型部署', status: 'in_progress' },
-      { name: '性能测试', status: 'pending' },
-      { name: '上线运维', status: 'pending' }
+      { name: '环境搭建', status: 'completed' as const },
+      { name: '模型部署', status: 'in_progress' as const },
+      { name: '性能测试', status: 'pending' as const },
+      { name: '上线运维', status: 'pending' as const }
     ]
   },
   {
@@ -48,10 +48,10 @@ const mockServiceItems = [
     endDate: '2024-02-28',
     techLead: '王工程师',
     milestones: [
-      { name: '项目启动', status: 'pending' },
-      { name: '需求确认', status: 'pending' },
-      { name: '开发实施', status: 'pending' },
-      { name: '测试验收', status: 'pending' }
+      { name: '项目启动', status: 'pending' as const },
+      { name: '需求确认', status: 'pending' as const },
+      { name: '开发实施', status: 'pending' as const },
+      { name: '测试验收', status: 'pending' as const }
     ]
   }
 ];

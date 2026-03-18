@@ -18,7 +18,7 @@ export function DingTalkStatusCard({
   weekCount,
   aiAccuracy,
   onSync,
-  onSettings,
+  onSettings: _onSettings,
   isSyncing,
 }: DingTalkStatusCardProps) {
   const [showSettings, setShowSettings] = useState(false);

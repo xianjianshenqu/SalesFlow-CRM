@@ -46,7 +46,7 @@ function PriorityBadge({ priority }: { priority: Customer['priority'] }) {
 }
 
 // 客户头像组件
-function CustomerAvatar({ name, shortName }: { name: string; shortName: string }) {
+function CustomerAvatar({ name: _name, shortName }: { name: string; shortName: string }) {
   const colorClass = getCustomerColor(shortName);
   return (
     <div className={`size-10 rounded-lg ${colorClass.bg} ${colorClass.text} flex items-center justify-center font-semibold text-sm shrink-0`}>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 // 活动类型
@@ -168,8 +168,8 @@ const mockActivities: PresalesActivity[] = [
 ];
 
 export default function ActivitiesList() {
-  const [activities, setActivities] = useState<PresalesActivity[]>(mockActivities);
-  const [loading, setLoading] = useState(false);
+  const [activities] = useState<PresalesActivity[]>(mockActivities);
+  const [loading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [typeFilter, setTypeFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
