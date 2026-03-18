@@ -41,11 +41,18 @@ enum TaskStatus {
 }
 
 enum ProposalStatus {
-  draft
-  sent
-  accepted
-  rejected
-  expired
+  draft                 // 草稿
+  requirement_analysis  // 需求分析中
+  designing             // 方案设计中
+  pending_review        // 待内部评审
+  review_passed         // 评审通过
+  review_rejected       // 评审驳回
+  customer_proposal     // 客户提案中
+  negotiation           // 商务谈判中
+  sent                  // 已发送
+  accepted              // 已接受
+  rejected              // 已拒绝
+  expired               // 已过期
 }
 
 enum TeamRole {
@@ -388,6 +395,12 @@ model Proposal {
   customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   owner      User?    @relation("ProposalOwner", fields: [ownerId], references: [id])
   createdBy  User?    @relation("ProposalCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  
+  // 新增关联
+  requirementAnalysis RequirementAnalysis?
+  review              ProposalReview?
+  customerProposal    CustomerProposalRecord?
+  negotiation         NegotiationRecord?
 
   @@index([customerId])
   @@index([status])
@@ -915,4 +928,149 @@ model ActivityQuestion {
   @@index([category])
   @@index([status])
   @@map("activity_questions")
+}
+
+// ==================== Proposal Enhanced Models ====================
+
+// 方案模板库
+model ProposalTemplate {
+  id          String   @id @default(uuid())
+  name        String
+  category    String   // 行业分类
+  description String?  @db.Text
+  content     String   @db.Text  // JSON格式模板内容
+  products    Json?    // 推荐产品配置
+  terms       String?  @db.Text  // 标准条款
+  tags        Json?    // string[] 标签
+  usageCount  Int      @default(0)
+  isActive    Boolean  @default(true)
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+  @@map("proposal_templates")
+}
+
+// 需求分析记录
+model RequirementAnalysis {
+  id           String   @id @default(uuid())
+  proposalId   String   @unique
+  customerId   String
+
+  // 需求来源
+  sourceType   String   // manual, ai_recording, ai_followup
+  recordingId  String?  // 关联录音
+
+  // 需求内容
+  rawContent   String?  @db.Text  // 原始输入/AI提取
+  aiEnhanced   Boolean  @default(false)
+  finalContent String?  @db.Text  // 最终确认的需求
+
+  // AI分析结果
+  extractedNeeds    Json?  // AI提取的需求列表
+  painPoints        Json?  // 痛点分析
+  budgetHint        Json?  // 预算线索
+  decisionTimeline  String?
+
+  // 状态
+  status       String   @default("draft")  // draft, confirmed
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@map("requirement_analyses")
+}
+
+// 内部评审记录
+model ProposalReview {
+  id           String   @id @default(uuid())
+  proposalId   String   @unique
+
+  // 评审状态
+  status       String   @default("pending")  // pending, approved, rejected
+
+  // 推送领导
+  reviewerId   String?  // 评审人ID
+
+  // 共享团队
+  sharedWith   Json?    // 共享的团队成员ID[]
+
+  // 评审意见
+  comments     Json?    // [{userId, comment, createdAt}]
+
+  // 结果
+  result       String?  // approved, rejected
+  resultNotes  String?  @db.Text
+  reviewedAt   DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@index([proposalId])
+  @@index([status])
+  @@map("proposal_reviews")
+}
+
+// 客户提案记录
+model CustomerProposalRecord {
+  id             String   @id @default(uuid())
+  proposalId     String   @unique
+
+  // 邮件信息
+  emailTo        String   // 收件人
+  emailCc        Json?    // 抄送列表
+  emailSubject   String?
+  emailBody      String?  @db.Text
+
+  // 发送状态
+  sendStatus     String   @default("draft")  // draft, sent, delivered, opened, failed
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  openedAt       DateTime?
+  openCount      Int      @default(0)
+
+  // 链接跟踪
+  trackingToken  String?  @unique
+  viewUrl        String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@index([proposalId])
+  @@index([sendStatus])
+  @@map("customer_proposal_records")
+}
+
+// 商务谈判记录
+model NegotiationRecord {
+  id           String   @id @default(uuid())
+  proposalId   String   @unique
+
+  // 谈判记录
+  discussions  Json?    // [{date, content, participants}]
+
+  // 条款确认
+  agreedTerms  Json?    // 确认的条款
+
+  // 最终文档
+  finalDocumentUrl String?
+
+  // 状态
+  status       String   @default("ongoing")  // ongoing, completed, cancelled
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  proposal Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+
+  @@index([proposalId])
+  @@index([status])
+  @@map("negotiation_records")
 }

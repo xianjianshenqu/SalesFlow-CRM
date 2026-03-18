@@ -514,6 +514,665 @@ ${Array.isArray(proposal.products) && proposal.products.length > 0
       },
     });
   }
+
+  // ==================== 模板管理方法 ====================
+
+  /**
+   * 获取模板列表
+   */
+  async getTemplates(query: { page: number; limit: number; category?: string; search?: string }) {
+    const { page, limit, category, search } = query;
+    const skip = (page - 1) * limit;
+
+    const where: any = { isActive: true };
+    if (category) where.category = category;
+    if (search) {
+      where.OR = [
+        { name: { contains: search } },
+        { description: { contains: search } },
+      ];
+    }
+
+    const [total, templates] = await Promise.all([
+      (this.prisma as any).proposalTemplate.count({ where }),
+      (this.prisma as any).proposalTemplate.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { usageCount: 'desc' },
+      }),
+    ]);
+
+    return {
+      data: templates,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  /**
+   * 创建模板
+   */
+  async createTemplate(data: any, userId: string) {
+    return (this.prisma as any).proposalTemplate.create({
+      data: {
+        ...data,
+        createdById: userId,
+      },
+    });
+  }
+
+  /**
+   * 克隆模板
+   */
+  async cloneTemplate(templateId: string, userId: string) {
+    const template = await (this.prisma as any).proposalTemplate.findUnique({
+      where: { id: templateId },
+    });
+    if (!template) throw new Error('模板不存在');
+
+    return (this.prisma as any).proposalTemplate.create({
+      data: {
+        name: `${template.name} (副本)`,
+        category: template.category,
+        description: template.description,
+        content: template.content,
+        products: template.products,
+        terms: template.terms,
+        tags: template.tags,
+        createdById: userId,
+      },
+    });
+  }
+
+  // ==================== 需求分析阶段方法 ====================
+
+  /**
+   * 创建需求分析
+   */
+  async createRequirementAnalysis(proposalId: string, data: any) {
+    // 更新方案状态
+    await this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'requirement_analysis' as any },
+    });
+
+    return (this.prisma as any).requirementAnalysis.create({
+      data: {
+        proposalId,
+        customerId: data.customerId,
+        sourceType: data.sourceType,
+        recordingId: data.recordingId,
+        rawContent: data.rawContent,
+      },
+    });
+  }
+
+  /**
+   * 获取需求分析
+   */
+  async getRequirementAnalysis(proposalId: string) {
+    return (this.prisma as any).requirementAnalysis.findUnique({
+      where: { proposalId },
+    });
+  }
+
+  /**
+   * 更新需求分析
+   */
+  async updateRequirementAnalysis(proposalId: string, data: any) {
+    return (this.prisma as any).requirementAnalysis.update({
+      where: { proposalId },
+      data: {
+        ...data,
+        aiEnhanced: data.extractedNeeds !== undefined,
+      },
+    });
+  }
+
+  /**
+   * AI分析需求
+   */
+  async aiAnalyzeRequirement(proposalId: string, sourceType: string, recordingId?: string) {
+    const proposal = await this.getById(proposalId);
+    if (!proposal) throw new Error('方案不存在');
+
+    // 获取相关数据进行AI分析
+    let analysisResult: any = {
+      extractedNeeds: [],
+      painPoints: [],
+      budgetHint: null,
+      decisionTimeline: null,
+    };
+
+    if (sourceType === 'recording' && recordingId) {
+      // 从录音分析
+      const recording = await this.prisma.audioRecording.findUnique({
+        where: { id: recordingId },
+        select: {
+          summary: true,
+          keywords: true,
+          keyPoints: true,
+          transcript: true,
+        },
+      });
+      if (recording) {
+        analysisResult = this.extractNeedsFromRecording(recording);
+      }
+    }
+
+    // 更新需求分析记录
+    await (this.prisma as any).requirementAnalysis.update({
+      where: { proposalId },
+      data: {
+        extractedNeeds: analysisResult.extractedNeeds,
+        painPoints: analysisResult.painPoints,
+        budgetHint: analysisResult.budgetHint,
+        decisionTimeline: analysisResult.decisionTimeline,
+        aiEnhanced: true,
+      },
+    });
+
+    return analysisResult;
+  }
+
+  /**
+   * AI补充需求
+   */
+  async aiEnhanceRequirement(proposalId: string) {
+    const analysis = await this.getRequirementAnalysis(proposalId);
+    if (!analysis) throw new Error('需求分析不存在');
+
+    // 模拟AI增强逻辑
+    const enhancedContent = `${analysis.rawContent || ''}\n\n【AI补充分析】\n- 建议关注客户的数字化转型需求\n- 可能存在预算审批流程\n- 推荐在下一阶段提供技术演示`;
+
+    return (this.prisma as any).requirementAnalysis.update({
+      where: { proposalId },
+      data: {
+        rawContent: enhancedContent,
+        aiEnhanced: true,
+      },
+    });
+  }
+
+  /**
+   * 确认需求分析
+   */
+  async confirmRequirementAnalysis(proposalId: string, finalContent: string) {
+    // 更新需求分析状态
+    await (this.prisma as any).requirementAnalysis.update({
+      where: { proposalId },
+      data: {
+        status: 'confirmed',
+        finalContent,
+      },
+    });
+
+    // 更新方案状态到设计阶段
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'designing' as any },
+    });
+  }
+
+  // ==================== 方案设计阶段方法 ====================
+
+  /**
+   * 开始方案设计
+   */
+  async startDesign(proposalId: string) {
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'designing' as any },
+    });
+  }
+
+  /**
+   * AI匹配模板
+   */
+  async matchTemplate(proposalId: string, criteria: { industry?: string; needs?: string[]; budget?: number }) {
+    const proposal = await this.getById(proposalId);
+    if (!proposal) throw new Error('方案不存在');
+
+    // 获取所有活跃模板
+    const templates = await (this.prisma as any).proposalTemplate.findMany({
+      where: { isActive: true },
+    });
+
+    // 计算匹配分数
+    const matchedTemplates = templates.map((template: any) => {
+      let score = 0;
+      
+      // 行业匹配
+      if (criteria.industry && template.category === criteria.industry) {
+        score += 40;
+      }
+      
+      // 预算匹配
+      if (criteria.budget && template.products) {
+        const templateValue = (template.products as any[]).reduce((sum: number, p: any) => sum + (p.totalPrice || 0), 0);
+        const diff = Math.abs(criteria.budget - templateValue);
+        if (diff < criteria.budget * 0.1) score += 30;
+        else if (diff < criteria.budget * 0.3) score += 20;
+        else if (diff < criteria.budget * 0.5) score += 10;
+      }
+      
+      // 需求匹配
+      if (criteria.needs && template.tags) {
+        const matchedTags = (criteria.needs as string[]).filter(n => 
+          (template.tags as string[]).some(t => t.toLowerCase().includes(n.toLowerCase()))
+        );
+        score += matchedTags.length * 10;
+      }
+
+      return { ...template, matchScore: Math.min(score, 100) };
+    });
+
+    // 按分数排序返回top 5
+    return matchedTemplates
+      .sort((a: any, b: any) => b.matchScore - a.matchScore)
+      .slice(0, 5);
+  }
+
+  /**
+   * 应用模板生成方案
+   */
+  async applyTemplate(proposalId: string, templateId: string) {
+    const template = await (this.prisma as any).proposalTemplate.findUnique({
+      where: { id: templateId },
+    });
+    if (!template) throw new Error('模板不存在');
+
+    // 增加模板使用次数
+    await (this.prisma as any).proposalTemplate.update({
+      where: { id: templateId },
+      data: { usageCount: { increment: 1 } },
+    });
+
+    // 更新方案内容
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: {
+        products: template.products,
+        terms: template.terms,
+        description: template.description,
+      },
+      include: {
+        customer: { select: { id: true, name: true, company: true } },
+      },
+    });
+  }
+
+  /**
+   * 更新方案设计内容
+   */
+  async updateDesign(proposalId: string, data: any) {
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: {
+        products: data.products,
+        terms: data.terms,
+        description: data.description,
+      },
+    });
+  }
+
+  /**
+   * 确认方案设计
+   */
+  async confirmDesign(proposalId: string) {
+    // 更新方案状态到内部评审
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'pending_review' as any },
+    });
+  }
+
+  // ==================== 内部评审阶段方法 ====================
+
+  /**
+   * 发起内部评审
+   */
+  async createReview(proposalId: string, data: { reviewerId?: string; sharedWith?: string[] }) {
+    // 创建评审记录
+    const review = await (this.prisma as any).proposalReview.create({
+      data: {
+        proposalId,
+        reviewerId: data.reviewerId,
+        sharedWith: data.sharedWith || [],
+        status: 'pending',
+      },
+    });
+
+    // 更新方案状态
+    await this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'pending_review' as any },
+    });
+
+    return review;
+  }
+
+  /**
+   * 获取评审信息
+   */
+  async getReview(proposalId: string) {
+    return (this.prisma as any).proposalReview.findUnique({
+      where: { proposalId },
+      include: {
+        proposal: {
+          include: {
+            customer: { select: { id: true, name: true, company: true } },
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * 添加评审意见
+   */
+  async addReviewComment(proposalId: string, userId: string, comment: string) {
+    const review = await this.getReview(proposalId);
+    if (!review) throw new Error('评审记录不存在');
+
+    const comments = review.comments || [];
+    comments.push({
+      userId,
+      comment,
+      createdAt: new Date().toISOString(),
+    });
+
+    return (this.prisma as any).proposalReview.update({
+      where: { proposalId },
+      data: { comments },
+    });
+  }
+
+  /**
+   * 评审通过
+   */
+  async approveReview(proposalId: string, resultNotes: string) {
+    await (this.prisma as any).proposalReview.update({
+      where: { proposalId },
+      data: {
+        status: 'approved',
+        result: 'approved',
+        resultNotes,
+        reviewedAt: new Date(),
+      },
+    });
+
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'review_passed' as any },
+    });
+  }
+
+  /**
+   * 评审驳回
+   */
+  async rejectReview(proposalId: string, resultNotes: string) {
+    await (this.prisma as any).proposalReview.update({
+      where: { proposalId },
+      data: {
+        status: 'rejected',
+        result: 'rejected',
+        resultNotes,
+        reviewedAt: new Date(),
+      },
+    });
+
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'review_rejected' as any },
+    });
+  }
+
+  // ==================== 客户提案阶段方法 ====================
+
+  /**
+   * 创建客户提案
+   */
+  async createCustomerProposalRecord(proposalId: string, data: { emailTo: string; emailCc?: string[]; emailSubject?: string; emailBody?: string }) {
+    const trackingToken = this.generateTrackingToken();
+
+    const customerProposal = await (this.prisma as any).customerProposalRecord.create({
+      data: {
+        proposalId,
+        emailTo: data.emailTo,
+        emailCc: data.emailCc,
+        emailSubject: data.emailSubject,
+        emailBody: data.emailBody,
+        trackingToken,
+        sendStatus: 'draft',
+      },
+    });
+
+    // 更新方案状态
+    await this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'customer_proposal' as any },
+    });
+
+    return customerProposal;
+  }
+
+  /**
+   * 获取客户提案信息
+   */
+  async getCustomerProposalRecord(proposalId: string) {
+    return (this.prisma as any).customerProposalRecord.findUnique({
+      where: { proposalId },
+    });
+  }
+
+  /**
+   * 生成邮件模板
+   */
+  async generateEmailTemplate(proposalId: string) {
+    const proposal = await this.getById(proposalId);
+    if (!proposal) throw new Error('方案不存在');
+
+    const customer = proposal.customer as any;
+    const customerName = customer?.company || customer?.name || '贵公司';
+
+    return {
+      subject: `商务合作方案 - ${proposal.title}`,
+      body: `尊敬的${customerName}负责人：
+
+您好！
+
+感谢您对我们方案的关注。现附上我们为贵公司量身定制的商务方案，方案详情如下：
+
+【方案名称】${proposal.title}
+【方案金额】¥${Number(proposal.value).toLocaleString()}
+【有效期至】${proposal.validUntil ? new Date(proposal.validUntil).toLocaleDateString() : '另行通知'}
+
+我们期待与贵公司的合作，如有任何问题，请随时联系我们。
+
+此致
+敬礼！`,
+    };
+  }
+
+  /**
+   * 更新邮件内容
+   */
+  async updateCustomerProposalEmail(proposalId: string, data: any) {
+    return (this.prisma as any).customerProposalRecord.update({
+      where: { proposalId },
+      data: {
+        emailTo: data.emailTo,
+        emailCc: data.emailCc,
+        emailSubject: data.emailSubject,
+        emailBody: data.emailBody,
+      },
+    });
+  }
+
+  /**
+   * 发送邮件（更新状态）
+   */
+  async sendCustomerProposal(proposalId: string) {
+    await (this.prisma as any).customerProposalRecord.update({
+      where: { proposalId },
+      data: {
+        sendStatus: 'sent',
+        sentAt: new Date(),
+      },
+    });
+
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'sent' as any },
+    });
+  }
+
+  /**
+   * 记录邮件打开
+   */
+  async trackEmailOpen(trackingToken: string) {
+    const record = await (this.prisma as any).customerProposalRecord.findUnique({
+      where: { trackingToken },
+    });
+    if (!record) return null;
+
+    return (this.prisma as any).customerProposalRecord.update({
+      where: { trackingToken },
+      data: {
+        sendStatus: 'opened',
+        openedAt: new Date(),
+        openCount: { increment: 1 },
+      },
+    });
+  }
+
+  // ==================== 商务谈判阶段方法 ====================
+
+  /**
+   * 创建商务谈判
+   */
+  async createNegotiation(proposalId: string) {
+    const negotiation = await (this.prisma as any).negotiationRecord.create({
+      data: {
+        proposalId,
+        discussions: [],
+        agreedTerms: [],
+        status: 'ongoing',
+      },
+    });
+
+    // 更新方案状态
+    await this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'negotiation' as any },
+    });
+
+    return negotiation;
+  }
+
+  /**
+   * 获取谈判记录
+   */
+  async getNegotiation(proposalId: string) {
+    return (this.prisma as any).negotiationRecord.findUnique({
+      where: { proposalId },
+    });
+  }
+
+  /**
+   * 添加讨论记录
+   */
+  async addDiscussion(proposalId: string, data: { content: string; participants?: string[] }) {
+    const negotiation = await this.getNegotiation(proposalId);
+    if (!negotiation) throw new Error('谈判记录不存在');
+
+    const discussions = negotiation.discussions || [];
+    discussions.push({
+      date: new Date().toISOString(),
+      content: data.content,
+      participants: data.participants || [],
+    });
+
+    return (this.prisma as any).negotiationRecord.update({
+      where: { proposalId },
+      data: { discussions },
+    });
+  }
+
+  /**
+   * 更新条款
+   */
+  async updateAgreedTerms(proposalId: string, agreedTerms: any[]) {
+    return (this.prisma as any).negotiationRecord.update({
+      where: { proposalId },
+      data: { agreedTerms },
+    });
+  }
+
+  /**
+   * 完成谈判
+   */
+  async completeNegotiation(proposalId: string) {
+    await (this.prisma as any).negotiationRecord.update({
+      where: { proposalId },
+      data: { status: 'completed' },
+    });
+
+    return this.prisma.proposal.update({
+      where: { id: proposalId },
+      data: { status: 'accepted' as any },
+    });
+  }
+
+  // ==================== 辅助方法 ====================
+
+  /**
+   * 从录音提取需求
+   */
+  private extractNeedsFromRecording(recording: any) {
+    const needs: any[] = [];
+    const painPoints: any[] = [];
+
+    // 从关键词提取需求
+    if (recording.keywords && Array.isArray(recording.keywords)) {
+      recording.keywords.forEach((keyword: string) => {
+        needs.push({
+          need: keyword,
+          priority: 'medium' as const,
+          source: '录音分析',
+        });
+      });
+    }
+
+    // 从要点提取痛点
+    if (recording.keyPoints && Array.isArray(recording.keyPoints)) {
+      recording.keyPoints.forEach((point: string) => {
+        painPoints.push({
+          point,
+          severity: 'medium' as const,
+          category: '业务需求',
+        });
+      });
+    }
+
+    return {
+      extractedNeeds: needs,
+      painPoints,
+      budgetHint: null,
+      decisionTimeline: null,
+    };
+  }
+
+  /**
+   * 生成跟踪令牌
+   */
+  private generateTrackingToken(): string {
+    return Buffer.from(Date.now().toString() + Math.random().toString())
+      .toString('base64')
+      .replace(/[+/=]/g, '')
+      .substring(0, 32);
+  }
 }
 
 export default new ProposalService();

@@ -6,8 +6,19 @@
 - [funnelStore.ts](file://crm-frontend/src/stores/funnelStore.ts)
 - [types/index.ts](file://crm-frontend/src/types/index.ts)
 - [opportunities.ts](file://crm-frontend/src/data/opportunities.ts)
+- [api.ts](file://crm-frontend/src/services/api.ts)
+- [opportunity.controller.ts](file://crm-backend/src/controllers/opportunity.controller.ts)
+- [opportunity.service.ts](file://crm-backend/src/services/opportunity.service.ts)
+- [opportunity.validator.ts](file://crm-backend/src/validators/opportunity.validator.ts)
 - [Dashboard/index.tsx](file://crm-frontend/src/pages/Dashboard/index.tsx)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 更新了完整的CRUD API操作实现，包括获取、创建、更新、删除机会
+- 新增了跨阶段拖拽移动功能的后端支持
+- 完善了数据验证规则和边界条件处理
+- 增强了错误处理和性能优化策略
 
 ## 目录
 1. [简介](#简介)
@@ -26,7 +37,7 @@
 
 SalesFunnel 销售漏斗组件是一个完整的交互式销售管理界面，基于现代化的前端架构构建。该组件不仅提供销售阶段的可视化展示，更重要的是实现了完整的数据操作能力，包括拖拽操作、实时编辑、删除确认等交互功能。
 
-**更新** 该组件已从简单的静态展示升级为完整的交互式API，基于Zustand状态管理库实现，提供完整的数据操作能力。
+**更新** 该组件已从简单的静态展示升级为完整的交互式API，基于Zustand状态管理库实现，提供完整的数据操作能力。后端API已完全实现，支持RESTful CRUD操作和实时数据同步。
 
 ## 架构概览
 
@@ -38,7 +49,9 @@ subgraph "SalesFunnel 交互式架构"
 SALESFUNNEL[SalesFunnel 主组件]
 STORE[useFunnelStore Store]
 TYPES[类型定义]
-DATA[Mock 数据]
+API[API 服务层]
+BACKEND[后端控制器]
+DATABASE[数据库层]
 UI[用户界面层]
 COMPONENTS[子组件层]
 ACTIONS[业务操作层]
@@ -48,21 +61,27 @@ ZUSTAND[Zustand 状态管理]
 REACT[React 框架]
 TAILWIND[Tailwind CSS]
 TYPESCRIPT[TypeScript]
+PRISMA[Prisma ORM]
+EXPRESS[Express.js]
 end
 SALESFUNNEL --> STORE
+STORE --> API
+API --> BACKEND
+BACKEND --> DATABASE
 STORE --> TYPES
-STORE --> DATA
-STORE --> ACTIONS
+STORE --> COMPONENTS
 COMPONENTS --> UI
 COMPONENTS --> ACTIONS
 UI --> TAILWIND
 ACTIONS --> ZUSTAND
 ZUSTAND --> TYPESCRIPT
+PRISMA --> EXPRESSION
 ```
 
 **图表来源**
 - [SalesFunnel/index.tsx:542-676](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L542-L676)
 - [funnelStore.ts:18-76](file://crm-frontend/src/stores/funnelStore.ts#L18-L76)
+- [api.ts:158-178](file://crm-frontend/src/services/api.ts#L158-L178)
 
 ## 核心组件
 
@@ -70,7 +89,7 @@ ZUSTAND --> TYPESCRIPT
 
 SalesFunnel 是一个功能完整的交互式组件，负责渲染整个销售漏斗界面。它包含以下主要功能：
 - 实时销售机会看板视图
-- 拖拽操作支持
+- 拖拽操作支持（跨阶段移动）
 - 实时编辑功能
 - 删除确认对话框
 - 添加客户表单
@@ -109,7 +128,10 @@ subgraph "Store 状态结构"
 STATE[FunnelState]
 OPPORTUNITIES[opportunities: Opportunity[]]
 SELECTEDSTAGE[selectedStage: Stage | 'all']
+LOADING[loading: boolean]
+ERROR[error: string | null]
 ACTIONS[ACTIONS]
+FETCH[fetchOpportunities]
 ADD[addOpportunity]
 UPDATE[updateOpportunity]
 DELETE[deleteOpportunity]
@@ -123,12 +145,13 @@ END
 
 Store 提供以下核心功能：
 - **数据持久化**：使用 Zustand persist 中间件实现本地存储
-- **CRUD 操作**：完整的销售机会数据操作能力
+- **CRUD 操作**：完整的销售机会数据操作能力（通过API）
 - **统计计算**：自动计算各阶段统计数据
 - **状态选择**：支持按阶段筛选和全量显示
+- **错误处理**：统一的错误捕获和处理机制
 
 **章节来源**
-- [funnelStore.ts:18-76](file://crm-frontend/src/stores/funnelStore.ts#L18-L76)
+- [funnelStore.ts:18-163](file://crm-frontend/src/stores/funnelStore.ts#L18-L163)
 
 ## 交互式功能
 
@@ -142,18 +165,30 @@ participant User as 用户
 participant Card as OpportunityCard
 participant Column as StageColumn
 participant Store as useFunnelStore
-participant State as Store状态
+participant API as opportunityApi
+participant Controller as OpportunityController
+participant Service as OpportunityService
+participant DB as 数据库
 User->>Card : 拖拽机会卡片
 Card->>Card : 设置拖拽数据
 Card->>Column : 触发拖拽事件
 Column->>Store : 调用 moveOpportunity
-Store->>State : 更新状态
-State->>Column : 重新渲染
+Store->>API : 调用 moveStage(id, stage)
+API->>Controller : 调用 moveStage
+Controller->>Service : moveStage(id, stage)
+Service->>DB : 更新阶段状态
+DB-->>Service : 返回更新结果
+Service-->>Controller : 返回更新结果
+Controller-->>API : 返回更新结果
+API-->>Store : 返回更新结果
+Store->>Store : 更新本地状态
+Store->>Column : 重新渲染
 Column->>User : 显示更新后的界面
 ```
 
 **图表来源**
-- [SalesFunnel/index.tsx:561-576](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L561-L576)
+- [SalesFunnel/index.tsx:561-580](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L561-L580)
+- [funnelStore.ts:124-137](file://crm-frontend/src/stores/funnelStore.ts#L124-L137)
 
 ### 实时编辑
 
@@ -399,6 +434,12 @@ const STAGE_COLORS: Record<Stage, { bg: string; text: string; ring: string }> = 
 2. **批量更新**：使用批量状态更新减少重渲染
 3. **防抖处理**：对频繁触发的操作添加防抖
 
+### API 调用优化
+
+1. **请求去重**：避免重复的API调用
+2. **错误重试**：网络错误时自动重试
+3. **缓存策略**：合理使用缓存减少服务器压力
+
 ## 使用示例
 
 ### 基本使用
@@ -466,6 +507,16 @@ const router = createBrowserRouter([
 2. 验证表单字段的受控组件状态
 3. 确认数据验证逻辑
 
+#### API 调用失败
+
+**问题**：CRUD操作无法正常执行
+**原因**：网络连接或后端服务问题
+**解决方案**：
+1. 检查网络连接状态
+2. 验证 API 基础URL配置
+3. 查看控制台错误日志
+4. 确认后端服务运行状态
+
 #### 样式显示问题
 
 **问题**：组件样式错乱或颜色不正确
@@ -486,4 +537,4 @@ const router = createBrowserRouter([
 
 **章节来源**
 - [SalesFunnel/index.tsx:561-624](file://crm-frontend/src/pages/SalesFunnel/index.tsx#L561-L624)
-- [funnelStore.ts:18-76](file://crm-frontend/src/stores/funnelStore.ts#L18-L76)
+- [funnelStore.ts:18-163](file://crm-frontend/src/stores/funnelStore.ts#L18-L163)

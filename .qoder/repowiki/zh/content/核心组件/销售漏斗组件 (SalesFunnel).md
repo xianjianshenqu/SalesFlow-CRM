@@ -19,6 +19,8 @@
 - 实现编辑模态框和删除确认对话框
 - 新增客户添加表单，支持快速创建新的销售机会
 - 采用响应式设计和现代化UI组件
+- 新增完整的API集成和实时数据同步功能
+- 扩展销售机会生命周期管理功能
 
 ## 目录
 1. [简介](#简介)
@@ -31,13 +33,14 @@
 8. [用户界面组件](#用户界面组件)
 9. [统计与分析功能](#统计与分析功能)
 10. [路由与导航集成](#路由与导航集成)
-11. [样式与主题系统](#样式与主题系统)
-12. [扩展开发指南](#扩展开发指南)
+11. [API集成与数据同步](#api集成与数据同步)
+12. [样式与主题系统](#样式与主题系统)
+13. [扩展开发指南](#扩展开发指南)
 
 ## 简介
 SalesFunnel（销售漏斗）组件现已完全重构为交互式生产就绪应用，基于现代React生态系统构建。该组件提供完整的销售机会管理功能，包括实时拖拽、编辑、删除、添加等CRUD操作，以及丰富的统计分析和可视化展示。
 
-**更新** 从静态演示界面升级为功能完整的交互式应用，集成了完整的状态管理和用户交互功能。
+**更新** 从静态演示界面升级为功能完整的交互式应用，集成了完整的状态管理和用户交互功能，支持销售机会的完整生命周期管理。
 
 ## 架构总览
 SalesFunnel采用分层架构设计，包含UI组件层、状态管理层、数据访问层和路由层：
@@ -60,6 +63,7 @@ subgraph "数据层"
 MO["mockOpportunities Mock数据"]
 OT["Opportunity 类型定义"]
 ST["Stage 类型定义"]
+API["opportunityApi API服务"]
 end
 subgraph "路由层"
 AP["App 路由配置"]
@@ -75,6 +79,7 @@ SF --> US
 US --> MO
 US --> OT
 US --> ST
+US --> API
 AP --> LY
 LY --> SF
 ```
@@ -110,10 +115,14 @@ classDiagram
 class FunnelState {
 +Opportunity[] opportunities
 +Stage selectedStage
-+addOpportunity(Opportunity) void
-+updateOpportunity(string, Partial~Opportunity~) void
-+deleteOpportunity(string) void
-+moveOpportunity(string, Stage) void
++loading boolean
++error string | null
++fetchOpportunities() Promise~void~
++addOpportunity(Opportunity) Promise~void~
++addOpportunityLocal(Opportunity) void
++updateOpportunity(string, Partial~Opportunity~) Promise~void~
++deleteOpportunity(string) Promise~void~
++moveOpportunity(string, Stage) Promise~void~
 +setSelectedStage(Stage | 'all') void
 +getOpportunitiesByStage(Stage) Opportunity[]
 +getStageStats() StageStats[]
@@ -130,12 +139,13 @@ class useFunnelStore {
 - [funnelStore.ts:6-16](file://crm-frontend/src/stores/funnelStore.ts#L6-L16)
 
 ### Store 方法详解
-- **addOpportunity**：添加新的销售机会
-- **updateOpportunity**：更新现有机会信息
-- **deleteOpportunity**：删除指定机会
-- **moveOpportunity**：移动机会到新阶段
+- **addOpportunity**：添加新的销售机会（支持API同步）
+- **updateOpportunity**：更新现有机会信息（支持API同步）
+- **deleteOpportunity**：删除指定机会（支持API同步）
+- **moveOpportunity**：移动机会到新阶段（支持API同步）
 - **getOpportunitiesByStage**：按阶段过滤机会
 - **getStageStats**：计算各阶段统计信息
+- **fetchOpportunities**：从API获取机会列表
 
 **章节来源**
 - [funnelStore.ts:18-76](file://crm-frontend/src/stores/funnelStore.ts#L18-L76)
@@ -308,6 +318,24 @@ LY --> T["Team 团队"]
 **章节来源**
 - [App.tsx:35-78](file://crm-frontend/src/App.tsx#L35-L78)
 - [Layout.tsx:9-24](file://crm-frontend/src/components/layout/Layout.tsx#L9-L24)
+
+## API集成与数据同步
+应用集成了完整的API服务，支持实时数据同步：
+
+### API服务集成
+- **opportunityApi**：提供销售机会的CRUD操作
+- **数据转换**：将API响应转换为本地数据格式
+- **错误处理**：统一的错误处理和状态管理
+- **加载状态**：支持异步操作的加载指示
+
+### 数据同步机制
+- **本地状态**：使用Zustand进行本地状态管理
+- **持久化存储**：支持浏览器本地存储
+- **实时更新**：API操作后自动更新UI状态
+
+**章节来源**
+- [funnelStore.ts:34-87](file://crm-frontend/src/stores/funnelStore.ts#L34-L87)
+- [funnelStore.ts:100-137](file://crm-frontend/src/stores/funnelStore.ts#L100-L137)
 
 ## 样式与主题系统
 应用采用TailwindCSS和深色模式支持：

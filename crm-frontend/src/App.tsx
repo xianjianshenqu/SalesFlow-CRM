@@ -6,6 +6,8 @@ import Customers from './pages/Customers';
 import CustomerDetail from './pages/Customers/CustomerDetail';
 import SalesFunnel from './pages/SalesFunnel';
 import Proposals from './pages/Proposals';
+import CreateProposal from './pages/Proposals/CreateProposal';
+import ProposalDetail from './pages/Proposals/ProposalDetail';
 import Service from './pages/Service';
 import Payments from './pages/Payments';
 import AIAudio from './pages/AIAudio';
@@ -53,6 +55,8 @@ function App() {
           <Route path="customers/:id" element={<CustomerDetail />} />
           <Route path="funnel" element={<SalesFunnel />} />
           <Route path="proposals" element={<Proposals />} />
+          <Route path="proposals/create" element={<CreateProposal />} />
+          <Route path="proposals/:id" element={<ProposalDetail />} />
           <Route path="service" element={<Service />} />
           <Route path="payments" element={<Payments />} />
           <Route path="ai-audio" element={<AIAudio />} />

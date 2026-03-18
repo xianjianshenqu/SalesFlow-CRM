@@ -8,6 +8,20 @@ import {
   updateProposalStatusSchema,
   proposalQuerySchema,
   proposalIdSchema,
+  createTemplateSchema,
+  templateQuerySchema,
+  createRequirementAnalysisSchema,
+  updateRequirementAnalysisSchema,
+  aiAnalyzeRequestSchema,
+  designProposalSchema,
+  matchTemplateSchema,
+  createReviewSchema,
+  addReviewCommentSchema,
+  reviewResultSchema,
+  createCustomerProposalSchema,
+  updateCustomerProposalEmailSchema,
+  addDiscussionSchema,
+  updateTermsSchema,
 } from '../validators/proposal.validator';
 
 const router = Router();
@@ -402,6 +416,238 @@ router.delete(
   authMiddleware,
   validate(proposalIdSchema, 'params'),
   proposalController.delete,
+);
+
+// ==================== 模板管理路由 ====================
+
+router.get(
+  '/templates',
+  authMiddleware,
+  validate(templateQuerySchema, 'query'),
+  proposalController.getTemplates,
+);
+
+router.post(
+  '/templates',
+  authMiddleware,
+  validate(createTemplateSchema),
+  proposalController.createTemplate,
+);
+
+router.post(
+  '/templates/:id/clone',
+  authMiddleware,
+  proposalController.cloneTemplate,
+);
+
+// ==================== 需求分析阶段路由 ====================
+
+router.post(
+  '/:id/requirement-analysis',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(createRequirementAnalysisSchema),
+  proposalController.createRequirementAnalysis,
+);
+
+router.get(
+  '/:id/requirement-analysis',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.getRequirementAnalysis,
+);
+
+router.post(
+  '/:id/requirement-analysis/ai-analyze',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(aiAnalyzeRequestSchema),
+  proposalController.aiAnalyzeRequirement,
+);
+
+router.post(
+  '/:id/requirement-analysis/ai-enhance',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.aiEnhanceRequirement,
+);
+
+router.put(
+  '/:id/requirement-analysis',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(updateRequirementAnalysisSchema),
+  proposalController.updateRequirementAnalysis,
+);
+
+router.post(
+  '/:id/requirement-analysis/confirm',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.confirmRequirementAnalysis,
+);
+
+// ==================== 方案设计阶段路由 ====================
+
+router.post(
+  '/:id/design',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.startDesign,
+);
+
+router.post(
+  '/:id/design/match-template',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(matchTemplateSchema),
+  proposalController.matchTemplate,
+);
+
+router.post(
+  '/:id/design/apply-template',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.applyTemplate,
+);
+
+router.put(
+  '/:id/design',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(designProposalSchema),
+  proposalController.updateDesign,
+);
+
+router.post(
+  '/:id/design/confirm',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.confirmDesign,
+);
+
+// ==================== 内部评审阶段路由 ====================
+
+router.post(
+  '/:id/review',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(createReviewSchema),
+  proposalController.createReview,
+);
+
+router.get(
+  '/:id/review',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.getReview,
+);
+
+router.post(
+  '/:id/review/comment',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(addReviewCommentSchema),
+  proposalController.addReviewComment,
+);
+
+router.post(
+  '/:id/review/approve',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(reviewResultSchema),
+  proposalController.approveReview,
+);
+
+router.post(
+  '/:id/review/reject',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(reviewResultSchema),
+  proposalController.rejectReview,
+);
+
+// ==================== 客户提案阶段路由 ====================
+
+router.post(
+  '/:id/customer-proposal',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(createCustomerProposalSchema),
+  proposalController.createCustomerProposalRecord,
+);
+
+router.get(
+  '/:id/customer-proposal',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.getCustomerProposalRecord,
+);
+
+router.post(
+  '/:id/customer-proposal/generate-email',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.generateEmailTemplate,
+);
+
+router.put(
+  '/:id/customer-proposal/email',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(updateCustomerProposalEmailSchema),
+  proposalController.updateCustomerProposalEmail,
+);
+
+router.post(
+  '/:id/customer-proposal/send',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.sendCustomerProposal,
+);
+
+router.get(
+  '/track/:token',
+  proposalController.trackEmailOpen,
+);
+
+// ==================== 商务谈判阶段路由 ====================
+
+router.post(
+  '/:id/negotiation',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.createNegotiation,
+);
+
+router.get(
+  '/:id/negotiation',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.getNegotiation,
+);
+
+router.post(
+  '/:id/negotiation/discussion',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(addDiscussionSchema),
+  proposalController.addDiscussion,
+);
+
+router.put(
+  '/:id/negotiation/terms',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  validate(updateTermsSchema),
+  proposalController.updateNegotiationTerms,
+);
+
+router.post(
+  '/:id/negotiation/complete',
+  authMiddleware,
+  validate(proposalIdSchema, 'params'),
+  proposalController.completeNegotiation,
 );
 
 export default router;

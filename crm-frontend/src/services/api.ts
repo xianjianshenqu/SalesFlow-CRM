@@ -899,6 +899,334 @@ export const presalesActivityApi = {
     api.post<QuestionClassification>('/presales/questions/classify', { question }),
 };
 
+// ==================== 商务方案API ====================
+
+// 方案状态类型
+export type ProposalStatus = 
+  | 'draft' 
+  | 'requirement_analysis' 
+  | 'designing' 
+  | 'pending_review' 
+  | 'review_passed' 
+  | 'review_rejected' 
+  | 'customer_proposal' 
+  | 'negotiation' 
+  | 'sent' 
+  | 'accepted' 
+  | 'rejected' 
+  | 'expired';
+
+// 方案类型
+export interface Proposal {
+  id: string;
+  title: string;
+  customerId: string;
+  value: number;
+  status: ProposalStatus;
+  description?: string;
+  products?: Array<{
+    name: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+    description?: string;
+    priority?: 'essential' | 'recommended' | 'optional';
+  }>;
+  terms?: string;
+  validUntil?: string;
+  sentAt?: string;
+  notes?: string;
+  ownerId?: string;
+  createdById?: string;
+  createdAt: string;
+  updatedAt: string;
+  customer?: {
+    id: string;
+    name: string;
+    company?: string;
+  shortName?: string;
+    email?: string;
+    phone?: string;
+  };
+  createdBy?: {
+    id: string;
+    name: string;
+    email?: string;
+  };
+}
+
+// 方案模板类型
+export interface ProposalTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  content: string;
+  products?: any;
+  terms?: string;
+  tags?: string[];
+  usageCount: number;
+  isActive: boolean;
+  matchScore?: number;
+  createdAt: string;
+}
+
+// 需求分析类型
+export interface RequirementAnalysis {
+  id: string;
+  proposalId: string;
+  customerId: string;
+  sourceType: 'manual' | 'ai_recording' | 'ai_followup';
+  recordingId?: string;
+  rawContent?: string;
+  aiEnhanced: boolean;
+  finalContent?: string;
+  extractedNeeds?: Array<{
+    need: string;
+    priority: 'high' | 'medium' | 'low';
+    source: string;
+  }>;
+  painPoints?: Array<{
+    point: string;
+    severity: 'high' | 'medium' | 'low';
+    category: string;
+  }>;
+  budgetHint?: {
+    range?: string;
+    timeline?: string;
+  };
+  decisionTimeline?: string;
+  status: 'draft' | 'confirmed';
+  createdAt: string;
+}
+
+// 评审类型
+export interface ProposalReview {
+  id: string;
+  proposalId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewerId?: string;
+  sharedWith?: string[];
+  comments?: Array<{
+    userId: string;
+    comment: string;
+    createdAt: string;
+  }>;
+  result?: 'approved' | 'rejected';
+  resultNotes?: string;
+  reviewedAt?: string;
+  createdAt: string;
+}
+
+// 客户提案类型
+export interface CustomerProposalRecord {
+  id: string;
+  proposalId: string;
+  emailTo: string;
+  emailCc?: string[];
+  emailSubject?: string;
+  emailBody?: string;
+  sendStatus: 'draft' | 'sent' | 'delivered' | 'opened' | 'failed';
+  sentAt?: string;
+  deliveredAt?: string;
+  openedAt?: string;
+  openCount: number;
+  trackingToken?: string;
+  viewUrl?: string;
+  createdAt: string;
+}
+
+// 商务谈判类型
+export interface NegotiationRecord {
+  id: string;
+  proposalId: string;
+  discussions?: Array<{
+    date: string;
+    content: string;
+    participants?: string[];
+  }>;
+  agreedTerms?: Array<{
+    term: string;
+    value: string;
+    confirmed?: boolean;
+  }>;
+  finalDocumentUrl?: string;
+  status: 'ongoing' | 'completed' | 'cancelled';
+  createdAt: string;
+}
+
+// 商务方案API
+export const proposalApi = {
+  // 基础CRUD
+  getAll: (params?: {
+    page?: number;
+    limit?: number;
+    customerId?: string;
+    status?: ProposalStatus;
+    minAmount?: number;
+    maxAmount?: number;
+    search?: string;
+  }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.customerId) query.set('customerId', params.customerId);
+    if (params?.status) query.set('status', params.status);
+    if (params?.minAmount) query.set('minAmount', String(params.minAmount));
+    if (params?.maxAmount) query.set('maxAmount', String(params.maxAmount));
+    if (params?.search) query.set('search', params.search);
+    return api.get<{ data: Proposal[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/proposals?${query}`);
+  },
+
+  getById: (id: string) => api.get<Proposal>(`/proposals/${id}`),
+
+  create: (data: {
+    customerId: string;
+    title: string;
+    value: number;
+    description?: string;
+    products?: any[];
+    terms?: string;
+    validUntil?: string;
+    notes?: string;
+  }) => api.post<Proposal>('/proposals', data),
+
+  update: (id: string, data: Partial<{
+    title: string;
+    value: number;
+    description: string;
+    products: any[];
+    terms: string;
+    validUntil: string;
+    notes: string;
+  }>) => api.put<Proposal>(`/proposals/${id}`, data),
+
+  delete: (id: string) => api.delete(`/proposals/${id}`),
+
+  updateStatus: (id: string, status: ProposalStatus, notes?: string) =>
+    api.patch<Proposal>(`/proposals/${id}/status`, { status, notes }),
+
+  getStats: (customerId?: string) => {
+    const query = customerId ? `?customerId=${customerId}` : '';
+    return api.get<any>(`/proposals/stats${query}`);
+  },
+
+  // 模板管理
+  getTemplates: (params?: { page?: number; limit?: number; category?: string; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.category) query.set('category', params.category);
+    if (params?.search) query.set('search', params.search);
+    return api.get<{ data: ProposalTemplate[]; pagination: any }>(`/proposals/templates?${query}`);
+  },
+
+  createTemplate: (data: {
+    name: string;
+    category: string;
+    content: string;
+    description?: string;
+    products?: any;
+    terms?: string;
+    tags?: string[];
+  }) => api.post<ProposalTemplate>('/proposals/templates', data),
+
+  cloneTemplate: (id: string) => api.post<ProposalTemplate>(`/proposals/templates/${id}/clone`),
+
+  // 需求分析阶段
+  createRequirementAnalysis: (proposalId: string, data: {
+    customerId: string;
+    sourceType: 'manual' | 'ai_recording' | 'ai_followup';
+    recordingId?: string;
+    rawContent?: string;
+  }) => api.post<RequirementAnalysis>(`/proposals/${proposalId}/requirement-analysis`, data),
+
+  getRequirementAnalysis: (proposalId: string) => 
+    api.get<RequirementAnalysis>(`/proposals/${proposalId}/requirement-analysis`),
+
+  aiAnalyzeRequirement: (proposalId: string, data: {
+    sourceType: 'recording' | 'followup';
+    recordingId?: string;
+  }) => api.post<any>(`/proposals/${proposalId}/requirement-analysis/ai-analyze`, data),
+
+  aiEnhanceRequirement: (proposalId: string) => 
+    api.post<RequirementAnalysis>(`/proposals/${proposalId}/requirement-analysis/ai-enhance`),
+
+  updateRequirementAnalysis: (proposalId: string, data: any) => 
+    api.put<RequirementAnalysis>(`/proposals/${proposalId}/requirement-analysis`, data),
+
+  confirmRequirementAnalysis: (proposalId: string, finalContent: string) => 
+    api.post<Proposal>(`/proposals/${proposalId}/requirement-analysis/confirm`, { finalContent }),
+
+  // 方案设计阶段
+  startDesign: (proposalId: string) => 
+    api.post<Proposal>(`/proposals/${proposalId}/design`),
+
+  matchTemplate: (proposalId: string, criteria: { industry?: string; needs?: string[]; budget?: number }) => 
+    api.post<ProposalTemplate[]>(`/proposals/${proposalId}/design/match-template`, criteria),
+
+  applyTemplate: (proposalId: string, templateId: string) => 
+    api.post<Proposal>(`/proposals/${proposalId}/design/apply-template`, { templateId }),
+
+  updateDesign: (proposalId: string, data: any) => 
+    api.put<Proposal>(`/proposals/${proposalId}/design`, data),
+
+  confirmDesign: (proposalId: string) => 
+    api.post<Proposal>(`/proposals/${proposalId}/design/confirm`),
+
+  // 内部评审阶段
+  createReview: (proposalId: string, data: { reviewerId?: string; sharedWith?: string[] }) => 
+    api.post<ProposalReview>(`/proposals/${proposalId}/review`, data),
+
+  getReview: (proposalId: string) => 
+    api.get<ProposalReview>(`/proposals/${proposalId}/review`),
+
+  addReviewComment: (proposalId: string, comment: string) => 
+    api.post<ProposalReview>(`/proposals/${proposalId}/review/comment`, { comment }),
+
+  approveReview: (proposalId: string, resultNotes?: string) => 
+    api.post<Proposal>(`/proposals/${proposalId}/review/approve`, { resultNotes }),
+
+  rejectReview: (proposalId: string, resultNotes: string) => 
+    api.post<Proposal>(`/proposals/${proposalId}/review/reject`, { resultNotes }),
+
+  // 客户提案阶段
+  createCustomerProposal: (proposalId: string, data: {
+    emailTo: string;
+    emailCc?: string[];
+    emailSubject?: string;
+    emailBody?: string;
+  }) => api.post<CustomerProposalRecord>(`/proposals/${proposalId}/customer-proposal`, data),
+
+  getCustomerProposal: (proposalId: string) => 
+    api.get<CustomerProposalRecord>(`/proposals/${proposalId}/customer-proposal`),
+
+  generateEmailTemplate: (proposalId: string) => 
+    api.post<{ subject: string; body: string }>(`/proposals/${proposalId}/customer-proposal/generate-email`),
+
+  updateCustomerProposalEmail: (proposalId: string, data: any) => 
+    api.put<CustomerProposalRecord>(`/proposals/${proposalId}/customer-proposal/email`, data),
+
+  sendCustomerProposal: (proposalId: string) => 
+    api.post<Proposal>(`/proposals/${proposalId}/customer-proposal/send`),
+
+  // 商务谈判阶段
+  createNegotiation: (proposalId: string) => 
+    api.post<NegotiationRecord>(`/proposals/${proposalId}/negotiation`),
+
+  getNegotiation: (proposalId: string) => 
+    api.get<NegotiationRecord>(`/proposals/${proposalId}/negotiation`),
+
+  addDiscussion: (proposalId: string, data: { content: string; participants?: string[] }) => 
+    api.post<NegotiationRecord>(`/proposals/${proposalId}/negotiation/discussion`, data),
+
+  updateNegotiationTerms: (proposalId: string, agreedTerms: any[]) => 
+    api.put<NegotiationRecord>(`/proposals/${proposalId}/negotiation/terms`, { agreedTerms }),
+
+  completeNegotiation: (proposalId: string) => 
+    api.post<Proposal>(`/proposals/${proposalId}/negotiation/complete`),
+};
+
 // ==================== 类型导出 ====================
 export type {
   User,
