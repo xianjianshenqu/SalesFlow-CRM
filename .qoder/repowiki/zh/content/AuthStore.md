@@ -14,6 +14,13 @@
 - [package.json](file://crm-frontend/package.json)
 </cite>
 
+## 更新摘要
+**变更内容**
+- 增强了认证系统的令牌刷新机制，新增`refreshAccessToken`方法
+- 新增了队列化的并发请求处理，支持`isRefreshing`标志和`failedQueue`队列
+- 改进了前端状态管理，增加了`_hasHydrated`状态跟踪机制
+- 增加了刷新令牌的持久化存储，支持`refresh_token`的完整生命周期管理
+
 ## 目录
 1. [简介](#简介)
 2. [项目结构](#项目结构)
@@ -30,6 +37,8 @@
 AuthStore是SalesFlow CRM系统中的核心认证状态管理模块，基于Zustand状态管理库构建。该模块负责处理用户的认证状态、令牌管理、用户信息存储以及与后端API的交互。AuthStore采用持久化存储机制，确保用户在浏览器刷新或重新打开应用时能够保持登录状态。
 
 该系统是一个现代化的销售管理CRM平台，集成了AI辅助功能，包括客户洞察、商机评分、流失预警等智能化特性。AuthStore在整个系统中扮演着至关重要的角色，为整个应用提供统一的认证状态管理和路由保护机制。
+
+**更新** 系统现已增强令牌刷新机制，支持队列化的并发请求处理，提供更稳定的认证体验。
 
 ## 项目结构
 
@@ -63,13 +72,13 @@ H --> J
 ```
 
 **图表来源**
-- [authStore.ts:1-140](file://crm-frontend/src/stores/authStore.ts#L1-L140)
-- [api.ts:105-126](file://crm-frontend/src/services/api.ts#L105-L126)
-- [auth.controller.ts:1-61](file://crm-backend/src/controllers/auth.controller.ts#L1-L61)
+- [authStore.ts:1-175](file://crm-frontend/src/stores/authStore.ts#L1-L175)
+- [api.ts:1-800](file://crm-frontend/src/services/api.ts#L1-L800)
+- [auth.controller.ts:1-70](file://crm-backend/src/controllers/auth.controller.ts#L1-L70)
 
 **章节来源**
-- [authStore.ts:1-140](file://crm-frontend/src/stores/authStore.ts#L1-L140)
-- [api.ts:1-1286](file://crm-frontend/src/services/api.ts#L1-L1286)
+- [authStore.ts:1-175](file://crm-frontend/src/stores/authStore.ts#L1-L175)
+- [api.ts:1-800](file://crm-frontend/src/services/api.ts#L1-L800)
 
 ## 核心组件
 
@@ -81,6 +90,7 @@ AuthStore模块包含以下核心组件和功能：
 - **认证状态**: 标识用户是否已认证
 - **加载状态**: 处理异步操作的状态指示
 - **错误处理**: 统一的错误状态管理
+- **水合状态**: 跟踪状态初始化完成状态
 
 ### 主要方法
 - **登录**: 处理用户登录流程
@@ -88,11 +98,15 @@ AuthStore模块包含以下核心组件和功能：
 - **登出**: 清除认证状态
 - **获取资料**: 拉取用户详细信息
 - **设置令牌**: 更新令牌状态
+- **刷新令牌**: 刷新访问令牌
 - **清理错误**: 清除错误状态
+- **设置水合状态**: 跟踪状态初始化
+
+**更新** 新增了`refreshAccessToken`方法用于处理令牌刷新，以及`_hasHydrated`状态用于跟踪水合过程。
 
 **章节来源**
-- [authStore.ts:5-37](file://crm-frontend/src/stores/authStore.ts#L5-L37)
-- [authStore.ts:39-140](file://crm-frontend/src/stores/authStore.ts#L39-L140)
+- [authStore.ts:5-39](file://crm-frontend/src/stores/authStore.ts#L5-L39)
+- [authStore.ts:41-175](file://crm-frontend/src/stores/authStore.ts#L41-L175)
 
 ## 架构概览
 
@@ -122,9 +136,11 @@ AS->>AS : 存储令牌到localStorage
 AS-->>U : 返回认证结果
 ```
 
+**更新** 架构现在支持双令牌机制，包括访问令牌和刷新令牌的完整生命周期管理。
+
 **图表来源**
-- [authStore.ts:51-68](file://crm-frontend/src/stores/authStore.ts#L51-L68)
-- [api.ts:105-126](file://crm-frontend/src/services/api.ts#L105-L126)
+- [authStore.ts:54-73](file://crm-frontend/src/stores/authStore.ts#L54-L73)
+- [api.ts:174-197](file://crm-frontend/src/services/api.ts#L174-L197)
 - [auth.controller.ts:11-14](file://crm-backend/src/controllers/auth.controller.ts#L11-L14)
 - [auth.service.ts:53-99](file://crm-backend/src/services/auth.service.ts#L53-L99)
 
@@ -139,6 +155,7 @@ classDiagram
 class AuthState {
 +User user
 +string token
++string refreshToken
 +boolean isAuthenticated
 +boolean isLoading
 +string error
@@ -148,6 +165,7 @@ class AuthState {
 +logout() void
 +getProfile() Promise~void~
 +setToken(token) void
++refreshAccessToken() Promise~boolean~
 +clearError() void
 +setHasHydrated(state) void
 }
@@ -170,9 +188,11 @@ AuthState --> User : contains
 AuthStore --> AuthState : manages
 ```
 
+**更新** 状态结构现在包含`refreshToken`字段和`_hasHydrated`状态，支持完整的令牌生命周期管理。
+
 **图表来源**
-- [authStore.ts:15-37](file://crm-frontend/src/stores/authStore.ts#L15-L37)
-- [authStore.ts:39-140](file://crm-frontend/src/stores/authStore.ts#L39-L140)
+- [authStore.ts:15-39](file://crm-frontend/src/stores/authStore.ts#L15-L39)
+- [authStore.ts:41-175](file://crm-frontend/src/stores/authStore.ts#L41-L175)
 
 ### JWT令牌管理
 
@@ -197,10 +217,12 @@ Error --> End([结束])
 Success --> End
 ```
 
+**更新** 令牌管理现在支持刷新令牌的持久化存储，提供更长的会话保持能力。
+
 **图表来源**
 - [auth.service.ts:53-99](file://crm-backend/src/services/auth.service.ts#L53-L99)
 - [jwt.ts:28-38](file://crm-backend/src/utils/jwt.ts#L28-L38)
-- [authStore.ts:51-68](file://crm-frontend/src/stores/authStore.ts#L51-L68)
+- [authStore.ts:54-73](file://crm-frontend/src/stores/authStore.ts#L54-L73)
 
 ### 路由守卫机制
 
@@ -218,18 +240,47 @@ Redirect --> End([结束])
 Render --> End
 ```
 
+**更新** 路由守卫现在使用`_hasHydrated`状态确保状态完全恢复后再进行认证检查。
+
 **图表来源**
-- [App.tsx:24-49](file://crm-frontend/src/App.tsx#L24-L49)
-- [authStore.ts:129-137](file://crm-frontend/src/stores/authStore.ts#L129-L137)
+- [App.tsx:25-49](file://crm-frontend/src/App.tsx#L25-L49)
+- [authStore.ts:164-172](file://crm-frontend/src/stores/authStore.ts#L164-L172)
 
 ### API集成层
 
 AuthStore通过专门的API服务层与后端进行通信，实现了统一的请求处理和错误管理。
 
+**更新** API服务现在支持队列化的并发请求处理，通过`isRefreshing`标志和`failedQueue`队列确保令牌刷新的原子性和一致性。
+
+```mermaid
+flowchart TD
+Request[API请求] --> CheckToken{检查访问令牌}
+CheckToken --> |有效| SendRequest[发送请求]
+CheckToken --> |无效| CheckRefresh{检查刷新令牌}
+CheckRefresh --> |无| Redirect[重定向到登录]
+CheckRefresh --> |有| CheckIsRefreshing{是否正在刷新?}
+CheckIsRefreshing --> |是| QueueRequest[加入请求队列]
+CheckIsRefreshing --> |否| RefreshToken[刷新访问令牌]
+RefreshToken --> RefreshSuccess{刷新成功?}
+RefreshSuccess --> |是| RetryRequest[重试原请求]
+RefreshSuccess --> |否| ClearAuth[清除认证状态]
+QueueRequest --> WaitRefresh[等待刷新完成]
+WaitRefresh --> RetryRequest
+RetryRequest --> SendRequest
+SendRequest --> ProcessResponse[处理响应]
+ProcessResponse --> End([结束])
+Redirect --> End
+ClearAuth --> Redirect
+```
+
+**图表来源**
+- [api.ts:74-139](file://crm-frontend/src/services/api.ts#L74-L139)
+- [authStore.ts:132-150](file://crm-frontend/src/stores/authStore.ts#L132-L150)
+
 **章节来源**
-- [authStore.ts:1-140](file://crm-frontend/src/stores/authStore.ts#L1-L140)
-- [api.ts:105-126](file://crm-frontend/src/services/api.ts#L105-L126)
-- [App.tsx:24-49](file://crm-frontend/src/App.tsx#L24-L49)
+- [authStore.ts:1-175](file://crm-frontend/src/stores/authStore.ts#L1-L175)
+- [api.ts:174-197](file://crm-frontend/src/services/api.ts#L174-L197)
+- [App.tsx:25-49](file://crm-frontend/src/App.tsx#L25-L49)
 
 ## 依赖关系分析
 
@@ -259,9 +310,11 @@ K --> L
 K --> N
 ```
 
+**更新** 依赖关系现在包括队列化处理机制，支持并发请求的安全处理。
+
 **图表来源**
 - [authStore.ts:1-3](file://crm-frontend/src/stores/authStore.ts#L1-L3)
-- [api.ts:25-101](file://crm-frontend/src/services/api.ts#L25-L101)
+- [api.ts:25-169](file://crm-frontend/src/services/api.ts#L25-L169)
 - [auth.controller.ts:1-3](file://crm-backend/src/controllers/auth.controller.ts#L1-L3)
 
 ### 外部依赖
@@ -294,6 +347,8 @@ AuthStore在设计时充分考虑了性能优化：
 - 避免内存泄漏
 - 优化状态更新频率
 
+**更新** 性能考虑现在包括队列化处理的内存管理，确保并发请求不会导致内存泄漏。
+
 ## 故障排除指南
 
 ### 常见问题及解决方案
@@ -313,18 +368,32 @@ AuthStore在设计时充分考虑了性能优化：
 - 验证API端点配置
 - 确认CORS设置正确
 
+**令牌刷新失败**
+- 检查`refresh_token`是否存在于localStorage
+- 验证后端令牌刷新端点
+- 确认`isRefreshing`标志状态
+
+**并发请求冲突**
+- 检查`failedQueue`队列是否正确处理
+- 验证`isRefreshing`标志的原子性
+- 确认队列中的请求得到正确重试
+
 **章节来源**
-- [authStore.ts:129-137](file://crm-frontend/src/stores/authStore.ts#L129-L137)
-- [api.ts:34-71](file://crm-frontend/src/services/api.ts#L34-L71)
+- [authStore.ts:164-172](file://crm-frontend/src/stores/authStore.ts#L164-L172)
+- [api.ts:97-122](file://crm-frontend/src/services/api.ts#L97-L122)
 
 ## 结论
 
 AuthStore作为SalesFlow CRM系统的核心认证模块，展现了现代前端状态管理的最佳实践。通过采用Zustand、JWT令牌管理和路由守卫等技术，实现了高效、可靠的用户认证体验。
+
+**更新** 该模块现已显著增强，提供了更完善的令牌管理机制、队列化的并发请求处理和改进的状态管理功能。
 
 该模块的主要优势包括：
 - **简洁性**: 基于函数式编程范式的简单API设计
 - **可维护性**: 清晰的职责分离和模块化设计
 - **可扩展性**: 易于添加新的认证功能和状态管理
 - **用户体验**: 平滑的认证流程和状态同步机制
+- **稳定性**: 队列化的并发请求处理确保系统可靠性
+- **持久化**: 完整的令牌生命周期管理
 
 AuthStore不仅满足了当前的功能需求，还为未来的功能扩展奠定了坚实的基础。通过持续的优化和改进，该模块将继续为SalesFlow CRM系统提供稳定可靠的认证服务。

@@ -295,6 +295,12 @@ export const scheduleApi = {
 
   getById: (id: string) => api.get<ScheduleTask>(`/schedules/${id}`),
 
+  getToday: () => api.get<ScheduleTask[]>('/schedules/today'),
+
+  getStats: () => api.get<any>('/schedules/stats'),
+
+  getAISuggestions: () => api.get<any>('/schedules/ai-suggestions'),
+
   create: (data: CreateScheduleInput) => api.post<ScheduleTask>('/schedules', data),
 
   update: (id: string, data: Partial<CreateScheduleInput>) =>
