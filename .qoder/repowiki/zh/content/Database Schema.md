@@ -34,14 +34,18 @@
 - [companySearch.routes.ts](file://crm-backend/src/routes/companySearch.routes.ts)
 - [customer.validator.ts](file://crm-backend/src/validators/customer.validator.ts)
 - [index.ts](file://crm-frontend/src/types/index.ts)
+- [companySearch.service.ts](file://crm-backend/src/services/search/companySearch.service.ts)
+- [qcc.client.ts](file://crm-backend/src/services/search/qcc.client.ts)
+- [serper.client.ts](file://crm-backend/src/services/search/serper.client.ts)
+- [ai.service.ts](file://crm-backend/src/services/ai.service.ts)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- 新增完整的企业客户管理功能，包括customerType、companyFullName、creditCode等九个新字段
-- 新增完整的公司搜索API系统，支持企业信息查询和匹配
-- 更新数据库关系图以反映新的企业客户分类和搜索功能
-- 增强客户数据模型以支持B2B企业客户管理
+- 新增CompanySearchCache模型用于存储企业搜索结果缓存，包含索引优化和数据源支持
+- 增强企业搜索API系统，支持缓存命中统计和过期时间管理
+- 扩展数据源支持，包括企查查API、Serper搜索和AI提取的完整缓存机制
+- 新增缓存配置和管理功能，支持7天缓存过期策略
 
 ## 目录
 1. [简介](#简介)
@@ -56,7 +60,7 @@
 
 ## 简介
 
-这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**、**提案工作流程管理**和**企业客户管理**等多个业务模块。
+这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**、**提案工作流程管理**、**企业客户管理**和**企业搜索缓存系统**等多个业务模块。
 
 系统的核心特点包括：
 - 全面的客户关系管理功能，支持个人和企业客户
@@ -68,6 +72,7 @@
 - **完整的提案工作流程管理**，涵盖从需求分析到商务谈判的全流程跟踪
 - **完善的企业客户管理功能**，支持统一社会信用代码、企业全称、注册资本等企业信息管理
 - **完整的公司搜索API系统**，提供企业信息查询和匹配功能
+- **新增的企业搜索缓存系统**，通过CompanySearchCache模型实现搜索结果的高性能缓存
 
 ## 项目结构
 
@@ -77,6 +82,7 @@ subgraph "数据库层"
 PRISMA[Prisma Schema]
 MIGRATIONS[迁移文件]
 MYSQL[MySQL 8.0]
+COMPANY_SEARCH_CACHE[CompanySearchCache缓存表]
 end
 subgraph "应用层"
 CONTROLLERS[控制器层]
@@ -89,6 +95,7 @@ COMPONENTS[UI组件]
 end
 PRISMA --> MIGRATIONS
 MIGRATIONS --> MYSQL
+COMPANY_SEARCH_CACHE --> MYSQL
 CONTROLLERS --> SERVICES
 SERVICES --> REPOSITORIES
 REPOSITORIES --> MYSQL
@@ -96,11 +103,11 @@ FRONTEND --> CONTROLLERS
 ```
 
 **图表来源**
-- [schema.prisma:1-1088](file://crm-backend/prisma/schema.prisma#L1-L1088)
+- [schema.prisma:1-1108](file://crm-backend/prisma/schema.prisma#L1-L1108)
 - [app.ts](file://crm-backend/src/app.ts)
 
 **章节来源**
-- [schema.prisma:1-1088](file://crm-backend/prisma/schema.prisma#L1-L1088)
+- [schema.prisma:1-1108](file://crm-backend/prisma/schema.prisma#L1-L1108)
 - [20260315081326_init/migration.sql:1-381](file://crm-backend/prisma/migrations/20260315081326_init/migration.sql#L1-L381)
 
 ## 核心组件
@@ -318,6 +325,7 @@ text notes
 datetime signedAt
 varchar createdById FK
 datetime createdAt
+datetime updatedAt
 }
 ACTIVITY_QUESTIONS {
 varchar id PK
@@ -335,30 +343,22 @@ varchar answeredBy FK
 datetime createdAt
 datetime updatedAt
 }
-COMPANY_SEARCH {
+COMPANY_SEARCH_CACHE {
 varchar id PK
-varchar name
-varchar shortName
-varchar creditCode
-varchar legalPerson
-decimal registeredCapital
-varchar establishDate
-varchar status
-varchar industry
-varchar city
-varchar province
-varchar address
-varchar businessScope
-varchar phone
-varchar email
+varchar companyName UK
+json intelligenceResult
+json searchResults
+varchar source
+int hitCount
 datetime createdAt
+datetime expiresAt
 datetime updatedAt
 }
 USERS ||--o{ CUSTOMERS : "拥有"
 CUSTOMERS ||--o{ OPPORTUNITIES : "包含"
 CUSTOMERS ||--o{ PAYMENTS : "支付"
 CUSTOMERS ||--o{ PROPOSALS : "创建"
-CUSTOMERS ||--o{ COMPANY_SEARCH : "搜索"
+CUSTOMERS ||--o{ COMPANY_SEARCH_CACHE : "搜索"
 OPPORTUNITIES ||--|| PAYMENTS : "关联"
 USERS ||--o{ PROPOSALS : "创建"
 USERS ||--o{ PRESALES_ACTIVITIES : "创建"
@@ -382,7 +382,7 @@ ACTIVITY_SIGN_INS ||--o{ ACTIVITY_QUESTIONS : "产生"
 - [schema.prisma:1052-1076](file://crm-backend/prisma/schema.prisma#L1052-L1076)
 - [schema.prisma:822-853](file://crm-backend/prisma/schema.prisma#L822-L853)
 - [schema.prisma:856-931](file://crm-backend/prisma/schema.prisma#L856-L931)
-- [schema.prisma:1088](file://crm-backend/prisma/schema.prisma#L1088)
+- [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
 
 ### 枚举类型系统
 
@@ -463,12 +463,18 @@ class CustomerType {
 +valid_non_user
 +invalid_non_user
 }
+class CompanySearchSource {
++web_search
++llm
++mock
+}
 ```
 
 **图表来源**
 - [schema.prisma:43-56](file://crm-backend/prisma/schema.prisma#L43-L56)
 - [schema.prisma:15-140](file://crm-backend/prisma/schema.prisma#L15-L140)
 - [customer.validator.ts:3-4](file://crm-backend/src/validators/customer.validator.ts#L3-L4)
+- [schema.prisma:1098](file://crm-backend/prisma/schema.prisma#L1098)
 
 **章节来源**
 - [schema.prisma:13-140](file://crm-backend/prisma/schema.prisma#L13-L140)
@@ -482,14 +488,24 @@ sequenceDiagram
 participant Frontend as 前端应用
 participant Controller as 控制器
 participant Service as 服务层
+participant Cache as 缓存层
 participant Prisma as Prisma客户端
 participant Database as MySQL数据库
 Frontend->>Controller : HTTP请求
 Controller->>Service : 业务逻辑调用
-Service->>Prisma : 数据查询/操作
+Service->>Cache : 检查缓存
+Cache->>Prisma : 查询缓存
 Prisma->>Database : SQL执行
-Database-->>Prisma : 查询结果
-Prisma-->>Service : 处理后的数据
+Database-->>Prisma : 缓存结果
+Prisma-->>Cache : 处理后的数据
+Cache-->>Service : 缓存命中/未命中
+Service->>Service : 数据源查询
+Service->>Cache : 更新缓存
+Cache->>Prisma : 缓存写入
+Prisma->>Database : SQL执行
+Database-->>Prisma : 确认写入
+Prisma-->>Cache : 确认结果
+Cache-->>Service : 缓存更新完成
 Service-->>Controller : 业务结果
 Controller-->>Frontend : HTTP响应
 ```
@@ -513,6 +529,7 @@ CONTACTS[Contacts]
 BUSINESS_CARDS[Business Cards]
 AUDIO_RECORDINGS[Audio Recordings]
 COMPANY_SEARCH[Company Search]
+COMPANY_SEARCH_CACHE[Company Search Cache]
 end
 subgraph "销售管理"
 OPPORTUNITIES[Opportunities]
@@ -576,6 +593,7 @@ CUSTOMERS --> CUSTOMER_INSIGHTS
 CUSTOMERS --> PRESALES_ACTIVITIES
 CUSTOMERS --> PROPOSALS
 CUSTOMERS --> COMPANY_SEARCH
+CUSTOMERS --> COMPANY_SEARCH_CACHE
 OPPORTUNITIES --> PROPOSALS
 OPPORTUNITIES --> OPPORTUNITY_SCORES
 OPPORTUNITIES --> PAYMENTS
@@ -603,7 +621,7 @@ NEGOTIATION_RECORDS --> PROPOSALS
 ```
 
 **图表来源**
-- [schema.prisma:377-1088](file://crm-backend/prisma/schema.prisma#L377-L1088)
+- [schema.prisma:377-1108](file://crm-backend/prisma/schema.prisma#L377-L1108)
 
 ## 详细组件分析
 
@@ -699,9 +717,92 @@ ValidateStatus --> Complete[验证完成]
 - [customer.validator.ts:23-32](file://crm-backend/src/validators/customer.validator.ts#L23-L32)
 - [index.ts:41-48](file://crm-frontend/src/types/index.ts#L41-L48)
 
+### 公司搜索缓存系统
+
+**新增** 公司搜索缓存系统通过CompanySearchCache模型实现了企业搜索结果的高性能缓存，支持缓存命中统计、过期时间和数据源追踪。
+
+#### 缓存模型设计
+
+```mermaid
+erDiagram
+COMPANY_SEARCH_CACHE {
+varchar id PK
+varchar companyName UK
+json intelligenceResult
+json searchResults
+varchar source
+int hitCount
+datetime createdAt
+datetime expiresAt
+datetime updatedAt
+}
+COMPANY_SEARCH_SOURCE {
+varchar source
+enum web_search
+enum llm
+enum mock
+}
+COMPANY_SEARCH_CACHE ||--|| COMPANY_SEARCH_SOURCE : "使用"
+```
+
+**图表来源**
+- [schema.prisma:1093-1108](file://crm-backend/prisma/schema.prisma#L1093-L1108)
+- [schema.prisma:1098](file://crm-backend/prisma/schema.prisma#L1098)
+
+#### 缓存生命周期管理
+
+```mermaid
+stateDiagram-v2
+[*] --> 缓存创建
+缓存创建 --> 缓存查询 : 首次查询
+缓存查询 --> 缓存命中 : 未过期
+缓存查询 --> 缓存过期 : 已过期
+缓存命中 --> 命中计数增加 : hitCount++
+缓存过期 --> 数据源查询 : 刷新缓存
+数据源查询 --> 缓存更新 : upsert操作
+缓存更新 --> 缓存查询 : 新缓存
+缓存命中 --> 缓存查询 : 继续查询
+```
+
+#### 缓存查询流程
+
+```mermaid
+flowchart TD
+Start([缓存查询]) --> CheckCache[检查缓存表存在]
+CheckCache --> QueryCache[查询未过期缓存]
+QueryCache --> CacheFound{找到缓存?}
+CacheFound --> |是| IncrementHit[增加命中计数]
+IncrementHit --> ReturnCache[返回缓存结果]
+CacheFound --> |否| DataSourceQuery[数据源查询]
+DataSourceQuery --> CacheResult[缓存查询结果]
+CacheResult --> ReturnResult[返回查询结果]
+ReturnCache --> End([查询完成])
+ReturnResult --> End
+```
+
+#### 缓存配置和管理
+
+```mermaid
+flowchart TD
+CacheConfig[缓存配置] --> TTL[7天过期时间]
+CacheConfig --> HitCount[命中计数统计]
+CacheConfig --> DataSource[数据源追踪]
+TTL --> CacheExpiration[过期时间管理]
+HitCount --> CacheAnalytics[缓存分析]
+DataSource --> CacheQuality[缓存质量评估]
+CacheExpiration --> CacheCleanup[缓存清理]
+CacheAnalytics --> CacheOptimization[缓存优化]
+CacheQuality --> DataSourceOptimization[数据源优化]
+CacheCleanup --> CacheMaintenance[缓存维护]
+```
+
+**章节来源**
+- [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
+- [companySearch.service.ts:582-654](file://crm-backend/src/services/search/companySearch.service.ts#L582-L654)
+
 ### 公司搜索API系统
 
-**新增** 公司搜索API系统提供了完整的B2B企业信息查询功能，支持基于关键词的企业搜索和基于统一社会信用代码的企业详情查询。
+**新增** 公司搜索API系统提供了完整的B2B企业信息查询功能，支持基于关键词的企业搜索和基于统一社会信用代码的企业详情查询，并集成了企业搜索缓存系统。
 
 #### 搜索功能架构
 
@@ -709,13 +810,19 @@ ValidateStatus --> Complete[验证完成]
 sequenceDiagram
 participant Client as 客户端
 participant SearchAPI as 搜索API
-participant MockDB as 模拟数据库
+participant CacheLayer as 缓存层
+participant DataSources as 数据源
 participant Validator as 验证器
 Client->>SearchAPI : POST /api/v1/companies/search
 SearchAPI->>Validator : 验证搜索参数
 Validator-->>SearchAPI : 参数验证通过
-SearchAPI->>MockDB : 搜索企业信息
-MockDB-->>SearchAPI : 返回匹配结果
+SearchAPI->>CacheLayer : 检查缓存
+CacheLayer->>CacheLayer : 查询未过期缓存
+CacheLayer-->>SearchAPI : 缓存命中/未命中
+SearchAPI->>DataSources : 查询数据源
+DataSources-->>SearchAPI : 返回搜索结果
+SearchAPI->>CacheLayer : 更新缓存
+CacheLayer-->>SearchAPI : 缓存更新完成
 SearchAPI-->>Client : 返回搜索结果
 ```
 
@@ -727,8 +834,8 @@ Start([企业详情查询]) --> ValidateParams[验证信用代码参数]
 ValidateParams --> CheckCache[检查缓存]
 CheckCache --> CacheHit{缓存命中?}
 CacheHit --> |是| ReturnCached[返回缓存结果]
-CacheHit --> |否| QueryDB[查询模拟数据库]
-QueryDB --> ProcessResult[处理查询结果]
+CacheHit --> |否| QueryDataSources[查询数据源]
+QueryDataSources --> ProcessResult[处理查询结果]
 ProcessResult --> UpdateCache[更新缓存]
 UpdateCache --> ReturnResult[返回查询结果]
 ReturnCached --> End([查询完成])
@@ -742,21 +849,32 @@ flowchart TD
 Search([企业搜索]) --> InputValidation[输入参数验证]
 InputValidation --> TrimKeyword[清理搜索关键词]
 TrimKeyword --> LowercaseKeyword[转换为小写]
-LowercaseKeyword --> SimulateDelay[模拟查询延迟]
-SimulateDelay --> FilterCompanies[过滤匹配企业]
-FilterCompanies --> ExtractFields[提取关键字段]
-ExtractFields --> LimitResults[限制返回数量]
-LimitResults --> ReturnResults[返回搜索结果]
+LowercaseKeyword --> CheckCache[检查缓存]
+CheckCache --> CacheHit{缓存命中?}
+CacheHit --> |是| ReturnCached[返回缓存结果]
+CacheHit --> |否| TryQCC[尝试企查查API]
+TryQCC --> QCCSuccess{查询成功?}
+QCCSuccess --> |是| CacheQCC[缓存企查查结果]
+QCCSuccess --> |否| TrySerper[尝试Serper搜索]
+TrySerper --> SerperSuccess{搜索成功?}
+SerperSuccess --> |是| ExtractLLM[LLM提取结构化信息]
+ExtractLLM --> CacheSerper[缓存Serper结果]
+SerperSuccess --> |否| ReturnEmpty[返回空结果]
+CacheQCC --> ReturnQCC[返回企查查结果]
+CacheSerper --> ReturnSerper[返回Serper结果]
+ReturnEmpty --> End([搜索完成])
+ReturnQCC --> End
+ReturnSerper --> End
 ```
 
 **图表来源**
 - [companySearch.controller.ts:10-21](file://crm-backend/src/controllers/companySearch.controller.ts#L10-L21)
-- [companySearch.service.ts:274-292](file://crm-backend/src/services/companySearch.service.ts#L274-L292)
+- [companySearch.service.ts:67-144](file://crm-backend/src/services/search/companySearch.service.ts#L67-L144)
 - [companySearch.routes.ts:7-32](file://crm-backend/src/routes/companySearch.routes.ts#L7-L32)
 
 **章节来源**
 - [companySearch.controller.ts:1-46](file://crm-backend/src/controllers/companySearch.controller.ts#L1-L46)
-- [companySearch.service.ts:1-327](file://crm-backend/src/services/companySearch.service.ts#L1-L327)
+- [companySearch.service.ts:1-677](file://crm-backend/src/services/search/companySearch.service.ts#L1-L677)
 - [companySearch.routes.ts:1-57](file://crm-backend/src/routes/companySearch.routes.ts#L1-L57)
 
 ### 客户管理系统
@@ -1178,6 +1296,7 @@ Contacts[Contacts]
 BusinessCards[Business Cards]
 AudioRecordings[Audio Recordings]
 CompanySearch[Company Search]
+CompanySearchCache[Company Search Cache]
 end
 subgraph "销售相关"
 Opportunities[Opportunities]
@@ -1224,6 +1343,7 @@ Customers --> ScheduleTasks
 Customers --> PresalesActivities
 Customers --> Proposals
 Customers --> CompanySearch
+Customers --> CompanySearchCache
 Opportunities --> Proposals
 Opportunities --> Payments
 Opportunities --> OpportunityScores
@@ -1245,7 +1365,7 @@ NegotiationRecords --> Proposals
 ```
 
 **图表来源**
-- [schema.prisma:377-1088](file://crm-backend/prisma/schema.prisma#L377-L1088)
+- [schema.prisma:377-1108](file://crm-backend/prisma/schema.prisma#L377-L1108)
 
 ### 控制器-服务层依赖
 
@@ -1423,6 +1543,7 @@ CompanySearchController --> CompanySearchService
 - **签到表**: activityId, customerId, phone(复合索引)
 - **问题表**: activityId, signInId, customerId, category, status(复合索引)
 - **企业搜索表**: name, shortName, creditCode(复合索引)
+- **企业搜索缓存表**: companyName(唯一索引), expiresAt, source(复合索引)
 
 ### 查询优化
 
@@ -1431,16 +1552,19 @@ CompanySearchController --> CompanySearchService
 3. **关联查询**: 使用include选项进行必要的关联数据加载
 4. **聚合查询**: 使用groupBy和aggregate函数进行高效的数据统计
 5. **批量操作**: 支持批量分类和批量更新操作
-6. ****新增** 企业搜索优化**: 企业搜索使用模糊匹配和索引优化，支持按名称、简称和统一社会信用代码的快速检索
+6. **企业搜索优化**: 企业搜索使用模糊匹配和索引优化，支持按名称、简称和统一社会信用代码的快速检索
+7. **缓存查询优化**: 企业搜索缓存使用expiresAt索引确保过期数据的快速清理
 
 ### 缓存策略
 
-虽然当前实现中没有显式的缓存层，但可以考虑：
-- 对于频繁访问的统计数据使用Redis缓存
-- 对于静态配置数据进行内存缓存
-- 对于复杂的聚合查询结果进行定期缓存更新
-- 对于二维码验证结果进行短期缓存
-- **新增** 对于企业搜索结果进行缓存，提高搜索响应速度
+**新增** 企业搜索缓存系统实现了多层次的缓存策略：
+
+- **缓存配置**: 7天过期时间，支持强制刷新和缓存开关
+- **命中统计**: hitCount字段记录缓存命中次数，用于缓存效果分析
+- **数据源追踪**: source字段标识数据来源（web_search, llm, mock）
+- **索引优化**: 为companyName、expiresAt、source建立复合索引
+- **过期清理**: 自动清理过期缓存，释放存储空间
+- **降级机制**: 缓存查询失败不影响主流程，系统自动降级到数据源查询
 
 ## 故障排除指南
 
@@ -1456,17 +1580,21 @@ CompanySearchController --> CompanySearchService
 - 确认MySQL版本兼容性
 - 检查是否有重复的索引或约束
 - **新增**: 检查企业客户相关的新字段是否正确创建
+- **新增**: 验证CompanySearchCache表的索引和约束
 
 #### 查询超时
 - 分析慢查询日志
 - 检查WHERE条件是否使用了合适的索引
 - 考虑添加复合索引优化复杂查询
 - **新增**: 检查企业搜索相关查询的索引使用情况
+- **新增**: 验证缓存查询的性能表现
 
 #### 企业搜索异常
 - **新增**: 检查搜索关键词的长度和格式
 - **新增**: 验证统一社会信用代码的格式正确性
 - **新增**: 确认模拟数据库中的企业数据完整性
+- **新增**: 验证缓存表的索引和查询性能
+- **新增**: 检查数据源配置（企查查API、Serper API）
 
 ### 错误处理机制
 
@@ -1491,16 +1619,21 @@ ErrorHandler --> Response[标准化错误响应]
 
 该销售AI CRM系统的数据库架构设计合理，具有以下优势：
 
-1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了企业客户管理和公司搜索API系统**
+1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了企业客户管理和公司搜索缓存系统**
 2. **灵活的扩展性**: 基于Prisma的Schema设计便于后续功能扩展
 3. **强大的AI集成**: 内置的智能分析功能提升了系统的自动化水平
 4. **良好的性能设计**: 合理的索引策略和查询优化保证了系统的响应速度
 5. **清晰的架构分离**: 控制器-服务层-数据层的职责分离提高了代码的可维护性
 6. **完整的API支持**: **新增了企业客户管理和公司搜索的完整RESTful API接口**
+7. **高效的缓存系统**: **新增的企业搜索缓存系统通过CompanySearchCache模型实现了高性能的企业信息查询**
 
 **新增功能优势**:
 - **完整的B2B客户管理**: 支持企业客户分类、统一社会信用代码管理、注册资本等企业信息
 - **智能企业搜索**: 支持按名称、简称、信用代码的快速企业信息查询
+- **企业搜索缓存系统**: 通过CompanySearchCache模型实现7天缓存过期策略，提升查询性能
+- **多数据源支持**: 集成企查查API、Serper搜索和AI提取的完整数据源体系
+- **缓存管理功能**: 支持缓存命中统计、过期时间管理和数据源追踪
+- **降级机制**: 缓存查询失败不影响主流程，系统自动降级到数据源查询
 - **完整的提案生命周期管理**: 从需求分析到商务谈判的全流程跟踪
 - **智能模板系统**: 支持模板创建、匹配和应用
 - **AI驱动的需求分析**: 自动从录音和跟进记录中提取需求
@@ -1521,3 +1654,4 @@ ErrorHandler --> Response[标准化错误响应]
 - **新增** 优化提案工作流程的自动化程度
 - **新增** 增加更多报表和分析功能
 - **新增** 实现企业客户的分级管理和风险评估功能
+- **新增** 优化企业搜索缓存的清理策略和性能监控

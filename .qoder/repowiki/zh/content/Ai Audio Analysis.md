@@ -43,17 +43,20 @@
 - [AIAssistant/index.tsx](file://crm-frontend/src/pages/AIAssistant/index.tsx)
 - [start.js](file://start.js)
 - [test-report.md](file://test-report.md)
+- [serper.client.ts](file://crm-backend/src/services/search/serper.client.ts)
+- [qcc.client.ts](file://crm-backend/src/services/search/qcc.client.ts)
+- [companySearch.service.ts](file://crm-backend/src/services/search/companySearch.service.ts)
+- [index.ts](file://crm-backend/src/services/search/index.ts)
+- [companySearch.test.ts](file://crm-backend/tests/services/companySearch.test.ts)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- 全面升级AI音频分析组件，集成阿里云DashScope Qwen大模型
-- 新增完整的AI客户端封装和重试机制
-- 强化钉钉录音同步功能，支持实时状态展示
-- 完善音频播放器功能，支持播放控制和进度跳转
-- 新增实时统计分析面板，提供多维度数据可视化
-- 升级AI分析流程，支持真实API调用和降级处理
-- 优化前端界面，增强用户体验和交互性
+- 新增网络搜索集成，支持Serper Google搜索API和企查查企业信息查询
+- 集成智能缓存系统，支持企业搜索结果的持久化缓存
+- 增强AI企业分析功能，支持真实企业信息提取和销售策略生成
+- 优化AI音频分析流程，支持企业信息智能分析和网络搜索降级处理
+- 新增企业信息搜索服务，提供多数据源融合的企业信息提取能力
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -62,21 +65,24 @@
 4. [AI音频分析流程](#ai音频分析流程)
 5. [AI智能分析功能](#ai智能分析功能)
 6. [AI问题分类服务](#ai问题分类服务)
-7. [数据库迁移与版本管理](#数据库迁移与版本管理)
-8. [前端界面设计](#前端界面设计)
-9. [数据模型](#数据模型)
-10. [API接口设计](#api接口设计)
-11. [性能考虑](#性能考虑)
-12. [故障排除指南](#故障排除指南)
-13. [总结](#总结)
+7. [网络搜索与智能缓存系统](#网络搜索与智能缓存系统)
+8. [数据库迁移与版本管理](#数据库迁移与版本管理)
+9. [前端界面设计](#前端界面设计)
+10. [数据模型](#数据模型)
+11. [API接口设计](#api接口设计)
+12. [性能考虑](#性能考虑)
+13. [故障排除指南](#故障排除指南)
+14. [总结](#总结)
 
 ## 项目概述
 
-销售AI CRM系统是一个基于现代Web技术栈构建的企业级客户关系管理系统。该系统的核心功能之一是AI音频分析，能够自动分析销售通话录音，提取关键信息并生成智能化的销售建议。
+销售AI CRM系统是一个基于现代Web技术栈构建的企业级客户关系管理系统。该系统的核心功能之一是AI音频分析，能够自动分析销售通话录音，提取关键信息并生成智能化的销售建议。现已全面升级为支持网络搜索集成和智能缓存的企业级AI分析系统。
 
 ### 主要特性
 
 - **智能语音分析**：基于阿里云DashScope Qwen模型进行语音转文字、情感分析、关键词提取
+- **企业信息智能分析**：集成Serper Google搜索API和企查查企业信息查询，提供真实企业数据
+- **智能缓存系统**：支持企业搜索结果的7天持久化缓存，提升查询性能
 - **销售洞察**：分析客户心理状态和购买意向，提供深度洞察
 - **自动化建议**：基于分析结果生成具体的行动建议和销售脚本
 - **多格式支持**：支持MP3、WAV、M4A等多种音频格式
@@ -89,10 +95,12 @@
 - **资源智能匹配**：自动匹配最适合的售前资源和专家团队
 - **智能问题分类**：支持对客户咨询问题进行自动分类和情感分析
 - **实时统计分析**：提供多维度的录音分析统计和可视化展示
+- **网络搜索集成**：支持Google搜索和企业信息查询，增强数据准确性
+- **智能降级处理**：多数据源失败时的智能降级方案
 
 ## 系统架构
 
-系统采用前后端分离的架构设计，后端使用Node.js + Express框架，前端使用React + TypeScript构建，集成了阿里云DashScope Qwen大模型进行智能分析。
+系统采用前后端分离的架构设计，后端使用Node.js + Express框架，前端使用React + TypeScript构建，集成了阿里云DashScope Qwen大模型进行智能分析，并新增了网络搜索和智能缓存系统。
 
 ```mermaid
 graph TB
@@ -118,6 +126,15 @@ AI1[AI客户端封装]
 AI2[阿里云DashScope Qwen]
 AI3[重试机制]
 AI4[JSON解析]
+AI5[企业信息智能分析]
+AI6[网络搜索集成]
+AI7[智能缓存系统]
+end
+subgraph "搜索服务层"
+SS1[Serper搜索客户端]
+SS2[企查查API客户端]
+SS3[企业搜索服务]
+SS4[缓存管理器]
 end
 subgraph "API层"
 API1[录音路由]
@@ -128,6 +145,7 @@ API5[报价路由]
 API6[教练路由]
 API7[资源匹配路由]
 API8[问题分类路由]
+API9[企业搜索路由]
 end
 subgraph "业务逻辑层"
 BL1[录音控制器]
@@ -141,17 +159,21 @@ BL8[智能报价服务]
 BL9[销售教练服务]
 BL10[资源匹配服务]
 BL11[问题分类服务]
+BL12[企业搜索服务]
 end
 subgraph "数据访问层"
 DA1[Prisma ORM]
 DA2[MySQL数据库]
 DA3[数据库迁移管理]
+DA4[缓存数据库]
 end
 subgraph "外部服务"
 ES1[钉钉API]
 ES2[阿里云DashScope]
 ES3[文件存储]
 ES4[腾讯云API]
+ES5[Serper搜索API]
+ES6[企查查API]
 end
 FE1 --> API1
 FE2 --> API1
@@ -174,10 +196,12 @@ API3 --> BL1
 API4 --> BL5
 API4 --> BL6
 API4 --> BL7
+API4 --> BL12
 API5 --> BL8
 API6 --> BL9
 API7 --> BL10
 API8 --> BL11
+API9 --> BL12
 BL1 --> BL2
 BL2 --> BL3
 BL2 --> BL4
@@ -188,9 +212,11 @@ BL8 --> BL3
 BL9 --> BL3
 BL10 --> BL3
 BL11 --> BL3
+BL12 --> SS3
 BL2 --> DA1
 DA1 --> DA2
 DA3 --> DA2
+DA4 --> DA2
 BL3 --> ES2
 BL4 --> ES2
 BL5 --> ES4
@@ -200,7 +226,11 @@ BL8 --> ES4
 BL9 --> ES4
 BL10 --> ES4
 BL11 --> ES2
+BL12 --> ES5
+BL12 --> ES6
 BL1 --> ES1
+SS1 --> ES5
+SS2 --> ES6
 AI1 --> AI2
 AI2 --> AI3
 AI3 --> AI4
@@ -211,6 +241,9 @@ AI3 --> AI4
 - [recordings.routes.ts:12-355](file://crm-backend/src/routes/recordings.routes.ts#L12-L355)
 - [index.ts:37-55](file://crm-backend/src/services/ai/index.ts#L37-L55)
 - [client.ts:50-77](file://crm-backend/src/services/ai/client.ts#L50-L77)
+- [serper.client.ts:60-296](file://crm-backend/src/services/search/serper.client.ts#L60-L296)
+- [qcc.client.ts:152-539](file://crm-backend/src/services/search/qcc.client.ts#L152-L539)
+- [companySearch.service.ts:39-677](file://crm-backend/src/services/search/companySearch.service.ts#L39-L677)
 
 ## 核心组件分析
 
@@ -261,7 +294,7 @@ ChatResponse --> Usage
 
 ### AI服务组件
 
-AI服务是整个系统的核心组件，负责处理所有AI相关的分析功能，现已升级为支持阿里云DashScope Qwen模型。
+AI服务是整个系统的核心组件，负责处理所有AI相关的分析功能，现已升级为支持阿里云DashScope Qwen模型和企业信息智能分析。
 
 ```mermaid
 classDiagram
@@ -271,11 +304,37 @@ class AIService {
 +analyzeSentiment(text) Promise~SentimentType~
 +extractKeywords(text) Promise~string[]~
 +generateSummary(text, keywords) Promise~string~
-+analyzeCompany(companyName, imageUrl) Promise~CompanyIntelligenceResult~
++analyzeCompany(companyName, imageUrl, options) Promise~CompanyIntelligenceResult~
 +callRealAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
 +mockAnalysis(duration, customerInfo) Promise~AIAnalysisResult~
 +generateMockResult(duration, customerInfo) AIAnalysisResult
 +generateMockCompanyIntelligence(companyName) CompanyIntelligenceResult
+}
+class CompanyIntelligenceResult {
++basicInfo : BasicInfo
++string[] businessScope
++News[] recentNews
++Contact[] keyContacts
++SalesPitch salesPitch
+}
+class CompanySearchService {
++searchCompany(companyName, options) Promise~CompanyIntelligenceResult~
++searchWithQCC(companyName) Promise~CompanyIntelligenceResult | null~
++extractIntelligence(companyName, organicResults, newsResults, knowledgeGraph) Promise~CompanyIntelligenceResult~
++getCachedResult(companyName) Promise~CachedSearchResult | null~
++cacheResult(companyName, intelligenceResult, searchResults) Promise~void~
+}
+class SerperClient {
++isConfigured() boolean
++searchCompany(companyName) Promise~SerperSearchResult~
++search(query, options) Promise~SerperResponse~
++searchNews(query, options) Promise~NewsResult~
+}
+class QCCClient {
++isConfigured() boolean
++searchCompany(keyword) Promise~QCCSearchResult~
++fuzzySearch(searchKey, pageIndex) Promise~QCCSearchResultItem[]~
++getBasicDetailsByName(keyword) Promise~QCCBasicDetailsResult | null~
 }
 class AIAnalysisResult {
 +string transcript
@@ -286,13 +345,6 @@ class AIAnalysisResult {
 +string summary
 +psychology : Psychology
 +suggestions : Suggestion[]
-}
-class CompanyIntelligenceResult {
-+basicInfo : BasicInfo
-+string[] businessScope
-+News[] recentNews
-+Contact[] keyContacts
-+SalesPitch salesPitch
 }
 class ProposalAIService {
 +generateSmartQuotation(input) Promise~SmartQuotationResult~
@@ -346,6 +398,9 @@ class QuestionClassificationService {
 }
 AIService --> AIAnalysisResult
 AIService --> CompanyIntelligenceResult
+CompanySearchService --> CompanyIntelligenceResult
+SerperClient --> CompanyIntelligenceResult
+QCCClient --> CompanyIntelligenceResult
 ProposalAIService --> AIAnalysisResult
 SalesCoachService --> AIAnalysisResult
 ResourceMatchingService --> AIAnalysisResult
@@ -354,6 +409,9 @@ QuestionClassificationService --> AIAnalysisResult
 
 **图表来源**
 - [ai.service.ts:72-97](file://crm-backend/src/services/ai.service.ts#L72-L97)
+- [companySearch.service.ts:39-677](file://crm-backend/src/services/search/companySearch.service.ts#L39-L677)
+- [serper.client.ts:60-296](file://crm-backend/src/services/search/serper.client.ts#L60-L296)
+- [qcc.client.ts:152-539](file://crm-backend/src/services/search/qcc.client.ts#L152-L539)
 - [proposalAI.ts:53-154](file://crm-backend/src/services/ai/proposalAI.ts#L53-L154)
 - [salesCoach.ts:51-138](file://crm-backend/src/services/ai/salesCoach.ts#L51-L138)
 - [resourceMatching.ts:44-92](file://crm-backend/src/services/ai/resourceMatching.ts#L44-L92)
@@ -361,7 +419,7 @@ QuestionClassificationService --> AIAnalysisResult
 
 ### 录音服务组件
 
-录音服务负责处理录音相关的业务逻辑，包括存储、分析和管理，现已支持钉钉录音同步功能。
+录音服务负责处理录音相关的业务逻辑，包括存储、分析和管理，现已支持钉钉录音同步功能和AI智能分析。
 
 ```mermaid
 classDiagram
@@ -407,7 +465,7 @@ RecordingService --> AIService
 
 ## AI音频分析流程
 
-系统提供了完整的AI音频分析工作流程，从录音上传到最终的分析结果展示，现已集成阿里云DashScope Qwen模型。
+系统提供了完整的AI音频分析工作流程，从录音上传到最终的分析结果展示，现已集成阿里云DashScope Qwen模型和企业信息智能分析功能。
 
 ```mermaid
 sequenceDiagram
@@ -417,7 +475,9 @@ participant API as 后端API
 participant Service as 录音服务
 participant AIService as AI服务
 participant AIClient as AI客户端
-participant DashScope as 阿里云DashScope
+participant CompanySearch as 企业搜索服务
+participant SerperClient as Serper客户端
+participant QCCClient as 企查查客户端
 participant DB as 数据库
 User->>Frontend : 上传录音文件
 Frontend->>API : POST /api/v1/recordings/upload
@@ -435,6 +495,14 @@ AIService->>AIClient : chatForJson()
 AIClient->>DashScope : 调用Qwen模型
 DashScope-->>AIClient : 返回分析结果
 AIClient-->>AIService : 解析JSON响应
+AIService->>CompanySearch : analyzeCompany()
+CompanySearch->>SerperClient : searchCompany()
+SerperClient-->>CompanySearch : 搜索结果
+CompanySearch->>QCCClient : searchCompany()
+QCCClient-->>CompanySearch : 企业信息
+CompanySearch->>AIClient : chatForJson()
+AIClient-->>CompanySearch : 结构化结果
+CompanySearch-->>AIService : 企业信息
 AIService-->>Service : 返回分析结果
 Service->>DB : 更新分析结果
 DB-->>Service : 确认更新
@@ -447,6 +515,7 @@ API-->>Frontend : 显示分析结果
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
 - [ai.service.ts:84-97](file://crm-backend/src/services/ai.service.ts#L84-L97)
 - [client.ts:152-182](file://crm-backend/src/services/ai/client.ts#L152-L182)
+- [companySearch.service.ts:67-144](file://crm-backend/src/services/search/companySearch.service.ts#L67-L144)
 
 ### 分析流程详细说明
 
@@ -454,21 +523,27 @@ API-->>Frontend : 显示分析结果
 2. **状态初始化**：录音记录创建时状态设置为"pending"
 3. **AI分析触发**：用户点击分析按钮，系统调用AI分析服务
 4. **状态更新**：分析开始前将状态更新为"processing"
-5. **AI处理**：调用AI客户端封装，通过阿里云DashScope Qwen模型进行分析
-6. **重试机制**：支持最多3次重试，指数退避延迟
-7. **JSON解析**：自动解析AI响应，支持Markdown代码块格式
-8. **结果保存**：将分析结果保存到数据库，状态更新为"analyzed"
-9. **结果展示**：前端界面展示完整的分析结果
+5. **语音分析**：调用AI客户端封装，通过阿里云DashScope Qwen模型进行语音分析
+6. **企业信息分析**：同时调用企业搜索服务，获取真实企业信息
+7. **网络搜索**：优先使用Serper Google搜索API获取企业相关信息
+8. **企业信息查询**：备用使用企查查API获取权威工商信息
+9. **LLM结构化提取**：使用AI模型将搜索结果转换为结构化的企业信息
+10. **缓存存储**：将企业信息结果缓存7天，提升后续查询性能
+11. **重试机制**：支持最多3次重试，指数退避延迟
+12. **JSON解析**：自动解析AI响应，支持Markdown代码块格式
+13. **结果保存**：将分析结果保存到数据库，状态更新为"analyzed"
+14. **结果展示**：前端界面展示完整的分析结果
 
 **章节来源**
 - [recording.controller.ts:129-137](file://crm-backend/src/controllers/recording.controller.ts#L129-L137)
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
 - [ai.service.ts:84-153](file://crm-backend/src/services/ai.service.ts#L84-L153)
 - [client.ts:93-147](file://crm-backend/src/services/ai/client.ts#L93-L147)
+- [companySearch.service.ts:67-144](file://crm-backend/src/services/search/companySearch.service.ts#L67-L144)
 
 ## AI智能分析功能
 
-系统新增了四大核心AI智能分析功能，提供更全面的销售智能分析能力，现已全部支持阿里云DashScope Qwen模型。
+系统新增了四大核心AI智能分析功能，提供更全面的销售智能分析能力，现已全部支持阿里云DashScope Qwen模型和网络搜索集成。
 
 ### 智能报价与提案生成
 
@@ -648,9 +723,208 @@ Trend --> End
 **章节来源**
 - [questionClassification.service.ts:25-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L25-L372)
 
+## 网络搜索与智能缓存系统
+
+系统新增了完整的网络搜索和智能缓存系统，提供真实的企业信息获取和高性能的数据访问能力。
+
+### 网络搜索架构
+
+```mermaid
+graph TB
+subgraph "网络搜索层"
+NS1[Serper搜索客户端]
+NS2[企查查API客户端]
+NS3[企业搜索服务]
+NS4[搜索结果缓存]
+end
+subgraph "数据源优先级"
+D1[企业搜索缓存]
+D2[企查查API]
+D3[Serper搜索]
+D4[LLM提取]
+D5[模拟数据]
+end
+subgraph "AI分析层"
+AI1[AI客户端封装]
+AI2[阿里云DashScope Qwen]
+AI3[结构化提取]
+end
+subgraph "缓存管理"
+CM1[缓存配置]
+CM2[缓存查询]
+CM3[缓存存储]
+CM4[缓存过期]
+end
+NS1 --> NS3
+NS2 --> NS3
+NS3 --> CM2
+NS3 --> CM3
+CM2 --> D1
+CM3 --> D1
+D1 --> D2
+D2 --> D3
+D3 --> D4
+D4 --> D5
+NS3 --> AI3
+AI3 --> AI2
+AI2 --> AI1
+```
+
+**图表来源**
+- [serper.client.ts:60-296](file://crm-backend/src/services/search/serper.client.ts#L60-L296)
+- [qcc.client.ts:152-539](file://crm-backend/src/services/search/qcc.client.ts#L152-L539)
+- [companySearch.service.ts:39-677](file://crm-backend/src/services/search/companySearch.service.ts#L39-L677)
+- [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
+
+### 企业搜索服务核心功能
+
+企业搜索服务提供多数据源融合的企业信息提取能力，支持智能降级处理。
+
+```mermaid
+flowchart TD
+Start([企业搜索开始]) --> CacheCheck[检查缓存]
+CacheCheck --> CacheHit{缓存命中?}
+CacheHit --> |是| ReturnCache[返回缓存结果]
+CacheHit --> |否| DataSource{数据源选择}
+DataSource --> |QCC优先| QCCSearch[企查查API搜索]
+DataSource --> |Serper优先| SerperSearch[Serper搜索]
+QCCSearch --> QCCSuccess{查询成功?}
+QCCSuccess --> |是| ConvertQCC[转换为结构化数据]
+QCCSuccess --> |否| SerperFallback[Serper搜索降级]
+SerperSearch --> SerperSuccess{搜索成功?}
+SerperSuccess --> |是| LLMExtract[LLM结构化提取]
+SerperSuccess --> |否| MockData[模拟数据降级]
+ConvertQCC --> CacheStore[缓存结果]
+CacheStore --> ReturnResult[返回结果]
+LLMExtract --> CacheStore
+ReturnCache --> End([搜索完成])
+ReturnResult --> End
+MockData --> End
+```
+
+**图表来源**
+- [companySearch.service.ts:67-144](file://crm-backend/src/services/search/companySearch.service.ts#L67-L144)
+- [companySearch.service.ts:305-413](file://crm-backend/src/services/search/companySearch.service.ts#L305-L413)
+
+### 缓存系统设计
+
+智能缓存系统提供7天持久化缓存，支持缓存命中统计和过期管理。
+
+```mermaid
+classDiagram
+class CompanySearchCache {
++String id PK
++String companyName UK
++Json intelligenceResult
++Json searchResults
++String source
++Int hitCount
++DateTime createdAt
++DateTime expiresAt
++DateTime updatedAt
+}
+class CacheConfig {
++Boolean enabled
++Integer ttlHours
+}
+class CachedSearchResult {
++String companyName
++CompanyIntelligenceResult intelligenceResult
++SearchResult[] organic
++NewsResult[] news
++Date createdAt
++Date expiresAt
+}
+CompanySearchCache --> CacheConfig
+CompanySearchCache --> CachedSearchResult
+```
+
+**图表来源**
+- [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
+- [companySearch.service.ts:18-34](file://crm-backend/src/services/search/companySearch.service.ts#L18-L34)
+
+### 搜索客户端功能
+
+#### Serper搜索客户端
+
+Serper搜索客户端提供Google搜索API集成，支持企业信息搜索和新闻搜索。
+
+```mermaid
+flowchart TD
+SerperClient[Serper搜索客户端] --> Search[searchCompany]
+SerperClient --> News[searchNews]
+SerperClient --> RateLimit[速率限制]
+SerperClient --> Retry[重试机制]
+Search --> Parallel[并行搜索]
+Parallel --> Organic[网页搜索]
+Parallel --> NewsSearch[新闻搜索]
+Organic --> Process[结果处理]
+NewsSearch --> Process
+Process --> Return[返回结果]
+```
+
+**图表来源**
+- [serper.client.ts:219-239](file://crm-backend/src/services/search/serper.client.ts#L219-L239)
+- [serper.client.ts:115-170](file://crm-backend/src/services/search/serper.client.ts#L115-L170)
+
+#### 企查查API客户端
+
+企查查API客户端提供权威的企业工商信息查询服务。
+
+```mermaid
+flowchart TD
+QCCClient[企查查API客户端] --> HealthCheck[健康检查]
+QCCClient --> GetDetails[getBasicDetailsByName]
+QCCClient --> FuzzySearch[fuzzySearch]
+QCCClient --> GetDetailsByKeyNo[getDetailsByKeyNo]
+HealthCheck --> Token[Token生成]
+Token --> Request[请求发送]
+GetDetails --> Response[响应处理]
+FuzzySearch --> Response
+GetDetailsByKeyNo --> Response
+Response --> Error[错误处理]
+```
+
+**图表来源**
+- [qcc.client.ts:152-539](file://crm-backend/src/services/search/qcc.client.ts#L152-L539)
+- [qcc.client.ts:216-276](file://crm-backend/src/services/search/qcc.client.ts#L216-L276)
+
+### AI企业分析集成
+
+AI服务集成了企业搜索功能，提供智能的企业信息分析能力。
+
+```mermaid
+flowchart TD
+AICompany[AI企业分析] --> WebSearch{启用网络搜索?}
+WebSearch --> |是| CompanySearch[企业搜索服务]
+WebSearch --> |否| LLMAnalysis[LLM分析]
+CompanySearch --> SerperClient[Serper客户端]
+CompanySearch --> QCCClient[企查查客户端]
+SerperClient --> CacheCheck[缓存检查]
+QCCClient --> CacheCheck
+CacheCheck --> CacheHit{缓存命中?}
+CacheHit --> |是| ReturnCache[返回缓存]
+CacheHit --> |否| SearchNetwork[网络搜索]
+SearchNetwork --> ReturnResult[返回结果]
+ReturnCache --> LLMEnhance[LLM增强]
+ReturnResult --> LLMEnhance
+LLMEnhance --> MockFallback[模拟降级]
+MockFallback --> End([分析完成])
+```
+
+**图表来源**
+- [ai.service.ts:464-504](file://crm-backend/src/services/ai.service.ts#L464-L504)
+- [companySearch.service.ts:585-654](file://crm-backend/src/services/search/companySearch.service.ts#L585-L654)
+
+**章节来源**
+- [serper.client.ts:60-296](file://crm-backend/src/services/search/serper.client.ts#L60-L296)
+- [qcc.client.ts:152-539](file://crm-backend/src/services/search/qcc.client.ts#L152-L539)
+- [companySearch.service.ts:39-677](file://crm-backend/src/services/search/companySearch.service.ts#L39-L677)
+- [ai.service.ts:464-504](file://crm-backend/src/services/ai.service.ts#L464-L504)
+
 ## 数据库迁移与版本管理
 
-系统采用Prisma进行数据库管理，支持完整的数据库迁移和版本控制。
+系统采用Prisma进行数据库管理，支持完整的数据库迁移和版本控制，现已新增企业搜索缓存表。
 
 ### 数据库迁移架构
 
@@ -662,6 +936,7 @@ M2 --> M3[20260315155023_add_cold_visit_records]
 M3 --> M4[20260317020137_add_ai_features]
 M4 --> M5[20260317051358_add_sales_performance_and_coaching]
 M5 --> M6[20260317083220_add_presales_activity_management]
+M6 --> M7[20260318104850_add_company_search_cache]
 end
 subgraph "AI功能迁移"
 M4 --> T1[customers表增强]
@@ -680,6 +955,9 @@ subgraph "新增预销售功能迁移"
 M6 --> T10[presales_activities表]
 T10 --> T11[presales_questions表]
 end
+subgraph "新增企业搜索缓存迁移"
+M7 --> T12[company_search_cache表]
+end
 subgraph "数据模型映射"
 S1[schema.prisma] --> T1
 S1 --> T2
@@ -692,24 +970,52 @@ S1 --> T8
 S1 --> T9
 S1 --> T10
 S1 --> T11
+S1 --> T12
 end
 ```
 
 **图表来源**
 - [20260317020137_add_ai_features/migration.sql:1-120](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql#L1-L120)
 - [20260317051358_add_sales_performance_and_coaching/migration.sql:1-71](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql#L1-L71)
-- [schema.prisma:189-218](file://crm-backend/prisma/schema.prisma#L189-L218)
+- [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
 
-### AI功能数据库结构
+### 企业搜索缓存数据库结构
+
+新增的企业搜索缓存表支持企业信息的持久化存储和快速访问。
+
+#### 企业搜索缓存表 (company_search_cache)
+
+**表结构**
+- `id`: UUID主键，唯一标识缓存记录
+- `companyName`: 企业名称，唯一索引，支持快速查找
+- `intelligenceResult`: 企业情报结果，JSON格式存储结构化数据
+- `searchResults`: 原始搜索结果，JSON格式存储网页和新闻结果
+- `source`: 数据来源，支持web_search、llm、mock三种类型
+- `hitCount`: 缓存命中次数，用于统计缓存效果
+- `expiresAt`: 过期时间，支持7天缓存策略
+- `createdAt`: 创建时间，记录缓存创建时间
+- `updatedAt`: 更新时间，记录缓存最后更新时间
+
+**索引设计**
+- `companyName`: 唯一索引，确保企业名称唯一性
+- `expiresAt`: 普通索引，支持过期查询优化
+- `source`: 普通索引，支持按数据来源查询
+
+**缓存策略**
+- TTL: 7天（24×7小时）
+- 命中统计: 自动增加hitCount计数
+- 清理机制: 过期自动清理，支持强制刷新
+
+#### AI功能数据库结构
 
 AI功能相关的数据库结构在多个迁移中得到完善：
 
-#### 阶段二新增AI功能
+##### 阶段二新增AI功能
 - `engagementScore`：互动活跃度评分 (0-100)
 - `riskScore`：流失风险评分 (0-100)  
 - `lastAnalysisAt`：最后AI分析时间
 
-#### 新增AI分析相关表
+##### 新增AI分析相关表
 
 **跟进建议表 (follow_up_suggestions)**
 - 存储AI生成的跟进建议
@@ -733,7 +1039,7 @@ AI功能相关的数据库结构在多个迁移中得到完善：
 - AI提取的客户需求、预算、决策人等信息
 - 置信度和分析来源
 
-#### 阶段三新增AI功能
+##### 阶段三新增AI功能
 
 **销售绩效表 (sales_performances)**
 - 记录销售人员的每日绩效数据
@@ -750,7 +1056,7 @@ AI功能相关的数据库结构在多个迁移中得到完善：
 - 存储匹配分数、技能匹配详情、匹配因子等
 - 支持AI推荐标记和创建时间
 
-#### 新增预销售功能
+##### 新增预销售功能
 
 **预销售活动表 (presales_activities)**
 - 记录预销售活动的详细信息
@@ -767,10 +1073,11 @@ AI功能相关的数据库结构在多个迁移中得到完善：
 - [20260317051358_add_sales_performance_and_coaching/migration.sql:1-71](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql#L1-L71)
 - [schema.prisma:572-685](file://crm-backend/prisma/schema.prisma#L572-L685)
 - [schema.prisma:729-783](file://crm-backend/prisma/schema.prisma#L729-L783)
+- [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
 
 ## 前端界面设计
 
-前端界面采用现代化的设计理念，提供了直观易用的操作界面，现已全面升级支持钉钉同步和实时统计功能。
+前端界面采用现代化的设计理念，提供了直观易用的操作界面，现已全面升级支持钉钉同步、实时统计功能和企业信息分析。
 
 ### 主要界面组件
 
@@ -799,6 +1106,8 @@ P[教练建议管理]
 Q[资源匹配记录]
 R[问题分类分析器]
 S[预销售问题管理]
+T[企业信息分析面板]
+U[网络搜索状态指示器]
 end
 subgraph "录音列表组件"
 D1[客户头像]
@@ -845,6 +1154,8 @@ P --> P1
 Q --> Q1
 R --> R1
 S --> S1
+T --> T1
+U --> U1
 ```
 
 **图表来源**
@@ -883,6 +1194,9 @@ ShowAIComponents --> SalesCoach[销售AI教练]
 ShowAIComponents --> ResourceMatching[资源智能匹配器]
 ShowAIComponents --> QuestionClassification[问题分类分析器]
 ShowAIComponents --> PresalesQuestions[预销售问题管理]
+ShowAIComponents --> CompanyAnalysis[企业信息分析面板]
+CompanyAnalysis --> NetworkSearch[网络搜索状态]
+NetworkSearch --> CacheIndicator[缓存命中指示器]
 OpportunityScore --> AddToSchedule{添加到日程?}
 ChurnAlert --> HandleAlert{处理预警?}
 CustomerInsight --> GenerateInsight{生成洞察?}
@@ -891,6 +1205,7 @@ SalesCoach --> ViewSuggestions{查看建议?}
 ResourceMatching --> AssignResource{分配资源?}
 QuestionClassification --> AnalyzeQuestion{分析问题?}
 PresalesQuestions --> ManageQuestions{管理问题?}
+CompanyAnalysis --> ViewCompanyInfo{查看企业信息?}
 AddToSchedule --> |是| CreateTask[创建日程任务]
 AddToSchedule --> |否| End
 HandleAlert --> |是| MarkHandled[标记已处理]
@@ -907,9 +1222,9 @@ AnalyzeQuestion --> |是| ClassifyQuestion[分类问题]
 AnalyzeQuestion --> |否| End
 ManageQuestions --> |是| AddQuestion[添加问题]
 ManageQuestions --> |否| End
-ClassifyQuestion --> ShowClassification[显示分类结果]
-ShowClassification --> End
-AddQuestion --> End
+ViewCompanyInfo --> |是| ShowCompanyDetails[显示企业详情]
+ViewCompanyInfo --> |否| End
+ShowCompanyDetails --> End
 CreateTask --> End
 MarkHandled --> End
 RefreshInsight --> End
@@ -936,7 +1251,7 @@ End
 
 ## 数据模型
 
-系统定义了完整的数据模型来支持AI音频分析功能，现已全面支持阿里云DashScope集成。
+系统定义了完整的数据模型来支持AI音频分析功能，现已全面支持阿里云DashScope集成和企业搜索缓存。
 
 ```mermaid
 erDiagram
@@ -1139,6 +1454,17 @@ datetime analyzedAt
 datetime createdAt
 datetime updatedAt
 }
+COMPANY_SEARCH_CACHE {
+string id PK
+string companyName UK
+json intelligenceResult
+json searchResults
+string source
+integer hitCount
+datetime createdAt
+datetime expiresAt
+datetime updatedAt
+}
 AUDIO_RECORDING ||--o{ FOLLOW_UP_SUGGESTION : generates
 AUDIO_RECORDING ||--o{ CHURN_ALERT : monitors
 AUDIO_RECORDING ||--|| CUSTOMER_INSIGHT : creates
@@ -1153,6 +1479,7 @@ USER ||--o{ DAILY_REPORT : creates
 CUSTOMER ||--o{ CHURN_ALERT : has
 CUSTOMER ||--|| CUSTOMER_INSIGHT : has
 PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
+COMPANY_SEARCH_CACHE ||--|| CUSTOMER : has
 ```
 
 **图表来源**
@@ -1166,6 +1493,7 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - [schema.prisma:644-664](file://crm-backend/prisma/schema.prisma#L644-L664)
 - [schema.prisma:667-685](file://crm-backend/prisma/schema.prisma#L667-L685)
 - [schema.prisma:729-783](file://crm-backend/prisma/schema.prisma#L729-L783)
+- [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
 
 ### 关键数据结构
 
@@ -1180,6 +1508,13 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - **关键词提取**：自动识别的重要词汇
 - **心理分析**：客户态度、购买意向、痛点等洞察
 
+#### 企业信息智能分析模型
+- **基本信息**：企业名称、行业、规模、成立时间、地址、网站、简介
+- **业务范围**：4个主要业务关键词
+- **近期动态**：2条相关新闻摘要
+- **关键联系人**：2-4位关键联系人信息，包含职位、部门、可信度
+- **销售话术**：个性化开场白、痛点、谈话要点、异议处理
+
 #### AI功能扩展模型
 - **跟进建议**：自动化的销售建议和行动项
 - **客户洞察**：AI提取的客户需求和决策信息
@@ -1190,15 +1525,17 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - **资源匹配**：售前资源的最佳分配建议
 - **预销售问题**：客户咨询问题的分类和管理
 - **问题分类**：客户问题的自动分类和情感分析
+- **企业搜索缓存**：7天持久化的企业信息缓存
 
 **章节来源**
 - [index.ts:73-133](file://crm-frontend/src/types/index.ts#L73-L133)
 - [schema.prisma:572-685](file://crm-backend/prisma/schema.prisma#L572-L685)
 - [schema.prisma:729-783](file://crm-backend/prisma/schema.prisma#L729-L783)
+- [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
 
 ## API接口设计
 
-系统提供了完整的RESTful API来支持AI音频分析功能，现已全面支持阿里云DashScope集成。
+系统提供了完整的RESTful API来支持AI音频分析功能，现已全面支持阿里云DashScope集成和企业搜索缓存。
 
 ### 录音管理API
 
@@ -1248,6 +1585,15 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 | 建议回答方向 | POST | `/api/v1/question-classification/suggest-answer` | 生成问题建议回答 |
 | 分析问题趋势 | POST | `/api/v1/question-classification/analyze-trends` | 分析问题趋势和模式 |
 
+### 企业搜索API
+
+| 接口 | 方法 | 路径 | 描述 |
+|------|------|------|------|
+| 搜索企业信息 | POST | `/api/v1/company-search` | 搜索企业信息（支持网络搜索） |
+| 获取企业缓存 | GET | `/api/v1/company-search/cache/:companyName` | 获取企业信息缓存 |
+| 清除企业缓存 | DELETE | `/api/v1/company-search/cache/:companyName` | 清除企业信息缓存 |
+| 缓存统计 | GET | `/api/v1/company-search/cache-stats` | 获取缓存统计信息 |
+
 ### 预销售管理API
 
 | 接口 | 方法 | 路径 | 描述 |
@@ -1279,16 +1625,17 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - [FollowUpWidget.tsx:59](file://crm-frontend/src/components/AI/FollowUpWidget.tsx#L59)
 - [ScriptGenerator.tsx:8](file://crm-frontend/src/components/AI/ScriptGenerator.tsx#L8)
 - [AIAssistant/index.tsx:8](file://crm-frontend/src/pages/AIAssistant/index.tsx#L8)
+- [companySearch.service.ts:67-144](file://crm-backend/src/services/search/companySearch.service.ts#L67-L144)
 
 ## 性能考虑
 
-系统在设计时充分考虑了性能优化，确保在大量数据场景下的稳定运行，现已全面支持阿里云DashScope Qwen模型。
+系统在设计时充分考虑了性能优化，确保在大量数据场景下的稳定运行，现已全面支持阿里云DashScope Qwen模型和智能缓存系统。
 
 ### 性能优化策略
 
 1. **异步处理**：AI分析采用异步处理，避免阻塞主线程
 2. **状态管理**：通过状态字段跟踪分析进度，支持并发处理
-3. **缓存机制**：模拟AI分析结果，减少重复计算开销
+3. **缓存机制**：智能缓存系统支持7天持久化缓存，显著提升查询性能
 4. **分页查询**：数据库查询支持分页，避免大数据量查询
 5. **文件上传限制**：设置合理的文件大小限制，防止资源滥用
 6. **数据库索引优化**：为常用查询字段建立索引
@@ -1302,6 +1649,10 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 14. **指数退避**：重试延迟采用指数退避策略，最长10秒
 15. **JSON解析优化**：自动解析AI响应，支持Markdown代码块格式
 16. **错误降级**：AI服务失败时自动降级到模拟模式
+17. **网络搜索优化**：Serper API支持并行搜索和速率限制
+18. **企业信息缓存**：7天缓存策略，减少重复查询开销
+19. **LLM提取优化**：AI模型温度控制，平衡准确性和稳定性
+20. **缓存命中统计**：自动统计缓存命中率，优化缓存策略
 
 ### 性能监控指标
 
@@ -1319,6 +1670,10 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - **预销售活动响应**：活动管理约500-1000ms
 - **阿里云API调用**：支持重试机制，最长延迟约10秒
 - **钉钉同步响应**：实时状态展示，支持手动同步
+- **企业搜索响应**：缓存命中约100-300ms，首次查询约1-3秒
+- **Serper API响应**：单次搜索约500-1500ms，支持并行查询
+- **企查查API响应**：单次查询约800-2000ms，支持健康检查
+- **缓存命中率**：7天缓存策略下预计命中率60-80%
 
 ## 故障排除指南
 
@@ -1524,38 +1879,93 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 3. 确认用户权限和数据访问控制
 4. 查看统计服务的日志和错误信息
 
+#### 企业搜索功能异常
+**问题描述**：企业搜索功能无法正常工作
+**可能原因**：
+- Serper API配置错误
+- 企查查API配置错误
+- 缓存数据库连接问题
+- 网络连接问题
+
+**解决步骤**：
+1. 检查SERPER_API_KEY和QCC_APP_KEY配置
+2. 验证网络连接和外部API服务状态
+3. 确认缓存数据库连接和表结构
+4. 查看企业搜索服务的日志和错误信息
+5. 测试健康检查接口验证服务状态
+
+#### 缓存系统异常
+**问题描述**：企业搜索缓存功能异常
+**可能原因**：
+- 缓存数据库连接失败
+- 缓存表结构不匹配
+- 缓存过期清理异常
+- 缓存命中统计异常
+
+**解决步骤**：
+1. 检查缓存数据库连接配置
+2. 验证company_search_cache表结构
+3. 确认缓存过期清理定时任务
+4. 查看缓存命中统计功能
+5. 检查缓存查询和存储的日志
+
+#### LLM结构化提取异常
+**问题描述**：AI模型结构化提取功能异常
+**可能原因**：
+- AI模型配置错误
+- 提示词模板问题
+- 模型响应格式异常
+- 温度参数设置不当
+
+**解决步骤**：
+1. 检查AI模型配置和API Key
+2. 验证提示词模板的完整性和准确性
+3. 确认模型响应格式符合JSON要求
+4. 调整温度参数（0.3-0.7）以平衡准确性和稳定性
+5. 查看LLM提取的日志和错误信息
+
 **章节来源**
 - [recording.controller.ts:157-190](file://crm-backend/src/controllers/recording.controller.ts#L157-L190)
 - [recording.service.ts:145-208](file://crm-backend/src/services/recording.service.ts#L145-L208)
 - [client.ts:187-209](file://crm-backend/src/services/ai/client.ts#L187-L209)
+- [serper.client.ts:115-170](file://crm-backend/src/services/search/serper.client.ts#L115-L170)
+- [qcc.client.ts:510-534](file://crm-backend/src/services/search/qcc.client.ts#L510-L534)
+- [companySearch.service.ts:585-654](file://crm-backend/src/services/search/companySearch.service.ts#L585-L654)
 
 ## 总结
 
-销售AI CRM系统的AI音频分析功能是一个完整的端到端解决方案，现已全面升级为基于阿里云DashScope Qwen模型的智能分析系统，涵盖了从录音上传、AI分析到结果展示的全流程。
+销售AI CRM系统的AI音频分析功能是一个完整的端到端解决方案，现已全面升级为基于阿里云DashScope Qwen模型和网络搜索集成的智能分析系统，涵盖了从录音上传、AI分析到结果展示的全流程。
 
 ### 系统优势
 
 1. **技术先进性**：采用阿里云DashScope Qwen大模型，提供高质量的智能分析能力
-2. **稳定性强**：完善的重试机制和错误降级处理，确保服务可靠性
-3. **用户体验**：提供直观易用的界面和流畅的操作体验
-4. **扩展性强**：模块化设计便于功能扩展和维护
-5. **安全性高**：完善的权限控制和数据安全保障
-6. **性能优异**：优化的架构设计支持高并发处理
-7. **数据库管理**：完整的迁移和版本控制机制
-8. **AI功能丰富**：支持多种AI分析和预测功能
-9. **智能分析全面**：提供机会评分、流失预警、客户洞察等高级AI分析功能
-10. **智能报价生成**：基于客户信息和市场行情生成智能报价建议
-11. **AI教练建议**：提供个性化的销售绩效改进指导
-12. **资源智能匹配**：自动匹配最适合的售前资源和专家团队
-13. **智能问题分类**：支持对客户咨询问题进行自动分类和情感分析
-14. **预销售管理**：提供完整的预销售活动和问题管理功能
-15. **钉钉集成**：支持实时状态展示和手动同步功能
-16. **实时统计**：提供多维度的数据可视化和统计分析
-17. **音频播放**：完整的音频播放器功能，支持多种播放控制
+2. **网络搜索集成**：支持Serper Google搜索API和企查查企业信息查询，提供真实企业数据
+3. **智能缓存系统**：7天持久化缓存，显著提升查询性能和用户体验
+4. **稳定性强**：完善的重试机制和错误降级处理，确保服务可靠性
+5. **用户体验**：提供直观易用的界面和流畅的操作体验
+6. **扩展性强**：模块化设计便于功能扩展和维护
+7. **安全性高**：完善的权限控制和数据安全保障
+8. **性能优异**：优化的架构设计支持高并发处理
+9. **数据库管理**：完整的迁移和版本控制机制
+10. **AI功能丰富**：支持多种AI分析和预测功能
+11. **智能分析全面**：提供机会评分、流失预警、客户洞察等高级AI分析功能
+12. **智能报价生成**：基于客户信息和市场行情生成智能报价建议
+13. **AI教练建议**：提供个性化的销售绩效改进指导
+14. **资源智能匹配**：自动匹配最适合的售前资源和专家团队
+15. **智能问题分类**：支持对客户咨询问题进行自动分类和情感分析
+16. **预销售管理**：提供完整的预销售活动和问题管理功能
+17. **钉钉集成**：支持实时状态展示和手动同步功能
+18. **实时统计**：提供多维度的数据可视化和统计分析
+19. **音频播放**：完整的音频播放器功能，支持多种播放控制
+20. **企业信息智能分析**：提供真实的企业信息和销售策略建议
+21. **多数据源融合**：支持缓存、企业信息查询、网络搜索、LLM提取的智能降级
+22. **缓存命中统计**：自动统计缓存效果，优化缓存策略
 
 ### 技术特色
 
 - **智能分析**：基于阿里云DashScope Qwen模型进行自动识别情感、提取关键词、生成洞察
+- **企业信息智能分析**：集成Serper搜索和企查查API，提供真实企业数据
+- **智能缓存**：7天持久化缓存，支持缓存命中统计和过期管理
 - **多格式支持**：支持主流音频格式的处理
 - **实时同步**：与钉钉平台无缝集成，提供实时状态展示
 - **可视化展示**：丰富的图表和数据展示，支持实时统计面板
@@ -1571,6 +1981,8 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 - **重试机制**：支持最多3次重试，指数退避延迟
 - **JSON解析优化**：自动解析AI响应，支持Markdown代码块格式
 - **错误降级**：AI服务失败时自动降级到模拟模式
+- **网络搜索优化**：Serper API支持并行搜索和速率限制
+- **LLM提取优化**：AI模型温度控制，平衡准确性和稳定性
 
 ### 发展前景
 
@@ -1591,5 +2003,10 @@ PRESALES_ACTIVITY ||--o{ PRESALES_QUESTION : contains
 13. **预销售流程优化**：提供更高效的预销售活动管理体验
 14. **实时统计增强**：提供更丰富的数据可视化和分析功能
 15. **音频播放优化**：增强音频播放器的功能和用户体验
+16. **企业搜索扩展**：支持更多数据源和搜索算法
+17. **缓存策略优化**：根据使用模式动态调整缓存策略
+18. **性能监控增强**：提供更详细的性能指标和优化建议
+19. **安全防护加强**：增强数据安全和隐私保护措施
+20. **用户体验提升**：持续优化界面设计和交互体验
 
-该系统为销售团队提供了强大的智能化工具，能够显著提升销售效率和客户服务质量，现已全面支持阿里云DashScope Qwen模型，为企业数字化转型提供强有力的技术支撑。
+该系统为销售团队提供了强大的智能化工具，能够显著提升销售效率和客户服务质量，现已全面支持阿里云DashScope Qwen模型、网络搜索集成和智能缓存系统，为企业数字化转型提供强有力的技术支撑。

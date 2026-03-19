@@ -152,27 +152,69 @@ export default function CreateCustomerModal({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // 选择企业
-  const handleSelectCompany = (company: CompanySearchResult) => {
+  // 选择企业后获取完整信息
+  const handleSelectCompany = async (company: CompanySearchResult) => {
+    setCompanySearchKeyword(company.name);
+    setShowSearchDropdown(false);
+    
+    // 先用搜索结果中的基本信息填充
     setFormData(prev => ({
       ...prev,
       name: company.name,
-      shortName: company.shortName,
-      industry: company.industry || prev.industry,
+      shortName: company.shortName || company.name.substring(0, 10),
       creditCode: company.creditCode,
-      registeredCapital: company.registeredCapital ? String(company.registeredCapital) : '',
-      establishDate: company.establishDate || '',
-      legalPerson: company.legalPerson || '',
-      companyStatus: company.status || '',
-      businessScope: company.businessScope || '',
-      province: company.province || prev.province,
-      city: company.city || prev.city,
-      address: company.address || prev.address,
-      phone: company.phone || prev.phone,
-      email: company.email || prev.email,
     }));
-    setCompanySearchKeyword(company.name);
-    setShowSearchDropdown(false);
+    
+    // 如果搜索结果已包含完整信息，直接使用
+    if (company.registeredCapital || company.businessScope) {
+      setFormData(prev => ({
+        ...prev,
+        industry: company.industry || prev.industry,
+        registeredCapital: company.registeredCapital ? String(company.registeredCapital) : '',
+        establishDate: company.establishDate || '',
+        legalPerson: company.legalPerson || '',
+        companyStatus: company.status || '',
+        businessScope: company.businessScope || '',
+        province: company.province || prev.province,
+        city: company.city || prev.city,
+        address: company.address || prev.address,
+        phone: company.phone || prev.phone,
+        email: company.email || prev.email,
+      }));
+      return;
+    }
+    
+    // 否则调用详情API获取完整信息
+    setIsSearching(true);
+    try {
+      const detailResponse = await companySearchApi.getDetail(company.creditCode);
+      const detail = detailResponse.data;
+      
+      if (detail) {
+        setFormData(prev => ({
+          ...prev,
+          name: detail.name,
+          shortName: detail.shortName || detail.name.substring(0, 10),
+          industry: detail.industry || prev.industry,
+          creditCode: detail.creditCode,
+          registeredCapital: detail.registeredCapital ? String(detail.registeredCapital) : '',
+          establishDate: detail.establishDate || '',
+          legalPerson: detail.legalPerson || '',
+          companyStatus: detail.status || '',
+          businessScope: detail.businessScope || '',
+          province: detail.province || prev.province,
+          city: detail.city || prev.city,
+          address: detail.address || prev.address,
+          phone: detail.phone || prev.phone,
+          email: detail.email || prev.email,
+        }));
+      }
+    } catch (err) {
+      console.error('获取企业详情失败:', err);
+      // 失败时保持已有的基本信息
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   // 手动输入企业名称
