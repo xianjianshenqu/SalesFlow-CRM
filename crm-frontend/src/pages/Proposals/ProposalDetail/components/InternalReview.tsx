@@ -169,7 +169,7 @@ export default function InternalReview({ proposalId, proposal, onComplete }: Int
               <select
                 value={selectedReviewerId}
                 onChange={(e) => setSelectedReviewerId(e.target.value)}
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+                className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white"
               >
                 <option value="">不指定，由管理员分配</option>
                 {teamMembers.map((member) => (
@@ -277,7 +277,7 @@ export default function InternalReview({ proposalId, proposal, onComplete }: Int
                   value={comment}
                   onChange={(e) => setComment(e.target.value)}
                   placeholder="添加评审意见..."
-                  className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+                  className="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
                 <button
                   onClick={handleAddComment}
@@ -297,7 +297,7 @@ export default function InternalReview({ proposalId, proposal, onComplete }: Int
                   onChange={(e) => setResultNotes(e.target.value)}
                   placeholder="审批意见（驳回时必填）..."
                   rows={2}
-                  className="w-full px-4 py-2 mb-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg resize-none"
+                  className="w-full px-4 py-2 mb-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg resize-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
                 />
                 <div className="flex gap-3">
                   <button

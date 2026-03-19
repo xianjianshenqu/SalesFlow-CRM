@@ -315,7 +315,7 @@ export default function CreateCustomerModal({
                   onChange={(e) => setCompanySearchKeyword(e.target.value)}
                   onFocus={() => companySearchKeyword.length >= 2 && companySearchResults.length > 0 && setShowSearchDropdown(true)}
                   placeholder="输入企业名称搜索或手动填写"
-                  className="w-full pl-10 pr-4 py-2.5 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full pl-10 pr-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
                 {isSearching && (
                   <span className="absolute right-3 top-1/2 -translate-y-1/2">
@@ -378,7 +378,7 @@ export default function CreateCustomerModal({
                   onChange={(e) => setFormData(prev => ({ ...prev, shortName: e.target.value }))}
                   placeholder="最多10个字符"
                   maxLength={10}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div>
@@ -390,7 +390,7 @@ export default function CreateCustomerModal({
                   value={formData.industry}
                   onChange={(e) => setFormData(prev => ({ ...prev, industry: e.target.value }))}
                   placeholder="行业类型"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
             </div>
@@ -405,7 +405,7 @@ export default function CreateCustomerModal({
                 value={formData.creditCode}
                 onChange={(e) => setFormData(prev => ({ ...prev, creditCode: e.target.value }))}
                 placeholder="18位信用代码"
-                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
@@ -420,7 +420,7 @@ export default function CreateCustomerModal({
                   value={formData.registeredCapital}
                   onChange={(e) => setFormData(prev => ({ ...prev, registeredCapital: e.target.value }))}
                   placeholder="0"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div>
@@ -431,7 +431,7 @@ export default function CreateCustomerModal({
                   type="date"
                   value={formData.establishDate}
                   onChange={(e) => setFormData(prev => ({ ...prev, establishDate: e.target.value }))}
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
             </div>
@@ -446,7 +446,7 @@ export default function CreateCustomerModal({
                   value={formData.legalPerson}
                   onChange={(e) => setFormData(prev => ({ ...prev, legalPerson: e.target.value }))}
                   placeholder="法人姓名"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div>
@@ -458,7 +458,7 @@ export default function CreateCustomerModal({
                   value={formData.companyStatus}
                   onChange={(e) => setFormData(prev => ({ ...prev, companyStatus: e.target.value }))}
                   placeholder="存续/注销/吊销"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
             </div>
@@ -473,7 +473,7 @@ export default function CreateCustomerModal({
                 onChange={(e) => setFormData(prev => ({ ...prev, businessScope: e.target.value }))}
                 rows={2}
                 placeholder="企业经营范围..."
-                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
               />
             </div>
           </div>
@@ -495,7 +495,7 @@ export default function CreateCustomerModal({
                 value={formData.contactPerson}
                 onChange={(e) => setFormData(prev => ({ ...prev, contactPerson: e.target.value }))}
                 placeholder="主联系人姓名"
-                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
 
@@ -510,7 +510,7 @@ export default function CreateCustomerModal({
                   value={formData.phone}
                   onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="手机或座机"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div>
@@ -522,7 +522,7 @@ export default function CreateCustomerModal({
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="企业邮箱"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
             </div>
@@ -538,7 +538,7 @@ export default function CreateCustomerModal({
                   value={formData.province}
                   onChange={(e) => setFormData(prev => ({ ...prev, province: e.target.value }))}
                   placeholder="省份"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
               <div>
@@ -550,7 +550,7 @@ export default function CreateCustomerModal({
                   value={formData.city}
                   onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
                   placeholder="城市"
-                  className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
               </div>
             </div>
@@ -565,7 +565,7 @@ export default function CreateCustomerModal({
                 value={formData.address}
                 onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                 placeholder="详细地址"
-                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
               />
             </div>
           </div>
@@ -668,7 +668,7 @@ export default function CreateCustomerModal({
                 onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 rows={2}
                 placeholder="其他备注信息..."
-                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+                className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
               />
             </div>
           </div>

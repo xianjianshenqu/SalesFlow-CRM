@@ -179,7 +179,7 @@ export default function CustomerProposalStage({ proposalId, proposal, onComplete
                 value={emailForm.emailTo}
                 onChange={(e) => setEmailForm(prev => ({ ...prev, emailTo: e.target.value }))}
                 placeholder="customer@example.com"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+                className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
             </div>
             <div>
@@ -194,7 +194,7 @@ export default function CustomerProposalStage({ proposalId, proposal, onComplete
                   emailCc: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
                 }))}
                 placeholder="cc1@example.com, cc2@example.com"
-                className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+                className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
               />
             </div>
           </div>
@@ -220,7 +220,7 @@ export default function CustomerProposalStage({ proposalId, proposal, onComplete
               value={emailForm.emailBody}
               onChange={(e) => setEmailForm(prev => ({ ...prev, emailBody: e.target.value }))}
               rows={12}
-              className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg resize-none font-mono text-sm"
+              className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg resize-none font-mono text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
 

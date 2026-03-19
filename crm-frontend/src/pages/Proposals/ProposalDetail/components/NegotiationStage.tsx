@@ -210,7 +210,7 @@ export default function NegotiationStage({ proposalId, proposal, onComplete }: N
             onChange={(e) => setNewDiscussion(prev => ({ ...prev, content: e.target.value }))}
             placeholder="记录讨论内容..."
             rows={3}
-            className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg resize-none"
+            className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg resize-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
           <div className="flex items-center gap-4">
             <input
@@ -218,7 +218,7 @@ export default function NegotiationStage({ proposalId, proposal, onComplete }: N
               value={newDiscussion.participants}
               onChange={(e) => setNewDiscussion(prev => ({ ...prev, participants: e.target.value }))}
               placeholder="参与人（逗号分隔）"
-              className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+              className="flex-1 px-4 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
             <button
               onClick={handleAddDiscussion}

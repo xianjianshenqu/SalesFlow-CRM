@@ -177,7 +177,7 @@ export function ColdVisitAssistant({ isOpen, onClose, onCustomerCreated }: ColdV
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="请输入公司名称，如：华为技术有限公司"
-                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
                   />
                 </div>
               )}

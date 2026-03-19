@@ -33,21 +33,17 @@
 - [reportGeneration.ts](file://crm-backend/src/services/ai/reportGeneration.ts)
 - [customerInsight.ts](file://crm-backend/src/services/ai/customerInsight.ts)
 - [questionClassification.service.ts](file://crm-backend/src/services/ai/questionClassification.service.ts)
+- [full-stack-dev-expert.md](file://.claude/agents/full-stack-dev-expert.md)
+- [settings.local.json](file://.claude/settings.local.json)
 </cite>
 
 ## 更新摘要
 **所做更改**
-- 新增阿里云DashScope Qwen模型集成，包括AI客户端基础设施和统一的AI服务层架构
-- 新增多种AI功能支持：语音转录、情感分析、关键词提取、摘要生成、企业智能分析、跟进分析、报告生成
-- 新增完整的AI降级机制和错误处理，支持模拟模式和真实API模式无缝切换
-- 新增问题分类服务，支持批量问题分类和趋势分析
-- 更新API基础URL配置：所有AI相关服务的API基础URL已更新为http://localhost:3002/api/v1
-- 新增智能报价与提案生成功能，提供基于客户信息的智能报价和完整商务方案生成
-- 新增销售绩效AI教练功能，提供个性化销售培训和改进建议
-- 新增售前资源智能匹配功能，实现多维度资源匹配和最优分配
-- 扩展AI服务架构，支持完整的AI助手生态系统
-- 更新前端组件，提供智能报价、销售教练、资源匹配等新功能界面
-- 完善数据模型，支持新的AI分析结果存储和管理
+- 新增全栈开发专家AI代理配置，整合调试、测试生成、代码重构、前端设计和API设计五大专业领域
+- 新增Claude AI代理配置文件，提供完整的开发辅助能力
+- 新增代理内存管理机制，支持持久化的开发经验积累
+- 新增代理权限控制系统，确保开发环境安全访问
+- 更新AI功能架构，扩展为包含软件开发辅助的完整生态系统
 
 ## 目录
 1. [简介](#简介)
@@ -78,11 +74,12 @@
 - **陌生拜访助手**：基于企业信息生成销售话术和建议
 - **问题分类系统**：基于AI的客户问题智能分类和趋势分析
 - **阿里云DashScope Qwen模型集成**：完整的AI客户端基础设施和统一的AI服务层架构
+- **全栈开发专家AI代理**：整合调试、测试生成、代码重构、前端设计和API设计五大专业领域的开发辅助
 
-系统采用前后端分离架构，后端使用Node.js + Express + Prisma，前端使用React + TypeScript，现已发展为功能完备的AI销售助手平台。
+系统采用前后端分离架构，后端使用Node.js + Express + Prisma，前端使用React + TypeScript，现已发展为功能完备的AI销售助手平台，同时集成了专业的软件开发辅助AI代理。
 
 ## 项目结构
-项目采用标准的前后端分离架构，现已扩展为多层AI分析架构：
+项目采用标准的前后端分离架构，现已扩展为多层AI分析架构，并新增了全栈开发专家AI代理：
 
 ```mermaid
 graph TB
@@ -120,16 +117,22 @@ V --> AC[跟进分析服务]
 V --> AD[报告生成服务]
 V --> AE[问题分类服务]
 V --> AF[AI客户端]
+V --> AG[全栈开发专家AI代理]
+end
+subgraph "Claude AI代理"
+AH[.claude/] --> AI[agents/]
+AH --> AJ[settings.local.json]
+AH --> AK[agent-memory/]
+AI --> AL[full-stack-dev-expert.md]
+AK --> AM[full-stack-dev-expert/]
 end
 L --> V
-AF --> AG[阿里云DashScope Qwen模型]
-V --> Y
-V --> Z
-V --> AA
-V --> AB
-V --> AC
-V --> AD
-V --> AE
+AF --> AG
+AG --> AN[调试专家]
+AG --> AO[测试生成专家]
+AG --> AP[重构专家]
+AG --> AQ[前端设计专家]
+AG --> AR[API设计专家]
 ```
 
 **图表来源**
@@ -137,13 +140,14 @@ V --> AE
 - [schema.prisma:1-783](file://crm-backend/prisma/schema.prisma#L1-L783)
 - [index.ts:1-57](file://crm-backend/src/services/ai/index.ts#L1-L57)
 - [client.ts:1-224](file://crm-backend/src/services/ai/client.ts#L1-L224)
+- [full-stack-dev-expert.md:1-109](file://.claude/agents/full-stack-dev-expert.md#L1-L109)
 
 **章节来源**
 - [app.ts:1-88](file://crm-backend/src/app.ts#L1-L88)
 - [package.json:1-52](file://crm-backend/package.json#L1-L52)
 
 ## 核心组件
-系统的AI助手功能现已扩展为多层次的专业分析组件：
+系统的AI助手功能现已扩展为多层次的专业分析组件，并新增了全栈开发专家AI代理：
 
 ### 后端核心组件
 1. **AI控制器 (ai.controller.ts)**：处理所有AI相关的HTTP请求
@@ -163,6 +167,13 @@ V --> AE
 7. **跟进分析服务 (followUpAnalysis.ts)**：基于客户互动数据的跟进建议生成
 8. **报告生成服务 (reportGeneration.ts)**：自动生成日报/周报
 9. **问题分类服务 (questionClassification.service.ts)**：AI驱动的问题智能分类
+
+### 新增全栈开发专家AI代理
+1. **调试专家**：系统性诊断和修复代码问题
+2. **测试生成专家**：生成全面的测试套件
+3. **重构专家**：安全地应用重构模式
+4. **前端设计专家**：创建响应式和高性能UI组件
+5. **API设计专家**：设计符合行业标准的API
 
 ### 前端核心组件
 1. **AI助手页面**：提供智能报告生成功能
@@ -192,7 +203,7 @@ V --> AE
 - [questionClassification.service.ts:1-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L1-L372)
 
 ## 架构总览
-系统采用分层架构设计，现已扩展为多层AI分析架构：
+系统采用分层架构设计，现已扩展为多层AI分析架构，并集成了全栈开发专家AI代理：
 
 ```mermaid
 graph TB
@@ -203,6 +214,7 @@ FE3[AI分析面板]
 FE4[报价生成面板]
 FE5[销售教练面板]
 FE6[资源匹配面板]
+FE7[开发代理界面]
 end
 subgraph "API网关层"
 GW[Express应用]
@@ -220,6 +232,7 @@ RM[资源匹配服务]
 FA[跟进分析服务]
 RG[报告生成服务]
 QC[问题分类服务]
+DA[全栈开发代理]
 end
 subgraph "AI引擎层"
 AI_CLIENT[AI客户端]
@@ -231,12 +244,22 @@ subgraph "数据访问层"
 PRISMA[Prisma ORM]
 DB[(MySQL数据库)]
 end
+subgraph "开发代理层"
+DEV_AGENT[全栈开发专家AI代理]
+DEBUG_EXPERT[调试专家]
+TEST_GEN[测试生成专家]
+REFACTOR_EXPERT[重构专家]
+FRONTEND_EXPERT[前端设计专家]
+API_EXPERT[API设计专家]
+AGENT_MEMORY[代理内存]
+end
 FE1 --> GW
 FE2 --> GW
 FE3 --> GW
 FE4 --> GW
 FE5 --> GW
 FE6 --> GW
+FE7 --> DEV_AGENT
 GW --> MW
 MW --> AC
 AC --> AS
@@ -254,6 +277,12 @@ AI_CLIENT --> DASHSCOPE
 AI_CLIENT --> MOCK
 AS --> PRISMA
 PRISMA --> DB
+DA --> DEBUG_EXPERT
+DA --> TEST_GEN
+DA --> REFACTOR_EXPERT
+DA --> FRONTEND_EXPERT
+DA --> API_EXPERT
+DA --> AGENT_MEMORY
 ```
 
 **图表来源**
@@ -262,6 +291,7 @@ PRISMA --> DB
 - [ai.service.ts:79-699](file://crm-backend/src/services/ai.service.ts#L79-L699)
 - [index.ts:37-55](file://crm-backend/src/services/ai/index.ts#L37-L55)
 - [client.ts:50-224](file://crm-backend/src/services/ai/client.ts#L50-L224)
+- [full-stack-dev-expert.md:8-74](file://.claude/agents/full-stack-dev-expert.md#L8-L74)
 
 ## 详细组件分析
 
@@ -435,6 +465,73 @@ AIService --> QuestionClassificationService : "使用"
 - [reportGeneration.ts:17-379](file://crm-backend/src/services/ai/reportGeneration.ts#L17-L379)
 - [questionClassification.service.ts:25-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L25-L372)
 
+### 全栈开发专家AI代理
+新增的全栈开发专家AI代理整合了五大专业领域的开发能力：
+
+```mermaid
+classDiagram
+class FullStackDevExpertAgent {
+- name : string
+- description : string
+- model : string
+- memory : string
+- capabilities : AgentCapabilities
+- operationalGuidelines : OperationalGuidelines
+- qualityControl : QualityControl
+}
+class AgentCapabilities {
+-debuggingExpert : DebuggingExpert
+-testGenerationExpert : TestGenerationExpert
+-refactoringExpert : RefactoringExpert
+-frontendDesignExpert : FrontendDesignExpert
+-apiDesignExpert : APIDesignExpert
+}
+class DebuggingExpert {
+-analyzeErrorMessages : function
+-traceStackTraces : function
+-useDebuggingTools : function
+-explainFixes : function
+-anticipateSideEffects : function
+}
+class TestGenerationExpert {
+-generateTestSuites : function
+-followTestingBestPractices : function
+-coverEdgeCases : function
+-createMocksAndStubs : function
+-ensureMaintainability : function
+}
+class RefactoringExpert {
+-identifyCodeSmells : function
+-applyRefactoringPatterns : function
+-maintainFunctionality : function
+-followSOLIDPrinciples : function
+-preserveGitHistory : function
+}
+class FrontendDesignExpert {
+-createResponsiveUI : function
+-followFrameworkBestPractices : function
+-implementStateManagement : function
+-ensureCrossBrowserCompat : function
+-applyCSSBestPractices : function
+}
+class APIDesignExpert {
+-designRESTfulAPIs : function
+-implementAuthSecurity : function
+-createClearDocumentation : function
+-considerVersioning : function
+-designForScalability : function
+}
+FullStackDevExpertAgent --> AgentCapabilities : "包含"
+AgentCapabilities --> DebuggingExpert : "包含"
+AgentCapabilities --> TestGenerationExpert : "包含"
+AgentCapabilities --> RefactoringExpert : "包含"
+AgentCapabilities --> FrontendDesignExpert : "包含"
+AgentCapabilities --> APIDesignExpert : "包含"
+```
+
+**图表来源**
+- [full-stack-dev-expert.md:8-74](file://.claude/agents/full-stack-dev-expert.md#L8-L74)
+
 ### 数据模型设计
 系统使用Prisma定义了完整的AI功能数据模型，现已扩展：
 
@@ -525,6 +622,123 @@ Controller-->>Client : 返回JSON响应
 - [schema.prisma:572-613](file://crm-backend/prisma/schema.prisma#L572-L613)
 
 ## 新增AI功能详解
+
+### 全栈开发专家AI代理配置
+新增的全栈开发专家AI代理整合了调试、测试生成、代码重构、前端设计和API设计五大专业领域的开发能力：
+
+#### 代理配置
+- **代理名称**：full-stack-dev-expert
+- **描述**：当需要在调试、测试生成、代码重构、前端设计或API设计方面获得全面的软件开发辅助时使用此代理
+- **模型**：sonnet
+- **内存**：project（项目级持久化记忆）
+
+#### 核心能力模块
+1. **调试专家 (Debugging Expert)**
+   - 系统性诊断和修复代码问题
+   - 分析错误消息、堆栈跟踪和日志以识别根本原因
+   - 使用适合技术栈的调试工具和技术
+   - 提供清晰的解释说明问题所在以及修复为何有效
+   - 预测修复的潜在副作用
+
+2. **测试生成专家 (Test Generation Expert)**
+   - 生成全面的测试套件，包括单元测试、集成测试和端到端测试
+   - 遵循测试最佳实践：AAA模式、描述性命名、隔离原则
+   - 覆盖边界值、错误条件和边缘情况
+   - 适当创建模拟和桩程序进行单元测试
+   - 确保测试的可维护性和提供清晰的失败信息
+
+3. **重构专家 (Refactoring Expert)**
+   - 系统性识别代码异味和技术债务
+   - 安全地应用重构模式，风险最小化
+   - 在改善代码质量的同时保持功能不变
+   - 遵循SOLID原则和设计模式
+   - 在建议大规模重构时考虑保留git历史
+
+4. **前端设计专家 (Frontend Design Expert)**
+   - 创建响应式、可访问且高性能的UI组件
+   - 遵循现代前端框架最佳实践（React、Vue、Angular等）
+   - 实现适当的state管理模式
+   - 确保跨浏览器兼容性和移动响应性
+   - 应用CSS最佳实践和设计系统原则
+
+5. **API设计专家 (API Design Expert)**
+   - 设计符合行业标准的RESTful、GraphQL或gRPC API
+   - 实现适当的认证、授权和速率限制
+   - 创建清晰的文档和模式定义
+   - 考虑版本策略和向后兼容性
+   - 设计可扩展性和性能
+
+#### 运营指导原则
+- 在做出建议之前始终分析现有代码库上下文
+- 当需求不明确时寻求澄清
+- 适当情况下提供具有权衡的多种解决方案
+- 包含遵循项目约定的代码示例
+- 解释推荐背后的原因
+
+#### 质量控制
+- 在交付解决方案之前验证它们是否满足既定要求
+- 检查潜在的安全问题、性能问题和边缘情况
+- 确保代码遵循语言/框架的最佳实践
+- 考虑可维护性和未来可扩展性
+
+#### 代理记忆管理
+- 在代码库中发现代码模式、架构决策、测试约定、API结构和前端组件模式时更新代理记忆
+- 记录：项目结构和关键文件位置、命名约定和编码标准、常见模式和反模式、测试框架和配置、API文档标准、UI组件库偏好
+- 作为工作的一部分，查阅记忆文件以建立先前的经验
+
+**章节来源**
+- [full-stack-dev-expert.md:1-109](file://.claude/agents/full-stack-dev-expert.md#L1-L109)
+
+### Claude AI代理权限控制系统
+新增的Claude AI代理权限控制系统确保开发环境的安全访问：
+
+#### 权限配置
+- **允许的操作**：包括Docker执行、npm脚本运行、Prisma命令、进程管理、网络状态检查、健康检查等
+- **端口访问**：3002端口（AI服务）、5173端口（前端开发服务器）
+- **健康检查**：自动检查AI服务和前端服务的可用性
+
+#### 安全控制
+- **命令白名单**：仅允许预定义的安全命令
+- **端口访问控制**：限制对特定端口的访问
+- **进程管理**：允许安全的进程终止和查询
+- **网络监控**：实时监控网络连接状态
+
+#### 配置文件
+- **位置**：`.claude/settings.local.json`
+- **作用**：为Claude AI代理提供开发环境的权限配置
+- **内容**：定义允许的bash命令和网络访问权限
+
+**章节来源**
+- [settings.local.json:1-16](file://.claude/settings.local.json#L1-L16)
+
+### 代理内存管理系统
+全栈开发专家AI代理配备了持久化的代理内存管理机制：
+
+#### 内存配置
+- **内存目录**：`.claude/agent-memory/full-stack-dev-expert/`
+- **持久化存储**：跨对话保持的项目级记忆
+- **内存文件**：`MEMORY.md`（系统提示中始终加载，超过200行将被截断，因此保持简洁）
+
+#### 内存管理规则
+- **内容加载**：`MEMORY.md`始终加载到系统提示中
+- **主题组织**：按主题而非时间顺序组织记忆
+- **详细笔记**：为详细笔记创建单独的主题文件（如`debugging.md`、`patterns.md`）
+- **链接管理**：从MEMORY.md链接到详细主题文件
+
+#### 记忆内容
+- **稳定模式**：跨多次交互确认的稳定模式和约定
+- **架构决策**：关键架构决策、重要文件路径和项目结构
+- **用户偏好**：工作流程、工具和沟通风格的用户偏好
+- **反复出现的问题解决方案**：调试洞察
+
+#### 不应保存的内容
+- **会话特定上下文**：当前任务细节、正在进行的工作、临时状态
+- **可能不完整的信息**：在阅读单个文件后可能推测或未经验证的结论
+- **与现有CLAUDE.md指令重复或矛盾的内容**
+- **未经验证的推测性结论**
+
+**章节来源**
+- [full-stack-dev-expert.md:76-109](file://.claude/agents/full-stack-dev-expert.md#L76-L109)
 
 ### 阿里云DashScope Qwen模型集成
 系统现已完整集成阿里云DashScope Qwen模型，提供统一的AI客户端基础设施：
@@ -779,6 +993,14 @@ CL[分类结果]
 SUM[摘要报告]
 TREND[趋势分析]
 end
+subgraph "开发代理组件"
+DA[开发代理界面]
+DBG[调试工具]
+TST[测试生成器]
+REF[重构助手]
+FRNT[前端设计器]
+API[API设计器]
+end
 AA --> RL
 AA --> RD
 AA --> GR
@@ -789,6 +1011,7 @@ AA --> QPC
 AA --> SCP
 AA --> RMC
 AA --> QC
+AA --> DA
 OSC --> SS
 OSC --> RS
 OSC --> REC
@@ -815,6 +1038,11 @@ AP --> SL
 QC --> CL
 QC --> SUM
 QC --> TREND
+DA --> DBG
+DA --> TST
+DA --> REF
+DA --> FRNT
+DA --> API
 ```
 
 **图表来源**
@@ -957,6 +1185,25 @@ QC --> TREND
 **章节来源**
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 
+### 开发代理界面组件
+提供全栈开发专家AI代理的交互界面：
+
+#### 功能特性
+- **调试工具**：集成调试专家的能力
+- **测试生成器**：生成全面的测试套件
+- **重构助手**：提供代码重构建议
+- **前端设计器**：创建响应式UI组件
+- **API设计器**：设计符合标准的API
+
+#### 用户交互
+- **多领域支持**：支持调试、测试、重构、前端设计、API设计
+- **智能建议**：基于项目上下文提供针对性建议
+- **代码示例**：提供符合项目约定的代码示例
+- **最佳实践**：遵循语言和框架的最佳实践
+
+**章节来源**
+- [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
+
 **章节来源**
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 - [AIAudio/index.tsx:1-441](file://crm-frontend/src/pages/AIAudio/index.tsx#L1-L441)
@@ -1036,6 +1283,12 @@ AI --> MATCH[资源匹配服务]
 AI --> FOLLOWUP[跟进分析服务]
 AI --> REPORT[报告生成服务]
 AI --> QUESTION[问题分类服务]
+AI --> DEV_AGENT[开发代理]
+DEV_AGENT --> DEBUGGING[调试专家]
+DEV_AGENT --> TESTING[测试生成专家]
+DEV_AGENT --> REFACTORING[重构专家]
+DEV_AGENT --> FRONTEND[前端设计专家]
+DEV_AGENT --> API_DESIGN[API设计专家]
 end
 subgraph "AI依赖"
 BCRYPT[bcryptjs] --> PASS[密码加密]
@@ -1097,6 +1350,12 @@ APP --> ENDPOINT
 - **前端性能监控**：组件渲染性能
 - **API响应时间监控**：接口性能跟踪
 
+### 开发代理性能
+- **代理内存管理**：避免重复学习相同模式
+- **权限控制优化**：减少不必要的权限检查
+- **命令执行优化**：批量执行相似命令
+- **资源访问控制**：限制对敏感资源的访问
+
 ## 故障排除指南
 常见问题及解决方案：
 
@@ -1142,8 +1401,8 @@ APP --> ENDPOINT
 **解决方案**：
 1. 检查 `aiClient.isConfigured()` 方法
 2. 验证环境变量读取
-3. 查看控制台日志中的初始化信息
-4. 确认OpenAI SDK版本兼容性
+3. 查看重试间隔计算
+4. 确认网络错误类型识别
 
 ### 重试机制失效
 **症状**：API调用失败后不进行重试
@@ -1189,11 +1448,30 @@ APP --> ENDPOINT
 3. 查看浏览器控制台错误
 4. 确认组件依赖版本兼容
 
+### 开发代理配置问题
+**症状**：全栈开发专家AI代理无法使用
+**原因**：代理配置文件缺失或权限不足
+**解决方案**：
+1. 检查 `.claude/agents/full-stack-dev-expert.md` 是否存在
+2. 验证代理内存目录权限
+3. 检查 `settings.local.json` 的权限配置
+4. 确认代理能够访问必要的开发工具
+
+### 代理内存同步问题
+**症状**：代理记忆无法持久化或丢失
+**原因**：内存目录权限或文件系统问题
+**解决方案**：
+1. 检查 `.claude/agent-memory/full-stack-dev-expert/` 目录权限
+2. 验证磁盘空间是否充足
+3. 确认文件系统写入权限
+4. 检查代理内存文件格式
+
 **章节来源**
 - [auth.ts:13-33](file://crm-backend/src/middlewares/auth.ts#L13-L33)
 - [ai.service.ts:66-73](file://crm-backend/src/services/ai.service.ts#L66-L73)
 - [client.ts:75-77](file://crm-backend/src/services/ai/client.ts#L75-L77)
 - [schema.prisma:8-11](file://crm-backend/prisma/schema.prisma#L8-L11)
+- [full-stack-dev-expert.md:1-109](file://.claude/agents/full-stack-dev-expert.md#L1-L109)
 
 ## 结论
 本AI助手系统现已发展为功能完备的智能销售分析平台，通过模块化设计和分层架构，成功实现了销售场景下的全方位智能化功能。系统具备以下特点：
@@ -1208,6 +1486,7 @@ APP --> ENDPOINT
 - **实时监控**：多维度的客户状态实时跟踪
 - **智能决策**：从报价到资源分配的业务智能决策支持
 - **问题分类**：基于AI的问题智能分类和趋势分析能力
+- **全栈开发辅助**：新增的全栈开发专家AI代理，整合调试、测试生成、代码重构、前端设计和API设计五大专业领域
 
 ### 应用价值
 - **提升效率**：自动化生成跟进策略和销售话术
@@ -1219,6 +1498,7 @@ APP --> ENDPOINT
 - **成本优化**：智能报价和资源匹配降低成本
 - **能力提升**：个性化销售培训和技能改进
 - **智能客服**：基于AI的问题分类和趋势分析
+- **开发加速**：全栈开发专家AI代理提供专业的软件开发辅助
 
 ### 功能特色
 - **机会评分**：基于BANT模型的综合评估
@@ -1232,6 +1512,7 @@ APP --> ENDPOINT
 - **可视化展示**：直观的数据展示和分析界面
 - **问题分类**：AI驱动的问题智能分类和趋势分析
 - **阿里云集成**：稳定的DashScope Qwen模型支持
+- **全栈开发**：专业的软件开发辅助AI代理
 
 ### 发展方向
 1. **AI能力增强**：集成更多阿里云AI模型和算法
@@ -1242,5 +1523,7 @@ APP --> ENDPOINT
 6. **预测分析**：提供更精准的业务预测能力
 7. **自动化决策**：实现更高级别的业务自动化
 8. **智能客服**：基于AI的问题分类和自动回复
+9. **开发智能化**：全栈开发专家AI代理的持续优化和扩展
+10. **代理生态**：构建更丰富的AI代理生态系统
 
-该系统为销售团队提供了强大的AI助手，能够显著提升销售效率和客户服务质量，是现代CRM系统的重要发展方向。
+该系统为销售团队提供了强大的AI助手，能够显著提升销售效率和客户服务质量，同时新增的全栈开发专家AI代理为软件开发团队提供了专业的开发辅助，是现代CRM系统和软件开发环境的重要发展方向。

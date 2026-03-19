@@ -146,7 +146,7 @@ export default function CreateOpportunityModal({
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
               placeholder="例如: 数字化转型项目"
-              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
@@ -250,7 +250,7 @@ export default function CreateOpportunityModal({
               type="date"
               value={formData.expectedCloseDate}
               onChange={(e) => setFormData(prev => ({ ...prev, expectedCloseDate: e.target.value }))}
-              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
@@ -264,7 +264,7 @@ export default function CreateOpportunityModal({
               value={formData.nextStep}
               onChange={(e) => setFormData(prev => ({ ...prev, nextStep: e.target.value }))}
               placeholder="例如: 安排产品演示会议"
-              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
 
@@ -278,7 +278,7 @@ export default function CreateOpportunityModal({
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               rows={3}
               placeholder="描述项目的背景、需求、痛点等信息..."
-              className="w-full px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
             />
           </div>
         </div>
