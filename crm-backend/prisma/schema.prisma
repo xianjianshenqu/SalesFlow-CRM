@@ -1086,3 +1086,23 @@ model NegotiationRecord {
   @@index([status])
   @@map("negotiation_records")
 }
+
+// ==================== Company Search Cache ====================
+
+// 企业搜索缓存
+model CompanySearchCache {
+  id                  String   @id @default(uuid())
+  companyName         String   @unique  // 企业名称（唯一索引）
+  intelligenceResult  Json              // AI分析结果 (CompanyIntelligenceResult)
+  searchResults       Json?             // 原始搜索结果
+  source              String   @default("web_search") // 数据来源: web_search, llm, mock
+  hitCount            Int      @default(0) // 缓存命中次数
+  createdAt           DateTime @default(now())
+  expiresAt           DateTime          // 过期时间
+  updatedAt           DateTime @updatedAt
+
+  @@index([companyName])
+  @@index([expiresAt])
+  @@index([source])
+  @@map("company_search_cache")
+}

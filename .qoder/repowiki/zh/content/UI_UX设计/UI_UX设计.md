@@ -16,6 +16,8 @@
 - [ChurnAlertCard.tsx](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx)
 - [Dashboard.tsx](file://crm-frontend/src/pages/Dashboard/index.tsx)
 - [index.ts](file://crm-frontend/src/types/index.ts)
+- [CreateCustomerModal.tsx](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx)
+- [ColdVisitAssistant.tsx](file://crm-frontend/src/components/ColdVisitAssistant.tsx)
 </cite>
 
 ## 更新摘要
@@ -26,6 +28,9 @@
 - 更新动画系统和交互反馈机制
 - 完善AI组件的视觉设计和状态管理
 - 优化移动端适配和响应式布局
+- **新增** 表单样式一致性改进和输入字段外观优化
+- **新增** 深色主题对比度改善和可访问性增强
+- **新增** 统一的表单验证错误样式和焦点状态设计
 
 ## 目录
 1. [引言](#引言)
@@ -41,6 +46,8 @@
 
 ## 引言
 本设计文档面向销售AI CRM系统的前端UI/UX设计，围绕基于Tailwind CSS v4的原子化设计原则与现代化主题系统展开。系统采用深色奢华暗黑主题，结合玻璃磨砂效果、环境发光装饰、渐变色彩和丰富的动画系统，打造高端商务CRM的视觉体验。文档详细阐述颜色体系、字体规范、间距标准、响应式策略、交互模式与视觉层次，并提供可落地的设计系统规范与移动端、无障碍设计建议。
+
+**更新** 本次更新重点关注表单样式一致性、输入字段外观优化以及深色主题对比度改善，涉及超过40个CSS类属性的修改，代表了设计系统的重要升级。
 
 ## 项目结构
 前端采用Vite + React + Tailwind CSS v4（@theme原语）构建，PostCSS集成Tailwind v4插件，全局样式通过index.css集中定义。系统采用深色主题作为默认模式，通过@theme定义奢华暗黑配色方案，包括金橙色主色调和青蓝色辅助色。组件按功能模块拆分在src/components目录下，页面组件位于src/pages目录，布局组件位于src/components/layout目录。
@@ -97,6 +104,9 @@ M --> A
 - **动画系统**：包含淡入动画(fade-in-up)、浮动动画(float-animation)、脉冲发光(pulse-glow)、闪烁(shimmer)等多种动画效果。
 - **AI组件**：包括AI分析面板、音频播放器、商机评分卡片、流失预警卡片等，均采用统一的玻璃磨砂设计语言。
 - **布局容器**：Layout.tsx负责整体布局，采用flex分栏，左侧固定宽度侧边栏，右侧主内容区自适应滚动。
+- **表单系统**：统一的表单样式规范，包括输入字段外观、验证状态、错误提示和焦点状态设计。
+
+**更新** 新增表单样式一致性改进，包括统一的输入字段外观、深色主题对比度改善和可访问性增强。
 
 **章节来源**
 - [index.css:10-47](file://crm-frontend/src/index.css#L10-L47)
@@ -261,6 +271,37 @@ AI组件采用统一的设计语言：
 - [OpportunityScoreCard.tsx:54-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L54-L336)
 - [ChurnAlertCard.tsx:62-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L326)
 
+### 表单样式一致性与输入字段优化
+
+**更新** 新增表单系统的重要改进，包括统一的输入字段外观、验证状态设计和深色主题对比度优化。
+
+- **统一输入样式**：所有输入字段采用相同的圆角设计(#rounded-lg)、内边距(px-3 py-2)和边框样式
+- **深色主题优化**：输入字段在深色模式下使用#dark:bg-slate-900和#dark:text-white确保高对比度
+- **焦点状态设计**：统一的焦点样式，使用#focus:ring-2和#focus:ring-primary/50实现清晰的焦点指示
+- **验证状态**：错误状态使用红色边框(#border-red-500)和错误提示(#text-red-500)
+- **禁用状态**：统一的禁用样式(#disabled:opacity-50)和不可交互状态
+- **占位符优化**：深色模式下使用#dark:placeholder:text-slate-500确保可读性
+
+**章节来源**
+- [CreateCustomerModal.tsx:311-319](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx#L311-L319)
+- [CreateCustomerModal.tsx:375-382](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx#L375-L382)
+- [CreateCustomerModal.tsx:403-409](file://crm-frontend/src/components/Customers/CreateCustomerModal.tsx#L403-L409)
+- [ColdVisitAssistant.tsx:175-181](file://crm-frontend/src/components/ColdVisitAssistant.tsx#L175-L181)
+
+### 深色主题对比度改善与可访问性增强
+
+**更新** 深色主题对比度得到显著改善，确保符合WCAG可访问性标准。
+
+- **对比度优化**：深色模式下文本与背景的对比度达到AA标准(#f9fafb vs #111827)
+- **焦点可见性**：使用#*focus-visible和#outline确保键盘导航的焦点可见性
+- **颜色语义化**：使用语义化颜色(#text-slate-900 dark:text-white)确保在不同背景下的一致可读性
+- **高对比度模式**：支持系统高对比度模式，使用#forced-color-adjust
+- **颜色轮换**：为色觉缺陷用户提供足够的颜色对比度
+
+**章节来源**
+- [index.css:299-302](file://crm-frontend/src/index.css#L299-L302)
+- [index.css:305-307](file://crm-frontend/src/index.css#L305-L307)
+
 ### 字体规范与排版
 - **字体家族**：使用Outfit作为标题字体，Space Grotesk作为正文字体
 - **字重系统**：400/500/600/700字重，确保清晰度与专业感
@@ -295,6 +336,7 @@ AI组件采用统一的设计语言：
 - **统计卡片变体**：支持多种渐变背景，包含hover发光和边框效果
 - **AI组件变体**：根据状态显示不同的颜色和图标，支持分析进度显示
 - **按钮变体**：包含强调按钮(.btn-primary)和次要按钮(.btn-secondary)
+- **表单变体**：支持成功、警告、错误等不同验证状态
 
 **章节来源**
 - [Sidebar.tsx:73-115](file://crm-frontend/src/components/layout/Sidebar.tsx#L73-L115)
@@ -317,6 +359,9 @@ AI组件采用统一的设计语言：
   - 卡片：默认使用玻璃磨砂效果，hover时增加深度和发光
   - 按钮：强调按钮使用渐变背景，次要按钮使用半透明边框
   - 徽标：success/warning/danger三类，圆角与紧凑字号
+  - 表单：支持默认、聚焦、错误、禁用四种状态
+
+**更新** 新增表单组件变体规范，确保表单元素在不同状态下的视觉一致性。
 
 **章节来源**
 - [index.css:10-47](file://crm-frontend/src/index.css#L10-L47)
@@ -328,6 +373,7 @@ AI组件采用统一的设计语言：
 - **深色主题优先**：以深色主题为核心设计语言，确保在各种环境下的一致性
 - **玻璃效果系统**：统一的毛玻璃材质规范，包括模糊强度和透明度
 - **动画规范**：定义动画时序、缓动函数和触发条件，确保流畅的用户体验
+- **可访问性优先**：确保颜色对比度、焦点可见性和键盘导航支持
 
 ## 依赖分析
 - **样式管线**：Tailwind v4通过@tailwindcss/postcss在PostCSS阶段生成原子类；index.css集中定义@theme主题和玻璃效果
@@ -377,6 +423,7 @@ R --> S["index.css"]
 - **动画性能**：使用transform和opacity属性实现硬件加速，避免频繁重排
 - **字体加载**：Material Symbols Outlined通过CDN加载，确保快速访问
 - **图片优化**：SVG图标和渐变背景无需额外图片资源，减少HTTP请求
+- **深色主题性能**：.dark类作为默认模式，减少主题切换的计算开销
 
 ## 故障排查指南
 - **样式未生效**
@@ -395,6 +442,12 @@ R --> S["index.css"]
   - 确认.ambient-glow类的z-index设置
   - 检查深色模式下的颜色对比度
   - 验证响应式断点设置
+- **表单样式问题**
+  - 检查输入字段的焦点状态样式
+  - 确认深色主题下的对比度设置
+  - 验证表单验证状态的颜色一致性
+
+**更新** 新增表单样式和深色主题对比度相关的故障排查指导。
 
 **章节来源**
 - [postcss.config.js:1-7](file://crm-frontend/postcss.config.js#L1-L7)
@@ -404,6 +457,8 @@ R --> S["index.css"]
 ## 结论
 本设计系统以Tailwind CSS v4的@theme为主题核心，结合深色奢华暗黑主题、玻璃磨砂效果和丰富的动画系统，实现了统一且具有现代感的UI/UX设计体系。通过明确的组件变体与设计规范，能够高效支撑销售AI CRM的复杂信息场景与多终端体验需求。系统在视觉层次、交互反馈和性能优化方面都达到了较高水准，为用户提供了专业且舒适的商务CRM使用体验。
 
+**更新** 本次重大升级显著改善了表单样式一致性、输入字段外观和深色主题对比度，进一步提升了系统的可用性和可访问性，代表了设计系统的重要里程碑。
+
 ## 附录
 - **快速参考**
   - 深色主题：.dark类作为默认模式，确保深色主题一致性
@@ -412,3 +467,5 @@ R --> S["index.css"]
   - 颜色体系：@theme定义奢华暗黑配色方案，包括金橙色和青蓝色主色调
   - 响应式：采用flex与grid布局，配合max-w与overflow控制响应式表现
   - 图标系统：Material Symbols Outlined提供统一图标资源，支持变体设置
+  - 表单系统：统一的输入字段样式、验证状态和焦点设计
+  - 可访问性：确保颜色对比度、焦点可见性和键盘导航支持

@@ -1,9 +1,12 @@
 /**
  * AI服务 - 封装大模型API调用
  * 使用阿里云百炼Qwen模型进行智能分析
+ * 支持网络搜索获取真实企业信息
  */
 
 import aiClient, { ChatMessage } from './ai/client';
+import companySearchService from './search/companySearch.service';
+import serperClient from './search/serper.client';
 
 // 情感类型定义
 export type SentimentType = 'positive' | 'neutral' | 'negative';
@@ -456,25 +459,53 @@ class AIService {
    * 企业信息智能分析（陌生拜访AI助手核心功能）
    * @param companyName 企业名称
    * @param _imageUrl 可选的图片URL（如门牌、宣传资料等）
+   * @param options 可选配置
    */
-  async analyzeCompany(companyName: string, _imageUrl?: string): Promise<CompanyIntelligenceResult> {
-    // 如果AI客户端已配置，调用真实API
-    if (aiClient.isConfigured()) {
+  async analyzeCompany(
+    companyName: string,
+    _imageUrl?: string,
+    options?: { useWebSearch?: boolean; forceRefresh?: boolean }
+  ): Promise<CompanyIntelligenceResult> {
+    const useWebSearch = options?.useWebSearch !== false; // 默认启用网络搜索
+
+    // 1. 优先尝试网络搜索获取真实数据
+    if (useWebSearch && serperClient.isConfigured()) {
       try {
-        return await this.callRealCompanyAnalysis(companyName);
+        console.log('[AI Service] 使用网络搜索获取企业信息...');
+        const webResult = await companySearchService.searchCompany(companyName, {
+          forceRefresh: options?.forceRefresh,
+        });
+
+        // 验证结果有效性
+        if (webResult.basicInfo?.name && webResult.businessScope?.length > 0) {
+          console.log('[AI Service] 网络搜索成功，返回真实数据');
+          return webResult;
+        }
+        
+        console.log('[AI Service] 网络搜索结果不完整，尝试LLM增强...');
       } catch (error) {
-        console.error('[AI Service] 真实API调用失败，降级到模拟模式:', error);
-        // 降级到模拟分析
-        return this.mockCompanyAnalysis(companyName);
+        console.error('[AI Service] 网络搜索失败:', error);
       }
     }
 
-    // 使用模拟分析
+    // 2. 降级：使用LLM分析（仅当LLM已配置）
+    if (aiClient.isConfigured()) {
+      try {
+        console.log('[AI Service] 使用LLM生成企业信息...');
+        return await this.callRealCompanyAnalysis(companyName);
+      } catch (error) {
+        console.error('[AI Service] LLM调用失败，降级到模拟模式:', error);
+      }
+    }
+
+    // 3. 最终降级：使用模拟分析
+    console.log('[AI Service] 使用模拟数据');
     return this.mockCompanyAnalysis(companyName);
   }
 
   /**
    * 调用真实AI进行企业信息分析
+   * 注意：这是降级方案，优先使用网络搜索
    */
   private async callRealCompanyAnalysis(companyName: string): Promise<CompanyIntelligenceResult> {
     const systemPrompt = `你是一位企业信息分析专家和销售顾问，擅长根据企业名称分析企业信息并生成销售策略。
@@ -495,7 +526,9 @@ class AIService {
   - opening: 开场白
   - painPoints: 痛点数组（3个）
   - talkingPoints: 谈话要点数组（4个）
-  - objectionHandlers: 异议处理数组（2个），每项包含objection、response`;
+  - objectionHandlers: 异议处理数组（2个），每项包含objection、response
+
+重要提示：你应该基于你的知识提供合理的企业信息推测，但要标注这些是推测信息。`;
 
     const userPrompt = `请分析以下企业并生成销售策略：
 企业名称：${companyName}
@@ -530,13 +563,15 @@ class AIService {
 
   /**
    * 模拟企业信息分析（开发测试用）
+   * 这是最终降级方案，当网络搜索和LLM都不可用时使用
    */
   private mockCompanyAnalysis(companyName: string): Promise<CompanyIntelligenceResult> {
+    console.log(`[AI Service] 生成模拟数据: ${companyName}`);
     return new Promise((resolve) => {
       setTimeout(() => {
         const result = this.generateMockCompanyIntelligence(companyName);
         resolve(result);
-      }, 2000 + Math.random() * 1000);
+      }, 1000 + Math.random() * 500); // 缩短延迟时间
     });
   }
 
