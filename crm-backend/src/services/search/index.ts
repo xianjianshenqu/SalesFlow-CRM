@@ -3,5 +3,14 @@
  */
 
 export { default as serperClient } from './serper.client';
+export { default as qccClient } from './qcc.client';
 export { default as companySearchService } from './companySearch.service';
 export type { SearchResult, NewsResult, KnowledgeGraphResult, SerperResponse } from './serper.client';
+export type { 
+  QCCConfig, 
+  QCCCompanyBasicInfo, 
+  QCCSearchResultItem, 
+  QCCAPIResponse, 
+  QCCBasicDetailsResult,
+  QCCError 
+} from './qcc.client';

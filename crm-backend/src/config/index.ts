@@ -28,6 +28,11 @@ interface Config {
     dir: string;
     maxFileSize: number;
   };
+  // 企查查API配置
+  qcc: {
+    appKey: string;
+    secretKey: string;
+  };
 }
 
 const config: Config = {
@@ -54,6 +59,11 @@ const config: Config = {
   upload: {
     dir: process.env.UPLOAD_DIR || 'uploads',
     maxFileSize: parseInt(process.env.MAX_FILE_SIZE || '52428800', 10),
+  },
+  // 企查查API配置
+  qcc: {
+    appKey: process.env.QCC_APP_KEY || '',
+    secretKey: process.env.QCC_SECRET_KEY || '',
   },
 };
 
