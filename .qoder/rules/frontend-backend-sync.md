@@ -245,3 +245,57 @@ import type { Customer } from '../services/api';
    - 后端未启动 → 先启动后端
    - 端口配置不一致 → 检查 .env 文件
 ```
+
+---
+
+## MCP Chrome DevTools 测试规范（重要）
+
+### 禁止在新页面进行登录验证
+
+**❌ 错误做法：使用 MCP chrome-devtools 在新页面进行登录测试**
+
+当使用 MCP chrome-devtools 工具进行前端页面测试时，**禁止**在新打开的浏览器页面进行登录验证，因为这会导致：
+- 新的浏览器上下文没有认证状态
+- 后端 CORS 配置与实际前端端口不匹配
+- 登录请求因端口不一致而被拒绝
+
+**❌ 禁止这样做：**
+```
+1. 使用 mcp_chrome-devtools_new_page 打开新页面
+2. 在新页面中访问 http://localhost:5173/funnel
+3. 被重定向到登录页后进行登录
+4. 登录失败，出现 "Failed to fetch" 错误
+```
+
+**✅ 正确做法：在已登录的页面进行验证**
+
+```
+1. 使用 run_preview 启动预览浏览器（用户已登录状态）
+2. 或确保使用 mcp_chrome-devtools 时复用已登录的页面上下文
+3. 直接访问需要测试的页面（如 /funnel）
+4. 验证功能时保持同一浏览器会话
+```
+
+### 测试前检查清单
+
+使用 MCP chrome-devtools 进行测试前，必须确认：
+
+```
+✅ 前后端服务已通过 start.js 启动
+✅ 前端实际运行端口与后端 CORS_ORIGIN 配置匹配
+✅ 使用已登录的浏览器页面进行测试
+✅ 如需新页面，必须先通过正常流程登录（不通过自动化工具）
+```
+
+### 端口不匹配解决方案
+
+如果前端端口发生变化（如从 5173 变为 5178）：
+
+1. **更新后端 CORS 配置**（crm-backend/.env）：
+```env
+CORS_ORIGIN=http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177,http://localhost:5178
+```
+
+2. **重启后端服务**使配置生效
+
+3. **重新登录**获取新的认证 Token

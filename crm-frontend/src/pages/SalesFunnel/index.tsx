@@ -341,25 +341,87 @@ function OpportunityCard({
   );
 }
 
-// 添加客户表单组件
-function AddCustomerForm({ 
-  onAdd 
-}: { 
-  onAdd: (customerName: string, title: string, value: number) => void;
+// 添加客户表单组件 - 完整表单格式
+interface AddCustomerFormData {
+  customerName: string;
+  title: string;
+  value: string;
+  probability: number;
+  priority: Priority;
+  nextStep: string;
+  description: string;
+}
+
+function AddCustomerForm({
+  stage,
+  onAdd
+}: {
+  stage: Stage;
+  onAdd: (data: Omit<Opportunity, 'id' | 'customerId' | 'owner' | 'lastActivity' | 'expectedCloseDate'>) => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [customerName, setCustomerName] = useState('');
-  const [title, setTitle] = useState('');
-  const [value, setValue] = useState('');
+  const [formData, setFormData] = useState<AddCustomerFormData>({
+    customerName: '',
+    title: '',
+    value: '',
+    probability: getDefaultProbability(stage),
+    priority: 'medium',
+    nextStep: '',
+    description: ''
+  });
+
+  // 根据阶段获取默认概率
+  function getDefaultProbability(s: Stage): number {
+    const stageProbabilities: Record<Stage, number> = {
+      new_lead: 20,
+      contacted: 30,
+      solution: 40,
+      quoted: 50,
+      negotiation: 55,
+      procurement_process: 70,
+      contract_stage: 85,
+      won: 100
+    };
+    return stageProbabilities[s];
+  }
 
   const handleSubmit = () => {
-    if (customerName.trim() && title.trim()) {
-      onAdd(customerName.trim(), title.trim(), parseFloat(value) || 0);
-      setCustomerName('');
-      setTitle('');
-      setValue('');
+    if (formData.customerName.trim() && formData.title.trim()) {
+      onAdd({
+        customerName: formData.customerName.trim(),
+        title: formData.title.trim(),
+        value: parseFloat(formData.value) || 0,
+        stage,
+        probability: formData.probability,
+        priority: formData.priority,
+        nextStep: formData.nextStep.trim(),
+        description: formData.description.trim()
+      });
+      // 重置表单
+      setFormData({
+        customerName: '',
+        title: '',
+        value: '',
+        probability: getDefaultProbability(stage),
+        priority: 'medium',
+        nextStep: '',
+        description: ''
+      });
       setIsExpanded(false);
     }
+  };
+
+  const handleCancel = () => {
+    setIsExpanded(false);
+    setFormData({
+      customerName: '',
+      title: '',
+      value: '',
+      probability: getDefaultProbability(stage),
+      priority: 'medium',
+      nextStep: '',
+      description: ''
+    });
   };
 
   if (!isExpanded) {
@@ -375,43 +437,127 @@ function AddCustomerForm({
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-lg p-3 border border-slate-200 dark:border-slate-700 shadow-sm">
-      <input
-        type="text"
-        placeholder="客户名称"
-        value={customerName}
-        onChange={(e) => setCustomerName(e.target.value)}
-        className="w-full mb-2 px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-      />
-      <input
-        type="text"
-        placeholder="项目名称"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        className="w-full mb-2 px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-      />
-      <input
-        type="number"
-        placeholder="预计金额（可选）"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        className="w-full mb-3 px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-      />
-      <div className="flex gap-2">
+    <div className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div className="space-y-3">
+        {/* 客户名称 */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            客户名称
+          </label>
+          <input
+            type="text"
+            value={formData.customerName}
+            onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
+
+        {/* 项目名称 */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            项目名称
+          </label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
+
+        {/* 预计金额 */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            预计金额 (¥)
+          </label>
+          <input
+            type="number"
+            value={formData.value}
+            onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
+            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
+
+        {/* 成交概率 */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            成交概率: {formData.probability}%
+          </label>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={formData.probability}
+            onChange={(e) => setFormData(prev => ({ ...prev, probability: parseInt(e.target.value) }))}
+            className="w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer"
+          />
+        </div>
+
+        {/* 优先级 */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            优先级
+          </label>
+          <div className="flex gap-1">
+            {(['high', 'medium', 'low'] as Priority[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setFormData(prev => ({ ...prev, priority: p }))}
+                className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium transition-colors ${
+                  formData.priority === p
+                    ? p === 'high'
+                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 ring-1 ring-red-500'
+                      : p === 'medium'
+                      ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 ring-1 ring-amber-500'
+                      : 'bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 ring-1 ring-slate-500'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                }`}
+              >
+                {p === 'high' ? '高' : p === 'medium' ? '中' : '低'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* 下一步行动 */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            下一步行动
+          </label>
+          <input
+            type="text"
+            value={formData.nextStep}
+            onChange={(e) => setFormData(prev => ({ ...prev, nextStep: e.target.value }))}
+            placeholder="输入下一步行动计划..."
+            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
+          />
+        </div>
+
+        {/* 备注 */}
+        <div>
+          <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+            备注
+          </label>
+          <textarea
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            rows={2}
+            placeholder="添加备注信息..."
+            className="w-full px-3 py-2 text-sm border border-slate-200 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary/50 resize-none"
+          />
+        </div>
+      </div>
+
+      <div className="flex gap-2 mt-4">
         <button
           onClick={handleSubmit}
-          disabled={!customerName.trim() || !title.trim()}
+          disabled={!formData.customerName.trim() || !formData.title.trim()}
           className="flex-1 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           添加
         </button>
         <button
-          onClick={() => {
-            setIsExpanded(false);
-            setCustomerName('');
-            setTitle('');
-            setValue('');
-          }}
+          onClick={handleCancel}
           className="px-4 py-2 text-slate-500 text-sm font-medium rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
         >
           取消
@@ -422,8 +568,8 @@ function AddCustomerForm({
 }
 
 // 阶段列组件 - 支持放置
-function StageColumn({ 
-  stage, 
+function StageColumn({
+  stage,
   opportunities,
   totalValue,
   onDragOver,
@@ -432,13 +578,13 @@ function StageColumn({
   onEditOpportunity,
   onDeleteOpportunity,
   draggedOpportunity
-}: { 
+}: {
   stage: Stage;
   opportunities: Opportunity[];
   totalValue: number;
   onDragOver: (e: React.DragEvent) => void;
   onDrop: (e: React.DragEvent, stage: Stage) => void;
-  onAddCustomer: (stage: Stage, customerName: string, title: string, value: number) => void;
+  onAddCustomer: (stage: Stage, data: Omit<Opportunity, 'id' | 'customerId' | 'owner' | 'lastActivity' | 'expectedCloseDate'>) => void;
   onEditOpportunity: (opportunity: Opportunity) => void;
   onDeleteOpportunity: (opportunity: Opportunity) => void;
   draggedOpportunity: Opportunity | null;
@@ -500,8 +646,9 @@ function StageColumn({
 
       {/* 添加客户表单 */}
       <div className="p-4 pt-0">
-        <AddCustomerForm 
-          onAdd={(customerName, title, value) => onAddCustomer(stage, customerName, title, value)} 
+        <AddCustomerForm
+          stage={stage}
+          onAdd={(data) => onAddCustomer(stage, data)}
         />
       </div>
     </div>
@@ -580,32 +727,21 @@ export default function SalesFunnel() {
   }, [opportunities, moveOpportunity]);
 
   // 添加客户
-  const handleAddCustomer = useCallback((stage: Stage, customerName: string, title: string, value: number) => {
-    const stageProbabilities: Record<Stage, number> = {
-      new_lead: 20,
-      contacted: 30,
-      solution: 40,
-      quoted: 50,
-      negotiation: 55,
-      procurement_process: 70,
-      contract_stage: 85,
-      won: 100
-    };
-
+  const handleAddCustomer = useCallback((_stage: Stage, data: Omit<Opportunity, 'id' | 'customerId' | 'owner' | 'lastActivity' | 'expectedCloseDate'>) => {
     const newOpportunity: Opportunity = {
       id: `o${nextIdRef.current++}`,
       customerId: `c${nextIdRef.current}`,
-      customerName,
-      title,
-      stage,
-      value: value || 0,
-      probability: stageProbabilities[stage],
+      customerName: data.customerName,
+      title: data.title,
+      stage: data.stage,
+      value: data.value || 0,
+      probability: data.probability,
       owner: '当前用户',
-      priority: 'medium',
+      priority: data.priority,
       expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       lastActivity: new Date().toISOString().split('T')[0],
-      description: '',
-      nextStep: ''
+      description: data.description || '',
+      nextStep: data.nextStep || ''
     };
 
     addOpportunity(newOpportunity);

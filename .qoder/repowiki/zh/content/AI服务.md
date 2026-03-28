@@ -12,6 +12,8 @@
 - [opportunityScoring.ts](file://crm-backend/src/services/ai/opportunityScoring.ts)
 - [churnAnalysis.ts](file://crm-backend/src/services/ai/churnAnalysis.ts)
 - [customerInsight.ts](file://crm-backend/src/services/ai/customerInsight.ts)
+- [proposalAI.ts](file://crm-backend/src/services/ai/proposalAI.ts)
+- [salesCoach.ts](file://crm-backend/src/services/ai/salesCoach.ts)
 - [aiService.ts](file://crm-frontend/src/services/aiService.ts)
 - [FollowUpWidget.tsx](file://crm-frontend/src/components/AI/FollowUpWidget.tsx)
 - [ScriptGenerator.tsx](file://crm-frontend/src/components/AI/ScriptGenerator.tsx)
@@ -27,10 +29,11 @@
 
 ## 更新摘要
 **变更内容**
-- 更新了认证机制章节，反映从'token'到'auth_token'的安全改进
-- 新增了前端认证存储安全性的说明
-- 更新了API认证流程图以反映新的存储机制
-- 增强了认证安全性的最佳实践指导
+- 新增了智能报价与方案生成AI服务，支持企业分析、联系人发现和话术生成等AI功能
+- 集成了销售绩效AI教练服务，提供个性化改进建议和技能差距分析
+- 扩展了AI服务模块的统一导出，支持更多阶段性的AI功能
+- 更新了API接口设计，增加了报价生成和方案生成的相关端点
+- 增强了前端AI组件的功能，支持报价分析和销售教练建议
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -46,9 +49,9 @@
 
 ## 项目概述
 
-销售AI CRM系统是一个集成人工智能技术的客户关系管理系统，专注于为企业销售团队提供智能化的客户管理和销售辅助功能。该系统通过AI技术分析客户互动数据，提供智能的销售建议、商机评分、流失预警和客户洞察等功能。
+销售AI CRM系统是一个集成人工智能技术的客户关系管理系统，专注于为企业销售团队提供智能化的客户管理和销售辅助功能。该系统通过AI技术分析客户互动数据，提供智能的销售建议、商机评分、流失预警、客户洞察以及智能报价等全方位的AI辅助功能。
 
-系统采用前后端分离架构，后端使用Node.js + Express构建RESTful API，前端使用React + TypeScript开发用户界面。AI功能通过阿里云百炼Qwen模型实现，支持多种销售场景的智能化处理。
+系统采用前后端分离架构，后端使用Node.js + Express构建RESTful API，前端使用React + TypeScript开发用户界面。AI功能通过阿里云百炼Qwen模型实现，支持多种销售场景的智能化处理，包括企业分析、联系人发现、话术生成、智能报价和销售教练等高级功能。
 
 ## 项目结构
 
@@ -67,11 +70,14 @@ E[Components 组件层]
 F[Services API服务]
 G[Types 类型定义]
 end
-subgraph "AI功能"
+subgraph "AI功能模块"
 H[语音分析]
 I[文本分析]
 J[机器学习]
 K[自然语言处理]
+L[智能报价]
+M[销售教练]
+N[知识库AI]
 end
 A --> B
 B --> C
@@ -79,6 +85,9 @@ C --> H
 C --> I
 C --> J
 C --> K
+C --> L
+C --> M
+C --> N
 B --> D
 E --> F
 F --> A
@@ -125,11 +134,22 @@ class ChurnAnalysisService {
 class CustomerInsightService {
 +extractCustomerInsights(input)
 }
+class ProposalAIService {
++generateSmartQuotation(input)
++generateProposalContent(input)
+}
+class SalesCoachService {
++analyzePerformance(input)
++generateCoachingSuggestions(input)
++identifySkillGaps(analysis, assessment)
+}
 AIService --> FollowUpAnalysisService
 AIService --> ReportGenerationService
 AIService --> OpportunityScoringService
 AIService --> ChurnAnalysisService
 AIService --> CustomerInsightService
+AIService --> ProposalAIService
+AIService --> SalesCoachService
 ```
 
 **图表来源**
@@ -139,6 +159,8 @@ AIService --> CustomerInsightService
 - [opportunityScoring.ts:42-613](file://crm-backend/src/services/ai/opportunityScoring.ts#L42-L613)
 - [churnAnalysis.ts:28-517](file://crm-backend/src/services/ai/churnAnalysis.ts#L28-L517)
 - [customerInsight.ts:35-548](file://crm-backend/src/services/ai/customerInsight.ts#L35-L548)
+- [proposalAI.ts:55-800](file://crm-backend/src/services/ai/proposalAI.ts#L55-L800)
+- [salesCoach.ts:51-780](file://crm-backend/src/services/ai/salesCoach.ts#L51-L780)
 
 ### 数据模型设计
 
@@ -151,6 +173,8 @@ AIService --> CustomerInsightService
 | OpportunityScore | 商机评分 | opportunityId, overallScore, winProbability |
 | ChurnAlert | 流失预警 | customerId, riskLevel, riskScore, status |
 | CustomerInsight | 客户洞察 | customerId, extractedNeeds, confidence |
+| QuotationProposal | 智能报价 | opportunityId, recommendedPrice, discountStrategy |
+| CoachingSuggestion | 销售教练建议 | userId, performanceAnalysis, weeklyPlan |
 
 **章节来源**
 - [schema.prisma:627-740](file://crm-backend/prisma/schema.prisma#L627-L740)
@@ -178,6 +202,7 @@ end
 subgraph "数据层"
 I[MySQL数据库]
 J[AI模型API]
+K[知识库服务]
 end
 A --> C
 C --> D
@@ -185,6 +210,7 @@ D --> F
 F --> H
 H --> I
 F --> J
+F --> K
 ```
 
 **图表来源**
@@ -203,6 +229,10 @@ F --> J
 | 商机评分 | POST | `/ai/opportunities/:id/score` | 计算商机评分 |
 | 流失预警 | POST | `/ai/customers/:id/churn-analysis` | 分析客户流失风险 |
 | 客户洞察 | POST | `/ai/customers/:id/insights` | 生成客户洞察 |
+| 智能报价 | POST | `/ai/proposals/quotation` | 生成智能报价 |
+| 方案生成 | POST | `/ai/proposals/generate` | 生成商务方案 |
+| 销售教练 | POST | `/ai/coach/performance` | 分析销售绩效 |
+| 教练建议 | POST | `/ai/coach/suggestions` | 生成教练建议 |
 
 **章节来源**
 - [ai.routes.ts:35-98](file://crm-backend/src/routes/ai.routes.ts#L35-L98)
@@ -360,6 +390,85 @@ K --> L
 **章节来源**
 - [customerInsight.ts:210-246](file://crm-backend/src/services/ai/customerInsight.ts#L210-L246)
 
+### 智能报价与方案生成服务
+
+智能报价与方案生成服务为企业销售提供智能化的报价策略和商务方案：
+
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant Controller as 控制器
+participant ProposalService as 智能报价服务
+participant KnowledgeAI as 知识库AI
+participant AIClient as AI模型
+participant DB as 数据库
+Client->>Controller : POST /ai/proposals/quotation
+Controller->>ProposalService : generateSmartQuotation(input)
+ProposalService->>KnowledgeAI : searchRelevantKnowledge(query)
+KnowledgeAI-->>ProposalService : 返回知识库结果
+alt AI模型可用
+ProposalService->>AIClient : 调用AI API生成报价
+AIClient-->>ProposalService : 返回报价分析
+else AI模型不可用
+ProposalService->>ProposalService : 使用模拟算法
+ProposalService-->>ProposalService : 生成模拟报价
+end
+ProposalService->>DB : 保存报价结果
+DB-->>ProposalService : 保存成功
+ProposalService-->>Controller : 返回报价结果
+Controller-->>Client : 返回JSON响应
+```
+
+**图表来源**
+- [proposalAI.ts:61-93](file://crm-backend/src/services/ai/proposalAI.ts#L61-L93)
+- [ai.controller.ts:83-197](file://crm-backend/src/controllers/ai.controller.ts#L83-L197)
+
+#### 报价生成算法
+
+智能报价服务采用多因子分析：
+
+1. **行业基准**：基于行业定价基准和价格弹性
+2. **客户价值**：评估客户历史交易和预算能力
+3. **竞争分析**：对比竞品价格和优势
+4. **产品配置**：根据需求推荐合适的产品组合
+5. **折扣策略**：计算最优折扣和条件
+
+**章节来源**
+- [proposalAI.ts:98-171](file://crm-backend/src/services/ai/proposalAI.ts#L98-L171)
+
+### 销售绩效AI教练服务
+
+销售绩效AI教练服务提供个性化的销售改进指导：
+
+```mermaid
+flowchart TD
+A[开始教练分析] --> B[收集销售数据]
+B --> C[计算绩效指标]
+C --> D[识别优势弱点]
+D --> E[分析趋势变化]
+E --> F[生成改进建议]
+F --> G[制定训练计划]
+G --> H[生成激励消息]
+H --> I[保存教练记录]
+I --> J[结束]
+```
+
+**图表来源**
+- [salesCoach.ts:55-82](file://crm-backend/src/services/ai/salesCoach.ts#L55-L82)
+
+#### 绩效分析维度
+
+系统从多个维度分析销售绩效：
+
+1. **收入表现**：收入达成率、目标完成度
+2. **活动效率**：电话量、会议安排、拜访次数
+3. **转化能力**：提案转化率、平均成交额
+4. **时间管理**：任务完成率、工作节奏
+5. **技能评估**：沟通能力、谈判技巧、产品知识
+
+**章节来源**
+- [salesCoach.ts:223-277](file://crm-backend/src/services/ai/salesCoach.ts#L223-L277)
+
 ### 前端AI组件
 
 前端提供了丰富的AI功能组件，支持用户交互和可视化展示：
@@ -388,9 +497,21 @@ class OpportunityScoreCard {
 +activeTab : string
 +fetchScore()
 }
+class ProposalAnalyzer {
++quotation : SmartQuotationResult
++loading : boolean
++analyzeQuotation()
+}
+class SalesCoachPanel {
++coachingSuggestions : CoachingSuggestionResult
++weeklyPlan : WeeklyPlan[]
++analyzePerformance()
+}
 FollowUpWidget --> aiService
 ScriptGenerator --> aiService
 OpportunityScoreCard --> aiService
+ProposalAnalyzer --> aiService
+SalesCoachPanel --> aiService
 ```
 
 **图表来源**
@@ -508,40 +629,46 @@ C[reportGeneration.ts]
 D[opportunityScoring.ts]
 E[churnAnalysis.ts]
 F[customerInsight.ts]
+G[proposalAI.ts]
+H[salesCoach.ts]
 end
 subgraph "控制器层"
-G[ai.controller.ts]
+I[ai.controller.ts]
 end
 subgraph "路由层"
-H[ai.routes.ts]
+J[ai.routes.ts]
 end
 subgraph "前端组件"
-I[FollowUpWidget.tsx]
-J[ScriptGenerator.tsx]
-K[OpportunityScoreCard.tsx]
+K[FollowUpWidget.tsx]
+L[ScriptGenerator.tsx]
+M[OpportunityScoreCard.tsx]
+N[ColdVisitAssistant.tsx]
 end
 subgraph "API服务"
-L[aiService.ts]
+O[aiService.ts]
 end
 subgraph "认证层"
-M[authStore.ts]
-N[jwt.ts]
-O[auth.ts]
-P[client.ts]
+P[authStore.ts]
+Q[jwt.ts]
+R[auth.ts]
+S[client.ts]
 end
 A --> B
 A --> C
 A --> D
 A --> E
 A --> F
-G --> A
-H --> G
-I --> L
-J --> L
-K --> L
-M --> N
-O --> N
-P --> N
+A --> G
+A --> H
+I --> A
+J --> I
+K --> O
+L --> O
+M --> O
+N --> O
+P --> Q
+R --> Q
+S --> Q
 ```
 
 **图表来源**
@@ -562,6 +689,7 @@ P --> N
 | bcryptjs | ^2.4.3 | 密码加密 | 必需 |
 | Alibaba Cloud Qwen | ^1.0 | AI模型 | 可选 |
 | Serper API | ^1.0 | 网络搜索 | 可选 |
+| Knowledge Base API | ^1.0 | 知识库服务 | 可选 |
 
 **章节来源**
 - [ai.service.ts:1-10](file://crm-backend/src/services/ai.service.ts#L1-L10)
@@ -662,6 +790,20 @@ G --> H[返回响应]
 2. 验证JWT_SECRET环境变量配置
 3. 调整JWT过期时间配置
 
+#### 智能报价服务异常
+
+**问题症状**：报价生成功能不可用或结果不准确
+
+**可能原因**：
+1. 知识库服务不可用
+2. AI模型配置错误
+3. 竞品数据缺失
+
+**解决方案**：
+1. 检查知识库服务状态
+2. 验证AI模型API密钥
+3. 使用模拟报价功能作为降级方案
+
 **章节来源**
 - [ai.service.ts:82-100](file://crm-backend/src/services/ai.service.ts#L82-L100)
 - [ai.controller.ts:1-800](file://crm-backend/src/controllers/ai.controller.ts#L1-L800)
@@ -672,27 +814,30 @@ G --> H[返回响应]
 
 ### 主要优势
 
-1. **功能完整性**：涵盖销售全流程的AI辅助功能
-2. **技术先进性**：采用最新的AI模型和算法
-3. **用户体验**：直观易用的前端界面设计
-4. **系统稳定性**：完善的错误处理和降级机制
+1. **功能完整性**：涵盖销售全流程的AI辅助功能，包括智能报价和销售教练
+2. **技术先进性**：采用最新的AI模型和算法，支持多种销售场景
+3. **用户体验**：直观易用的前端界面设计，支持实时AI分析
+4. **系统稳定性**：完善的错误处理和降级机制，确保服务连续性
 5. **安全性增强**：改进的认证机制确保令牌存储安全
+6. **智能化程度高**：支持企业分析、联系人发现、话术生成等高级AI功能
 
-### 安全改进总结
+### 新增功能总结
 
-本次更新重点加强了系统的认证安全性：
+本次更新重点增强了系统的AI服务能力：
 
-1. **令牌存储优化**：从'token'键更改为'auth_token'，避免与其他模块冲突
-2. **一致性保证**：确保所有认证相关操作使用统一的令牌键名
-3. **安全性提升**：减少令牌混淆和意外覆盖的风险
-4. **最佳实践**：遵循命名空间隔离的安全原则
+1. **智能报价系统**：基于客户信息和市场数据生成最优报价策略
+2. **销售教练功能**：提供个性化的销售改进指导和技能提升建议
+3. **知识库集成**：支持从知识库获取产品信息和市场数据
+4. **多模态AI服务**：整合语音分析、文本分析和机器学习能力
+5. **实时性能监控**：提供销售绩效的实时分析和改进建议
 
 ### 发展方向
 
-1. **AI模型优化**：持续改进AI分析准确性
-2. **功能扩展**：增加更多AI辅助功能
-3. **性能优化**：提升系统响应速度
-4. **集成能力**：支持更多第三方服务集成
-5. **安全加固**：持续改进认证和授权机制
+1. **AI模型优化**：持续改进AI分析准确性，支持更多行业场景
+2. **功能扩展**：增加更多AI辅助功能，如预测分析和自动化营销
+3. **性能优化**：提升系统响应速度，支持更大规模的数据处理
+4. **集成能力**：支持更多第三方服务集成，如邮件营销和社交媒体
+5. **安全加固**：持续改进认证和授权机制，确保数据安全
+6. **个性化定制**：支持更多个性化AI功能，满足不同企业需求
 
-该系统为企业数字化转型提供了强有力的技术支撑，有助于提升销售效率和客户满意度。
+该系统为企业数字化转型提供了强有力的技术支撑，有助于提升销售效率和客户满意度，在激烈的市场竞争中保持领先地位。
