@@ -10,6 +10,7 @@ import type {
   ProposalGenerationResult,
 } from './types';
 import aiClient, { ChatMessage } from './client';
+import knowledgeAIService from './knowledgeAI';
 
 // 行业定价基准数据
 const INDUSTRY_PRICING_BENCHMARKS: Record<string, { avgDiscount: number; priceElasticity: number }> = {
@@ -55,26 +56,46 @@ class ProposalAIService {
   /**
    * 生成智能报价
    * 基于客户信息、历史数据、市场行情生成智能报价建议
+   * 可选地使用知识库产品价格进行增强
    */
   async generateSmartQuotation(input: SmartQuotationInput): Promise<SmartQuotationResult> {
+    // 尝试从知识库获取相关产品信息用于价格参考
+    let knowledgeContext: any = null;
+    try {
+      const knowledgeResult = await knowledgeAIService.searchRelevantKnowledge(
+        `${input.industry || ''} ${input.customerName || ''}`,
+        {
+          industry: input.industry,
+          budget: input.budget?.max,
+        }
+      );
+      if (knowledgeResult.products && knowledgeResult.products.length > 0) {
+        knowledgeContext = knowledgeResult;
+        console.log('[Proposal AI] 已从知识库获取', knowledgeResult.products.length, '个相关产品参考');
+      }
+    } catch (error) {
+      // 知识库查询失败不影响原有功能
+      console.warn('[Proposal AI] 知识库查询失败，继续使用默认逻辑:', error);
+    }
+
     // 如果AI客户端已配置，调用真实API
     if (aiClient.isConfigured()) {
       try {
-        return await this.callRealQuotation(input);
+        return await this.callRealQuotation(input, knowledgeContext);
       } catch (error) {
         console.error('[Proposal AI] 真实API调用失败，降级到模拟模式:', error);
-        return this.mockQuotation(input);
+        return this.mockQuotation(input, knowledgeContext);
       }
     }
 
     // 降级到模拟模式
-    return this.mockQuotation(input);
+    return this.mockQuotation(input, knowledgeContext);
   }
 
   /**
    * 调用真实AI生成智能报价
    */
-  private async callRealQuotation(input: SmartQuotationInput): Promise<SmartQuotationResult> {
+  private async callRealQuotation(input: SmartQuotationInput, knowledgeContext?: any): Promise<SmartQuotationResult> {
     const systemPrompt = `你是一位专业的商业报价分析师，擅长根据客户信息、行业特点、竞争环境等因素制定最优报价策略。
 请根据提供的客户信息，生成一份详细的智能报价分析。
 你需要返回一个JSON对象，包含以下字段：
@@ -91,6 +112,11 @@ class ProposalAIService {
 - competitorComparison: 竞品对比数组（可选），每项包含competitor、theirPrice、ourAdvantage、pricePosition
 - recommendations: 建议数组，每项包含type(pricing/bundling/discount/upsell)、suggestion、expectedImpact
 - confidence: 置信度（0-1之间的小数）`;
+
+    // 构建知识库产品参考信息
+    const knowledgeProductsInfo = knowledgeContext?.products?.length > 0
+      ? `\n【知识库产品参考】\n${knowledgeContext.products.map((p: any) => `- ${p.name}: 相关度 ${(p.relevance * 100).toFixed(0)}%，${p.reason || ''}`).join('\n')}`
+      : '';
 
     const userPrompt = `请为以下客户生成智能报价分析：
 
@@ -122,7 +148,7 @@ ${input.competitors && input.competitors.length > 0
 【历史合作】
 ${input.previousDeals && input.previousDeals.length > 0
   ? `已合作${input.previousDeals.length}次`
-  : '- 新客户'}
+  : '- 新客户'}${knowledgeProductsInfo}
 
 请生成JSON格式的报价分析报告。`;
 
@@ -146,15 +172,29 @@ ${input.previousDeals && input.previousDeals.length > 0
 
   /**
    * 模拟报价生成
+   * 可选使用知识库上下文增强
    */
-  private async mockQuotation(input: SmartQuotationInput): Promise<SmartQuotationResult> {
+  private async mockQuotation(input: SmartQuotationInput, knowledgeContext?: any): Promise<SmartQuotationResult> {
     await this.simulateDelay(800, 1500);
 
     // 获取行业定价基准
     const benchmark = INDUSTRY_PRICING_BENCHMARKS[input.industry || 'default'] || INDUSTRY_PRICING_BENCHMARKS.default;
 
-    // 基础价格计算
-    const basePrice = this.calculateBasePrice(input);
+    // 基础价格计算 - 优先使用知识库产品价格
+    let basePrice = this.calculateBasePrice(input);
+
+    // 如果有知识库产品信息，尝试使用其价格作为参考
+    if (knowledgeContext?.products?.length > 0 && input.products?.length === 0) {
+      // 使用知识库产品价格作为基础价格参考
+      const knowledgePrices = knowledgeContext.products
+        .filter((p: any) => p.price && typeof p.price === 'number')
+        .map((p: any) => p.price);
+      if (knowledgePrices.length > 0) {
+        // 使用知识库产品的平均价格作为基础参考
+        basePrice = knowledgePrices.reduce((sum: number, price: number) => sum + price, 0) / knowledgePrices.length;
+        console.log('[Proposal AI] 使用知识库产品价格作为参考:', basePrice);
+      }
+    }
 
     // 定价因子分析
     const pricingFactors = this.analyzePricingFactors(input, benchmark);
@@ -581,8 +621,10 @@ ${input.timeline?.startDate && input.timeline?.endDate
   /**
    * 生成实施计划
    */
-  private generateImplementationPlan(input: ProposalGenerationInput): ProposalGenerationResult['implementationPlan'] {
-    const startDate = input.timeline?.startDate || new Date().toISOString().split('T')[0];
+  private generateImplementationPlan(_input: ProposalGenerationInput): ProposalGenerationResult['implementationPlan'] {
+    // startDate 可用于后续扩展动态生成实施计划
+    const _startDate = _input.timeline?.startDate || new Date().toISOString().split('T')[0];
+    void _startDate; // 标记为已使用，避免编译警告
 
     return [
       {
@@ -657,7 +699,7 @@ ${input.timeline?.startDate && input.timeline?.endDate
    * 计算ROI
    */
   private calculateROI(
-    input: ProposalGenerationInput,
+    _input: ProposalGenerationInput,
     products: ProposalGenerationResult['productRecommendations']
   ): ProposalGenerationResult['roiProjection'] {
     const investment = products.reduce((sum, p) => sum + p.totalPrice, 0);
@@ -767,6 +809,176 @@ ${input.timeline?.startDate && input.timeline?.endDate
     };
 
     return benefits[productName] || '提升业务效率，支撑企业发展';
+  }
+
+  /**
+   * 基于知识库增强的方案生成
+   * 在生成方案时参考知识库中的产品价格和模板
+   */
+  async generateProposalWithKnowledge(
+    input: ProposalGenerationInput,
+    knowledgeProducts: Array<{ productName: string; unitPrice: number; category: string }>,
+    knowledgeTemplates: Array<{ name: string; content: string; category: string }>
+  ): Promise<ProposalGenerationResult> {
+    // 如果AI客户端已配置，调用真实API
+    if (aiClient.isConfigured()) {
+      try {
+        return await this.callRealProposalWithKnowledge(input, knowledgeProducts, knowledgeTemplates);
+      } catch (error) {
+        console.error('[Proposal AI] 知识库增强方案生成失败，降级到模拟模式:', error);
+        return this.mockProposalWithKnowledge(input, knowledgeProducts, knowledgeTemplates);
+      }
+    }
+
+    // 降级到模拟模式
+    return this.mockProposalWithKnowledge(input, knowledgeProducts, knowledgeTemplates);
+  }
+
+  /**
+   * 调用真实AI生成知识库增强方案
+   */
+  private async callRealProposalWithKnowledge(
+    input: ProposalGenerationInput,
+    knowledgeProducts: Array<{ productName: string; unitPrice: number; category: string }>,
+    knowledgeTemplates: Array<{ name: string; content: string; category: string }>
+  ): Promise<ProposalGenerationResult> {
+    const systemPrompt = `你是一位专业的商务方案撰写专家，擅长基于知识库数据为客户定制解决方案。
+请根据提供的客户信息和知识库产品数据，生成一份完整的商务方案。
+你需要返回一个JSON对象，包含以下字段：
+- executiveSummary: 执行摘要
+- problemStatement: 问题陈述
+- proposedSolution: 解决方案
+- productRecommendations: 产品推荐数组，每项包含name、description、quantity、unitPrice、totalPrice、benefit、priority
+- implementationPlan: 实施计划数组
+- terms: 合同条款
+- serviceLevel: 服务等级对象
+- roiProjection: ROI预测对象
+- nextSteps: 下一步行动数组`;
+
+    const productsContext = knowledgeProducts.length > 0
+      ? `知识库产品数据：\n${knowledgeProducts.map(p => `- ${p.productName} (¥${p.unitPrice}) [${p.category}]`).join('\n')}`
+      : '暂无知识库产品数据';
+
+    const templatesContext = knowledgeTemplates.length > 0
+      ? `参考模板：${knowledgeTemplates.map(t => t.name).join('、')}`
+      : '暂无参考模板';
+
+    const userPrompt = `请为以下客户生成商务方案：
+
+【客户信息】
+- 客户名称：${input.customerName || '未知'}
+- 所属行业：${input.industry || '未知'}
+- 公司：${input.company || '未知'}
+- 方案标题：${input.title}
+- 方案价值：¥${input.value.toLocaleString()}
+
+【客户需求】
+${input.customerNeeds?.join('、') || '- 待了解'}
+
+【知识库参考】
+${productsContext}
+
+${templatesContext}
+
+请基于知识库产品数据生成JSON格式的商务方案，优先使用知识库中的实际产品价格。`;
+
+    const messages: ChatMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ];
+
+    const response = await aiClient.chatForJson<ProposalGenerationResult>(messages, {
+      temperature: 0.7,
+      maxTokens: 3000,
+    });
+
+    // 验证响应格式
+    if (!response.executiveSummary || !response.proposedSolution) {
+      throw new Error('AI响应格式不完整');
+    }
+
+    return response;
+  }
+
+  /**
+   * 模拟知识库增强方案生成
+   * 使用 knowledgeProducts 替代硬编码的 PRODUCT_RECOMMENDATIONS 数据
+   */
+  private async mockProposalWithKnowledge(
+    input: ProposalGenerationInput,
+    knowledgeProducts: Array<{ productName: string; unitPrice: number; category: string }>,
+    _knowledgeTemplates: Array<{ name: string; content: string; category: string }>
+  ): Promise<ProposalGenerationResult> {
+    await this.simulateDelay(1000, 2000);
+
+    // 执行摘要
+    const executiveSummary = this.generateExecutiveSummary(input);
+
+    // 问题陈述
+    const problemStatement = this.generateProblemStatement(input);
+
+    // 解决方案
+    const proposedSolution = this.generateProposedSolution(input);
+
+    // 产品推荐 - 使用知识库产品数据
+    const productRecommendations = this.generateProductRecommendationsWithKnowledge(input, knowledgeProducts);
+
+    // 实施计划
+    const implementationPlan = this.generateImplementationPlan(input);
+
+    // 条款
+    const terms = this.generateTerms(input);
+
+    // 服务等级
+    const serviceLevel = this.generateServiceLevel();
+
+    // ROI预测
+    const roiProjection = this.calculateROI(input, productRecommendations);
+
+    // 下一步行动
+    const nextSteps = this.generateNextSteps(input);
+
+    return {
+      executiveSummary,
+      problemStatement,
+      proposedSolution,
+      productRecommendations,
+      implementationPlan,
+      terms,
+      serviceLevel,
+      roiProjection,
+      nextSteps,
+    };
+  }
+
+  /**
+   * 基于知识库数据生成产品推荐
+   */
+  private generateProductRecommendationsWithKnowledge(
+    input: ProposalGenerationInput,
+    knowledgeProducts: Array<{ productName: string; unitPrice: number; category: string }>
+  ): ProposalGenerationResult['productRecommendations'] {
+    // 如果有知识库产品数据，优先使用
+    if (knowledgeProducts && knowledgeProducts.length > 0) {
+      const totalKnowledgeValue = knowledgeProducts.reduce((sum, p) => sum + p.unitPrice, 0);
+      const valueRatio = input.value / Math.max(totalKnowledgeValue, 1);
+
+      return knowledgeProducts.slice(0, 4).map((product, index) => {
+        const adjustedPrice = Math.round(product.unitPrice * valueRatio);
+        return {
+          name: product.productName,
+          description: `${product.category}类产品，满足${input.industry || '客户'}行业需求`,
+          quantity: 1,
+          unitPrice: adjustedPrice,
+          totalPrice: adjustedPrice,
+          benefit: this.getProductBenefit(product.productName),
+          priority: index === 0 ? 'essential' : index < 2 ? 'recommended' : 'optional',
+        };
+      });
+    }
+
+    // 降级到使用默认推荐
+    return this.generateProductRecommendations(input);
   }
 }
 

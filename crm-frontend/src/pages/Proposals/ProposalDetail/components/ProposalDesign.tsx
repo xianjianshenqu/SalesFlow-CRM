@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { Proposal } from '../../../../services/api';
 import type { ProposalTemplate } from '../../../../services/api';
-import { proposalApi } from '../../../../services/api';
+import type { ProductPricing } from '../../../../services/api';
+import { proposalApi, knowledgeApi } from '../../../../services/api';
 
 interface ProposalDesignProps {
   proposalId: string;
@@ -14,6 +15,13 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
   const [templates, setTemplates] = useState<ProposalTemplate[]>([]);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [matchLoading, setMatchLoading] = useState(false);
+  
+  // 知识库产品选择相关状态
+  const [showProductModal, setShowProductModal] = useState(false);
+  const [knowledgeProducts, setKnowledgeProducts] = useState<ProductPricing[]>([]);
+  const [productLoading, setProductLoading] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
+  const [selectedProducts, setSelectedProducts] = useState<Set<string>>(new Set());
 
   // 表单数据
   const [formData, setFormData] = useState({
@@ -36,6 +44,60 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
     };
     fetchTemplates();
   }, []);
+
+  // 加载知识库产品列表
+  const loadKnowledgeProducts = async (search?: string) => {
+    try {
+      setProductLoading(true);
+      const response = await knowledgeApi.getProducts({ limit: 50, search });
+      setKnowledgeProducts(response.data.data || []);
+    } catch (err) {
+      console.error('加载产品列表失败:', err);
+    } finally {
+      setProductLoading(false);
+    }
+  };
+
+  // 打开产品选择模态框
+  const handleOpenProductModal = () => {
+    setShowProductModal(true);
+    setSelectedProducts(new Set());
+    loadKnowledgeProducts();
+  };
+
+  // 确认选择产品
+  const handleConfirmProducts = () => {
+    const newProducts = knowledgeProducts
+      .filter(p => selectedProducts.has(p.id))
+      .map(p => ({
+        name: p.productName,
+        quantity: 1,
+        unitPrice: p.unitPrice,
+        totalPrice: p.unitPrice,
+        description: p.specification || p.notes || '',
+        priority: 'essential' as const,
+      }));
+    
+    setFormData(prev => ({
+      ...prev,
+      products: [...prev.products, ...newProducts],
+    }));
+    setShowProductModal(false);
+    setSelectedProducts(new Set());
+  };
+
+  // 切换产品选择
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProducts(prev => {
+      const next = new Set(prev);
+      if (next.has(productId)) {
+        next.delete(productId);
+      } else {
+        next.add(productId);
+      }
+      return next;
+    });
+  };
 
   // AI匹配模板
   const handleMatchTemplate = async () => {
@@ -241,13 +303,22 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
         <div className="mb-6">
           <div className="flex items-center justify-between mb-3">
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">产品配置</label>
-            <button
-              onClick={handleAddProduct}
-              className="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
-            >
-              <span className="material-symbols-outlined text-lg">add</span>
-              添加产品
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleOpenProductModal}
+                className="flex items-center gap-1 text-sm text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300"
+              >
+                <span className="material-symbols-outlined text-lg">inventory_2</span>
+                从知识库选择
+              </button>
+              <button
+                onClick={handleAddProduct}
+                className="flex items-center gap-1 text-sm text-primary hover:text-primary/80"
+              >
+                <span className="material-symbols-outlined text-lg">add</span>
+                手动添加
+              </button>
+            </div>
           </div>
           
           {formData.products.length > 0 ? (
@@ -318,6 +389,120 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
           />
         </div>
       </div>
+
+      {/* 产品选择模态框 */}
+      {showProductModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div 
+            className="absolute inset-0 bg-black/50"
+            onClick={() => setShowProductModal(false)}
+          />
+          <div className="relative bg-white dark:bg-slate-900 rounded-xl shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col m-4">
+            {/* 模态框头部 */}
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">从知识库选择产品</h3>
+              <button
+                onClick={() => setShowProductModal(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            {/* 搜索栏 */}
+            <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+                <input
+                  type="text"
+                  value={productSearch}
+                  onChange={(e) => {
+                    setProductSearch(e.target.value);
+                    loadKnowledgeProducts(e.target.value);
+                  }}
+                  placeholder="搜索产品名称或类别..."
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                />
+              </div>
+            </div>
+            
+            {/* 产品列表 */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {productLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : knowledgeProducts.length === 0 ? (
+                <div className="text-center py-12 text-slate-400 dark:text-slate-500">
+                  <span className="material-symbols-outlined text-4xl mb-2">inventory_2</span>
+                  <p>知识库中暂无产品数据</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {knowledgeProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      onClick={() => toggleProductSelection(product.id)}
+                      className={`p-4 rounded-lg border cursor-pointer transition-all ${
+                        selectedProducts.has(product.id)
+                          ? 'border-primary bg-primary/5'
+                          : 'border-slate-200 dark:border-slate-700 hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-slate-900 dark:text-white">{product.productName}</span>
+                            {product.productCode && (
+                              <span className="text-xs text-slate-400">{product.productCode}</span>
+                            )}
+                          </div>
+                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                            {product.category && <span className="mr-2">分类: {product.category}</span>}
+                            {product.specification && <span>规格: {product.specification}</span>}
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="font-semibold text-primary">¥{product.unitPrice.toLocaleString()}</div>
+                          {product.unit && <div className="text-xs text-slate-400">/{product.unit}</div>}
+                        </div>
+                      </div>
+                      {selectedProducts.has(product.id) && (
+                        <div className="mt-2 flex items-center text-primary text-sm">
+                          <span className="material-symbols-outlined text-sm mr-1">check_circle</span>
+                          已选择
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* 底部操作栏 */}
+            <div className="flex items-center justify-between p-4 border-t border-slate-200 dark:border-slate-700">
+              <div className="text-sm text-slate-500 dark:text-slate-400">
+                已选择 {selectedProducts.size} 个产品
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setShowProductModal(false)}
+                  className="px-4 py-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                >
+                  取消
+                </button>
+                <button
+                  onClick={handleConfirmProducts}
+                  disabled={selectedProducts.size === 0}
+                  className="px-4 py-2 bg-primary text-white rounded-lg font-medium disabled:opacity-50 hover:bg-primary/90"
+                >
+                  确认添加
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

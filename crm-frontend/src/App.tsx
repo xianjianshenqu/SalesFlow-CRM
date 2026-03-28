@@ -20,6 +20,11 @@ import ActivityForm from './pages/PreSales/Activities/ActivityForm';
 import SignInPage from './pages/PreSales/SignIn/SignInPage';
 import Login from './pages/Login';
 import AIAssistant from './pages/AIAssistant';
+import Knowledge from './pages/Knowledge';
+import ProductPricing from './pages/Knowledge/ProductPricing';
+import ContractTemplates from './pages/Knowledge/ContractTemplates';
+import CustomTables from './pages/Knowledge/CustomTables';
+import Documents from './pages/Knowledge/Documents';
 
 // 路由守卫组件
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -84,6 +89,11 @@ function App() {
           <Route path="presales/activities/:id/qrcodes" element={<ActivityForm />} />
           <Route path="presales/sign-in" element={<SignInPage />} />
           <Route path="ai-assistant" element={<AIAssistant />} />
+          <Route path="knowledge" element={<Knowledge />} />
+          <Route path="knowledge/products" element={<ProductPricing />} />
+          <Route path="knowledge/contracts" element={<ContractTemplates />} />
+          <Route path="knowledge/tables" element={<CustomTables />} />
+          <Route path="knowledge/documents" element={<Documents />} />
         </Route>
 
         {/* 404 重定向到首页 */}

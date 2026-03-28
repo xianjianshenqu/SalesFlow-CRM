@@ -40,8 +40,8 @@ export default function CreateProposal() {
     const fetchCustomers = async () => {
       try {
         const response = await customerApi.getAll({ pageSize: 100 });
-        // 后端返回格式: { success, data: [...], pagination }，客户数组在 data 字段中
-        setCustomers(response.data.data || []);
+        // api.request 已解包后端 { data: [...] }，所以 response.data 直接是客户数组
+        setCustomers(response.data || []);
       } catch (err) {
         console.error('加载客户失败:', err);
       }

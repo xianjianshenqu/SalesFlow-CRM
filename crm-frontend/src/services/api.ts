@@ -1306,6 +1306,208 @@ export const companySearchApi = {
     api.get<CompanySearchResult>(`/companies/${creditCode}`),
 };
 
+// ==================== 知识库类型定义 ====================
+
+export interface KnowledgeDocument {
+  id: string;
+  title: string;
+  category: string;
+  subCategory?: string;
+  description?: string;
+  fileUrl?: string;
+  fileName?: string;
+  fileType?: string;
+  fileSize?: number;
+  content?: string;
+  metadata?: any;
+  tags?: string[];
+  isActive: boolean;
+  version: number;
+  createdById: string;
+  createdBy?: { id: string; name: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductPricing {
+  id: string;
+  documentId?: string;
+  productName: string;
+  productCode?: string;
+  category?: string;
+  specification?: string;
+  unitPrice: number;
+  unit?: string;
+  minQuantity?: number;
+  discount?: any;
+  validFrom?: string;
+  validUntil?: string;
+  isActive: boolean;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContractTemplate {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  content: string;
+  variables?: Array<{ name: string; type: string; defaultValue?: string }>;
+  tags?: string[];
+  usageCount: number;
+  isActive: boolean;
+  createdById: string;
+  createdBy?: { id: string; name: string };
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CustomDataTable {
+  id: string;
+  name: string;
+  description?: string;
+  columns: Array<{ name: string; type: string; required?: boolean; options?: string[] }>;
+  createdById: string;
+  createdBy?: { id: string; name: string };
+  createdAt: string;
+  updatedAt: string;
+  _count?: { rows: number };
+}
+
+export interface CustomDataRow {
+  id: string;
+  tableId: string;
+  data: Record<string, any>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// ==================== 知识库 API ====================
+
+export const knowledgeApi = {
+  // 文档管理
+  getDocuments: (params?: { page?: number; limit?: number; category?: string; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.category) query.set('category', params.category);
+    if (params?.search) query.set('search', params.search);
+    return api.get<{ data: KnowledgeDocument[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/knowledge/documents?${query}`);
+  },
+
+  uploadDocument: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/knowledge/documents/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+      },
+      body: formData,
+    }).then((r) => r.json()),
+
+  getDocument: (id: string) =>
+    api.get<KnowledgeDocument>(`/knowledge/documents/${id}`),
+
+  deleteDocument: (id: string) =>
+    api.delete(`/knowledge/documents/${id}`),
+
+  parseDocument: (id: string) =>
+    api.post<KnowledgeDocument>(`/knowledge/documents/${id}/parse`),
+
+  searchKnowledge: (params: { query: string; limit?: number }) => {
+    const query = new URLSearchParams();
+    query.set('query', params.query);
+    if (params.limit) query.set('limit', String(params.limit));
+    return api.get<{ results: any[] }>(`/knowledge/search?${query}`);
+  },
+
+  // 产品价格表
+  getProducts: (params?: { page?: number; limit?: number; category?: string; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.category) query.set('category', params.category);
+    if (params?.search) query.set('search', params.search);
+    return api.get<{ data: ProductPricing[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/knowledge/products?${query}`);
+  },
+
+  createProduct: (data: Partial<ProductPricing>) =>
+    api.post<ProductPricing>('/knowledge/products', data),
+
+  updateProduct: (id: string, data: Partial<ProductPricing>) =>
+    api.put<ProductPricing>(`/knowledge/products/${id}`, data),
+
+  deleteProduct: (id: string) =>
+    api.delete(`/knowledge/products/${id}`),
+
+  importProducts: (formData: FormData) =>
+    fetch(`${API_BASE_URL}/knowledge/products/import`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('auth_token')}`,
+      },
+      body: formData,
+    }).then((r) => r.json()),
+
+  exportProducts: (params?: { category?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.category) query.set('category', params.category);
+    return api.get<{ url: string }>(`/knowledge/products/export?${query}`);
+  },
+
+  // 合同模板
+  getContracts: (params?: { page?: number; limit?: number; category?: string; search?: string }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    if (params?.category) query.set('category', params.category);
+    if (params?.search) query.set('search', params.search);
+    return api.get<{ data: ContractTemplate[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/knowledge/contracts?${query}`);
+  },
+
+  getContract: (id: string) =>
+    api.get<ContractTemplate>(`/knowledge/contracts/${id}`),
+
+  createContract: (data: Partial<ContractTemplate>) =>
+    api.post<ContractTemplate>('/knowledge/contracts', data),
+
+  updateContract: (id: string, data: Partial<ContractTemplate>) =>
+    api.put<ContractTemplate>(`/knowledge/contracts/${id}`, data),
+
+  deleteContract: (id: string) =>
+    api.delete(`/knowledge/contracts/${id}`),
+
+  // 自定义数据表
+  getCustomTables: () =>
+    api.get<CustomDataTable[]>('/knowledge/custom-tables'),
+
+  createCustomTable: (data: { name: string; description?: string; columns: any[] }) =>
+    api.post<CustomDataTable>('/knowledge/custom-tables', data),
+
+  updateCustomTable: (id: string, data: { name?: string; description?: string; columns?: any[] }) =>
+    api.put<CustomDataTable>(`/knowledge/custom-tables/${id}`, data),
+
+  deleteCustomTable: (id: string) =>
+    api.delete(`/knowledge/custom-tables/${id}`),
+
+  getCustomTableRows: (tableId: string, params?: { page?: number; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    return api.get<{ data: CustomDataRow[]; pagination: { page: number; limit: number; total: number; totalPages: number } }>(`/knowledge/custom-tables/${tableId}/rows?${query}`);
+  },
+
+  createCustomTableRow: (tableId: string, data: Record<string, any>) =>
+    api.post<CustomDataRow>(`/knowledge/custom-tables/${tableId}/rows`, { data }),
+
+  updateCustomTableRow: (tableId: string, rowId: string, data: Record<string, any>) =>
+    api.put<CustomDataRow>(`/knowledge/custom-tables/${tableId}/rows/${rowId}`, { data }),
+
+  deleteCustomTableRow: (tableId: string, rowId: string) =>
+    api.delete(`/knowledge/custom-tables/${tableId}/rows/${rowId}`),
+};
+
 // ==================== 类型导出 ====================
 export type {
   User,

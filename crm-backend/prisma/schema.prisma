@@ -179,6 +179,11 @@ model User {
   createdActivities   PresalesActivity[] @relation("ActivityCreator")
   approvedActivities  PresalesActivity[] @relation("ActivityApprover")
 
+  // Knowledge Base Relations
+  knowledgeDocuments  KnowledgeDocument[] @relation("KnowledgeDocCreator")
+  contractTemplates   ContractTemplate[]  @relation("ContractTemplateCreator")
+  customDataTables    CustomDataTable[]   @relation("CustomTableCreator")
+
   @@index([email])
   @@index([role])
   @@map("users")
@@ -1105,4 +1110,107 @@ model CompanySearchCache {
   @@index([expiresAt])
   @@index([source])
   @@map("company_search_cache")
+}
+
+// ==================== 企业知识库模型 ====================
+
+// 知识库文档
+model KnowledgeDocument {
+  id            String   @id @default(cuid())
+  title         String
+  category      String   // product_pricing | proposal_template | contract_template | custom
+  subCategory   String?
+  description   String?  @db.Text
+  fileUrl       String?
+  fileName      String?
+  fileType      String?  // xlsx, csv, pdf, docx, png, jpg
+  fileSize      Int?
+  content       String?  @db.LongText
+  metadata      Json?
+  tags          Json?
+  isActive      Boolean  @default(true)
+  version       Int      @default(1)
+  createdById   String
+  createdBy     User     @relation("KnowledgeDocCreator", fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@map("knowledge_documents")
+}
+
+// 产品价格表
+model ProductPricing {
+  id            String   @id @default(cuid())
+  documentId    String?
+  productName   String
+  productCode   String?
+  category      String?
+  specification String?  @db.Text
+  unitPrice     Decimal  @db.Decimal(12, 2)
+  unit          String?
+  minQuantity   Int?
+  discount      Json?
+  validFrom     DateTime?
+  validUntil    DateTime?
+  isActive      Boolean  @default(true)
+  notes         String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([productName])
+  @@index([category])
+  @@index([isActive])
+  @@map("product_pricings")
+}
+
+// 合同模板
+model ContractTemplate {
+  id            String   @id @default(cuid())
+  name          String
+  category      String
+  description   String?  @db.Text
+  content       String   @db.LongText
+  variables     Json?
+  tags          Json?
+  usageCount    Int      @default(0)
+  isActive      Boolean  @default(true)
+  createdById   String
+  createdBy     User     @relation("ContractTemplateCreator", fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([category])
+  @@index([isActive])
+  @@map("contract_templates")
+}
+
+// 自定义数据表
+model CustomDataTable {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?
+  columns       Json
+  rows          CustomDataRow[]
+  createdById   String
+  createdBy     User     @relation("CustomTableCreator", fields: [createdById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([name])
+  @@map("custom_data_tables")
+}
+
+// 自定义数据行
+model CustomDataRow {
+  id            String   @id @default(cuid())
+  tableId       String
+  table         CustomDataTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+  data          Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([tableId])
+  @@map("custom_data_rows")
 }

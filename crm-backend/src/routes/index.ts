@@ -18,6 +18,7 @@ import coldVisitRoutes from './coldVisit.routes';
 import aiRoutes from './ai.routes';
 import performanceRoutes from './performance.routes';
 import companySearchRoutes from './companySearch.routes';
+import knowledgeRoutes from './knowledge.routes';
 
 const router = Router();
 
@@ -43,5 +44,6 @@ router.use('/cold-visit', coldVisitRoutes);  // Cold visit AI assistant routes
 router.use('/ai', aiRoutes);  // AI feature routes
 router.use('/performance', performanceRoutes);  // Sales performance routes
 router.use('/companies', companySearchRoutes);  // Company search routes
+router.use('/knowledge', knowledgeRoutes);  // Knowledge base routes
 
 export default router;

@@ -655,3 +655,30 @@ export interface AssignmentRecommendationResult {
     handoffNotes: string;
   };
 }
+
+// ==================== 知识库AI服务类型 ====================
+
+// 文档分析结果
+export interface DocumentAnalysisResult {
+  summary: string;
+  keyTopics: string[];
+  entities: Array<{ name: string; type: string; relevance: number }>;
+  recommendations: string[];
+  confidence: number;
+}
+
+// 相关知识搜索结果
+export interface RelevantKnowledgeResult {
+  products: Array<{ id: string; name: string; relevance: number; reason: string }>;
+  templates: Array<{ id: string; name: string; relevance: number; reason: string }>;
+  contracts: Array<{ id: string; name: string; relevance: number; reason: string }>;
+  suggestions: string[];
+}
+
+// 增强需求分析结果
+export interface EnhancedRequirementResult {
+  enhancedNeeds: Array<{ need: string; priority: string; source: string; knowledgeRef?: string }>;
+  suggestedProducts: Array<{ name: string; reason: string }>;
+  estimatedBudget: { min: number; max: number; confidence: number };
+  additionalInsights: string[];
+}

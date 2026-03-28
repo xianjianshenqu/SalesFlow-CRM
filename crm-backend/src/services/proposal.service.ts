@@ -1,8 +1,9 @@
 import { PrismaClient, ProposalStatus } from '@prisma/client';
 import prisma from '../repositories/prisma';
 import { CreateProposalInput, UpdateProposalInput, UpdateProposalStatusInput, ProposalQueryInput } from '../validators/proposal.validator';
-import { proposalAIService } from './ai';
-import { SmartQuotationResult, ProposalGenerationResult } from './ai/types';
+import { proposalAIService, knowledgeAIService } from './ai';
+import type { SmartQuotationResult, ProposalGenerationResult } from './ai/types';
+import knowledgeService from './knowledge.service';
 
 /**
  * 商务方案服务 - 处理商务方案相关的业务逻辑
@@ -361,6 +362,17 @@ ${Array.isArray(proposal.products) && proposal.products.length > 0
       where: { customerId: proposal.customerId },
     });
 
+    // 从知识库获取相关产品
+    let knowledgeProducts: any[] = [];
+    try {
+      knowledgeProducts = await knowledgeService.exportProducts({
+        category: customer?.industry || undefined,
+        isActive: true,
+      });
+    } catch (error) {
+      console.warn('[Proposal Service] 从知识库获取产品失败，将使用默认推荐:', error);
+    }
+
     // 构建AI输入
     const aiInput = {
       customerId: proposal.customerId,
@@ -375,8 +387,17 @@ ${Array.isArray(proposal.products) && proposal.products.length > 0
       painPoints: ((customerInsight?.painPoints as Array<{ point: string }>)?.map(p => p.point)) ?? undefined,
     };
 
-    // 调用AI服务生成方案
-    const generatedProposal = await proposalAIService.generateProposalContent(aiInput);
+    // 调用AI服务生成方案（使用知识库增强版本）
+    let generatedProposal: ProposalGenerationResult;
+    if (knowledgeProducts.length > 0) {
+      generatedProposal = await proposalAIService.generateProposalWithKnowledge(
+        aiInput,
+        knowledgeProducts,
+        [] // 模板数据暂时为空
+      );
+    } else {
+      generatedProposal = await proposalAIService.generateProposalContent(aiInput);
+    }
 
     // 更新方案内容
     await this.prisma.proposal.update({
@@ -674,6 +695,27 @@ ${Array.isArray(proposal.products) && proposal.products.length > 0
       }
     }
 
+    // 搜索知识库中相关内容进行增强
+    try {
+      const knowledgeResults = await knowledgeService.searchKnowledge({
+        q: proposal.title || '',
+        limit: 5,
+      });
+
+      // 如果知识库中有相关产品，添加到分析结果
+      if (knowledgeResults.results.products && knowledgeResults.results.products.length > 0) {
+        analysisResult.knowledgeRefs = knowledgeResults.results.products.map((p: any) => ({
+          type: 'product',
+          id: p.id,
+          name: p.productName,
+          price: p.unitPrice,
+        }));
+      }
+    } catch (error) {
+      console.warn('[Proposal Service] 知识库搜索失败:', error);
+      // 静默降级，不影响现有功能
+    }
+
     // 更新需求分析记录
     await (this.prisma as any).requirementAnalysis.update({
       where: { proposalId },
@@ -691,18 +733,65 @@ ${Array.isArray(proposal.products) && proposal.products.length > 0
 
   /**
    * AI补充需求
+   * 结合知识库增强需求分析
    */
   async aiEnhanceRequirement(proposalId: string) {
     const analysis = await this.getRequirementAnalysis(proposalId);
     if (!analysis) throw new Error('需求分析不存在');
 
-    // 模拟AI增强逻辑
-    const enhancedContent = `${analysis.rawContent || ''}\n\n【AI补充分析】\n- 建议关注客户的数字化转型需求\n- 可能存在预算审批流程\n- 推荐在下一阶段提供技术演示`;
+    // 获取方案和客户信息用于知识库增强
+    const proposal = await this.getById(proposalId);
+    const customer = proposal ? await this.prisma.customer.findUnique({
+      where: { id: proposal.customerId },
+      select: { industry: true, name: true },
+    }) : null;
+
+    let enhancedContent = `${analysis.rawContent || ''}`;
+    let enhancedNeeds: string[] = [];
+    let suggestedProducts: string[] = [];
+
+    // 尝试使用知识库AI增强需求分析
+    try {
+      const enhancementResult = await knowledgeAIService.enhanceRequirementAnalysis(
+        analysis.rawContent || proposal?.title || '',
+        {
+          industry: customer?.industry,
+          proposalValue: proposal ? Number(proposal.value) : undefined,
+        }
+      );
+
+      // 使用增强结果更新内容
+      if (enhancementResult.enhancedNeeds && enhancementResult.enhancedNeeds.length > 0) {
+        enhancedNeeds = enhancementResult.enhancedNeeds.map(n => n.need);
+        enhancedContent += '\n\n【AI需求分析】\n' +
+          enhancementResult.enhancedNeeds.map(n => `- ${n.need}（${n.priority}优先级）`).join('\n');
+      }
+
+      if (enhancementResult.suggestedProducts && enhancementResult.suggestedProducts.length > 0) {
+        suggestedProducts = enhancementResult.suggestedProducts.map(p => p.name);
+        enhancedContent += '\n\n【建议产品】\n' +
+          enhancementResult.suggestedProducts.map(p => `- ${p.name}：${p.reason}`).join('\n');
+      }
+
+      if (enhancementResult.estimatedBudget) {
+        enhancedContent += `\n\n【预算估算】\n参考范围：¥${enhancementResult.estimatedBudget.min?.toLocaleString() || '未确定'} - ¥${enhancementResult.estimatedBudget.max?.toLocaleString() || '未确定'}`;
+      }
+
+      if (enhancementResult.additionalInsights && enhancementResult.additionalInsights.length > 0) {
+        enhancedContent += '\n\n【附加洞察】\n' +
+          enhancementResult.additionalInsights.map(i => `- ${i}`).join('\n');
+      }
+    } catch (error) {
+      // 知识库增强失败，使用默认增强逻辑
+      console.warn('[Proposal Service] 知识库增强失败，使用默认逻辑:', error);
+      enhancedContent += '\n\n【AI补充分析】\n- 建议关注客户的数字化转型需求\n- 可能存在预算审批流程\n- 推荐在下一阶段提供技术演示';
+    }
 
     return (this.prisma as any).requirementAnalysis.update({
       where: { proposalId },
       data: {
         rawContent: enhancedContent,
+        extractedNeeds: enhancedNeeds.length > 0 ? enhancedNeeds : analysis.extractedNeeds,
         aiEnhanced: true,
       },
     });

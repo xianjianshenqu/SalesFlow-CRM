@@ -18,6 +18,9 @@ export { default as proposalAIService } from './proposalAI';
 export { default as salesCoachService } from './salesCoach';
 export { default as resourceMatchingService } from './resourceMatching';
 
+// 知识库AI服务导出
+export { default as knowledgeAIService } from './knowledgeAI';
+
 // 导入现有AI服务
 import aiService from '../ai.service';
 import followUpAnalysisService from './followUpAnalysis';
@@ -30,6 +33,9 @@ import customerInsightService from './customerInsight';
 import proposalAIService from './proposalAI';
 import salesCoachService from './salesCoach';
 import resourceMatchingService from './resourceMatching';
+
+// 知识库AI服务导入
+import knowledgeAIService from './knowledgeAI';
 
 /**
  * AI服务统一接口
@@ -52,6 +58,9 @@ export const aiServices = {
   proposalAI: proposalAIService,
   salesCoach: salesCoachService,
   resourceMatching: resourceMatchingService,
+
+  // 知识库AI服务
+  knowledgeAI: knowledgeAIService,
 };
 
 export default aiServices;
