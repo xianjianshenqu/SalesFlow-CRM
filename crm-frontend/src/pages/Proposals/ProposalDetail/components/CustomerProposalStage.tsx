@@ -287,7 +287,7 @@ export default function CustomerProposalStage({ proposalId, proposal, onComplete
               value={emailForm.emailSubject}
               onChange={(e) => setEmailForm(prev => ({ ...prev, emailSubject: e.target.value }))}
               placeholder="商务方案 - [公司名称]"
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
 
@@ -299,7 +299,7 @@ export default function CustomerProposalStage({ proposalId, proposal, onComplete
               value={emailForm.emailBody}
               onChange={(e) => setEmailForm(prev => ({ ...prev, emailBody: e.target.value }))}
               rows={12}
-              className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg resize-none font-mono text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              className="w-full px-4 py-3 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-lg resize-none font-mono text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
 

@@ -245,7 +245,7 @@ export default function RequirementAnalysis({ proposalId, customerId, onComplete
           onChange={(e) => setRawContent(e.target.value)}
           placeholder="请输入客户需求详情..."
           rows={8}
-          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none"
+          className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20 resize-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500"
         />
       </div>
 

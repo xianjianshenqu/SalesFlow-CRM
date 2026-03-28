@@ -275,7 +275,7 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
               type="text"
               value={formData.title}
               onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
           <div>
@@ -284,7 +284,7 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
               type="number"
               value={formData.value}
               onChange={(e) => setFormData(prev => ({ ...prev, value: Number(e.target.value) }))}
-              className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg"
+              className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
           </div>
         </div>
@@ -295,7 +295,7 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
             value={formData.description}
             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
             rows={4}
-            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg resize-none"
+            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg resize-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -330,21 +330,21 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
                     value={product.name}
                     onChange={(e) => handleUpdateProduct(index, 'name', e.target.value)}
                     placeholder="产品名称"
-                    className="col-span-3 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                    className="col-span-3 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                   <input
                     type="number"
                     value={product.quantity}
                     onChange={(e) => handleUpdateProduct(index, 'quantity', Number(e.target.value))}
                     placeholder="数量"
-                    className="col-span-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                    className="col-span-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                   <input
                     type="number"
                     value={product.unitPrice}
                     onChange={(e) => handleUpdateProduct(index, 'unitPrice', Number(e.target.value))}
                     placeholder="单价"
-                    className="col-span-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                    className="col-span-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
                   />
                   <div className="col-span-2 text-sm text-slate-600 dark:text-slate-400">
                     ¥{product.totalPrice?.toLocaleString() || 0}
@@ -352,7 +352,7 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
                   <select
                     value={product.priority}
                     onChange={(e) => handleUpdateProduct(index, 'priority', e.target.value)}
-                    className="col-span-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                    className="col-span-2 px-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
                   >
                     <option value="essential">必需</option>
                     <option value="recommended">推荐</option>
@@ -385,7 +385,7 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
             onChange={(e) => setFormData(prev => ({ ...prev, terms: e.target.value }))}
             rows={4}
             placeholder="付款条件、交付周期、售后服务等..."
-            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg resize-none"
+            className="w-full px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg resize-none text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
       </div>
@@ -421,7 +421,7 @@ export default function ProposalDesign({ proposalId, proposal, onComplete }: Pro
                     loadKnowledgeProducts(e.target.value);
                   }}
                   placeholder="搜索产品名称或类别..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-primary/20"
                 />
               </div>
             </div>

@@ -315,3 +315,81 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* ============================================
+   Form Elements - Text Visibility Protection
+   确保表单元素文本在各种主题下都可见
+   ============================================ */
+
+/* Input and Textarea base styles for dark/light mode compatibility */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+input[type="datetime-local"],
+textarea,
+select {
+  color: #0f172a;
+  background-color: #ffffff;
+}
+
+/* Dark mode form elements */
+.dark input[type="text"],
+.dark input[type="email"],
+.dark input[type="password"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark input[type="tel"],
+.dark input[type="url"],
+.dark input[type="date"],
+.dark input[type="datetime-local"],
+.dark textarea,
+.dark select {
+  color: #f9fafb;
+  background-color: #0f172a;
+}
+
+/* Placeholder styles */
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #64748b;
+}
+
+/* Ensure text is not clipped */
+input, textarea {
+  line-height: 1.5;
+  min-height: 2.5rem;
+}
+
+textarea {
+  min-height: 4rem;
+}
+
+/* Focus styles */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+}
+
+/* Prevent text overflow issues */
+input, textarea {
+  text-overflow: ellipsis;
+}
+
+/* Ensure z-index for form elements in modals */
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+  position: relative;
+  z-index: 1;
+}
