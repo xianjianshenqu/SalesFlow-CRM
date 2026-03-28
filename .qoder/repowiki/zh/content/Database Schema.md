@@ -11,6 +11,7 @@
 - [20260317083220_add_presales_activity_management/migration.sql](file://crm-backend/prisma/migrations/20260317083220_add_presales_activity_management/migration.sql)
 - [20260318060044_add_proposal_workflow_stages/migration.sql](file://crm-backend/prisma/migrations/20260318060044_add_proposal_workflow_stages/migration.sql)
 - [20260318104850_add_customer_type_and_company_info/migration.sql](file://crm-backend/prisma/migrations/20260318104850_add_customer_type_and_company_info/migration.sql)
+- [20260328042234_add_knowledge_base/migration.sql](file://crm-backend/prisma/migrations/20260328042234_add_knowledge_base/migration.sql)
 - [proposal.controller.ts](file://crm-backend/src/controllers/proposal.controller.ts)
 - [proposal.service.ts](file://crm-backend/src/services/proposal.service.ts)
 - [proposals.routes.ts](file://crm-backend/src/routes/proposals.routes.ts)
@@ -38,14 +39,25 @@
 - [qcc.client.ts](file://crm-backend/src/services/search/qcc.client.ts)
 - [serper.client.ts](file://crm-backend/src/services/search/serper.client.ts)
 - [ai.service.ts](file://crm-backend/src/services/ai.service.ts)
+- [knowledge.controller.ts](file://crm-backend/src/controllers/knowledge.controller.ts)
+- [knowledge.service.ts](file://crm-backend/src/services/knowledge.service.ts)
+- [knowledge.routes.ts](file://crm-backend/src/routes/knowledge.routes.ts)
+- [knowledge.validator.ts](file://crm-backend/src/validators/knowledge.validator.ts)
+- [knowledgeAI.ts](file://crm-backend/src/services/ai/knowledgeAI.ts)
+- [Documents.tsx](file://crm-frontend/src/pages/Knowledge/Documents.tsx)
+- [ProductPricing.tsx](file://crm-frontend/src/pages/Knowledge/ProductPricing.tsx)
+- [ContractTemplates.tsx](file://crm-frontend/src/pages/Knowledge/ContractTemplates.tsx)
+- [CustomTables.tsx](file://crm-frontend/src/pages/Knowledge/CustomTables.tsx)
+- [index.tsx](file://crm-frontend/src/pages/Knowledge/index.tsx)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- 新增CompanySearchCache模型用于存储企业搜索结果缓存，包含索引优化和数据源支持
-- 增强企业搜索API系统，支持缓存命中统计和过期时间管理
-- 扩展数据源支持，包括企查查API、Serper搜索和AI提取的完整缓存机制
-- 新增缓存配置和管理功能，支持7天缓存过期策略
+- 新增知识库相关模型：KnowledgeDocument、ProductPricing、ContractTemplate、CustomDataTable、CustomDataRow
+- 新增企业搜索缓存系统：CompanySearchCache模型及其相关API
+- 新增完整的知识库管理功能：文档管理、产品价格表、合同模板、自定义数据表
+- 新增AI驱动的知识库搜索和增强功能
+- 扩展用户模型以支持知识库相关权限管理
 
 ## 目录
 1. [简介](#简介)
@@ -60,7 +72,7 @@
 
 ## 简介
 
-这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**、**提案工作流程管理**、**企业客户管理**和**企业搜索缓存系统**等多个业务模块。
+这是一个基于Prisma ORM的销售AI CRM系统数据库架构文档。该系统采用MySQL 8.0作为数据库引擎，通过Prisma Schema定义了完整的数据模型，涵盖了客户管理、销售漏斗、财务管理、团队协作、AI智能分析以及**预销售活动管理**、**提案工作流程管理**、**企业客户管理**、**企业搜索缓存系统**和**企业知识库管理**等多个业务模块。
 
 系统的核心特点包括：
 - 全面的客户关系管理功能，支持个人和企业客户
@@ -73,6 +85,8 @@
 - **完善的企业客户管理功能**，支持统一社会信用代码、企业全称、注册资本等企业信息管理
 - **完整的公司搜索API系统**，提供企业信息查询和匹配功能
 - **新增的企业搜索缓存系统**，通过CompanySearchCache模型实现搜索结果的高性能缓存
+- **新增的企业知识库管理**，支持文档管理、产品价格表、合同模板、自定义数据表的完整知识资产管理
+- **AI驱动的知识库搜索和增强功能**，提供智能文档分析和需求增强
 
 ## 项目结构
 
@@ -83,32 +97,47 @@ PRISMA[Prisma Schema]
 MIGRATIONS[迁移文件]
 MYSQL[MySQL 8.0]
 COMPANY_SEARCH_CACHE[CompanySearchCache缓存表]
+KNOWLEDGE_DOCUMENTS[KnowledgeDocuments知识库文档]
+PRODUCT_PRICINGS[ProductPricings产品价格表]
+CONTRACT_TEMPLATES[ContractTemplates合同模板]
+CUSTOM_DATA_TABLES[CustomDataTables自定义数据表]
+CUSTOM_DATA_ROWS[CustomDataRows数据行]
 end
 subgraph "应用层"
 CONTROLLERS[控制器层]
 SERVICES[服务层]
 REPOSITORIES[仓库层]
+AI_SERVICES[AI服务层]
 end
 subgraph "前端层"
 FRONTEND[React 前端]
 COMPONENTS[UI组件]
+KNOWLEDGE_PAGES[知识库页面]
 end
 PRISMA --> MIGRATIONS
 MIGRATIONS --> MYSQL
 COMPANY_SEARCH_CACHE --> MYSQL
+KNOWLEDGE_DOCUMENTS --> MYSQL
+PRODUCT_PRICINGS --> MYSQL
+CONTRACT_TEMPLATES --> MYSQL
+CUSTOM_DATA_TABLES --> MYSQL
+CUSTOM_DATA_ROWS --> MYSQL
 CONTROLLERS --> SERVICES
 SERVICES --> REPOSITORIES
+AI_SERVICES --> SERVICES
 REPOSITORIES --> MYSQL
 FRONTEND --> CONTROLLERS
+KNOWLEDGE_PAGES --> FRONTEND
 ```
 
 **图表来源**
-- [schema.prisma:1-1108](file://crm-backend/prisma/schema.prisma#L1-L1108)
+- [schema.prisma:1-1216](file://crm-backend/prisma/schema.prisma#L1-L1216)
 - [app.ts](file://crm-backend/src/app.ts)
 
 **章节来源**
-- [schema.prisma:1-1108](file://crm-backend/prisma/schema.prisma#L1-L1108)
+- [schema.prisma:1-1216](file://crm-backend/prisma/schema.prisma#L1-L1216)
 - [20260315081326_init/migration.sql:1-381](file://crm-backend/prisma/migrations/20260315081326_init/migration.sql#L1-L381)
+- [20260328042234_add_knowledge_base/migration.sql:1-127](file://crm-backend/prisma/migrations/20260328042234_add_knowledge_base/migration.sql#L1-L127)
 
 ## 核心组件
 
@@ -354,14 +383,87 @@ datetime createdAt
 datetime expiresAt
 datetime updatedAt
 }
+KNOWLEDGE_DOCUMENTS {
+varchar id PK
+varchar title
+varchar category
+varchar subCategory
+varchar description
+varchar fileUrl
+varchar fileName
+varchar fileType
+int fileSize
+longtext content
+json metadata
+json tags
+boolean isActive
+int version
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+PRODUCT_PRICINGS {
+varchar id PK
+varchar documentId FK
+varchar productName
+varchar productCode
+varchar category
+text specification
+decimal unitPrice
+varchar unit
+int minQuantity
+json discount
+datetime validFrom
+datetime validUntil
+boolean isActive
+varchar notes
+datetime createdAt
+datetime updatedAt
+}
+CONTRACT_TEMPLATES {
+varchar id PK
+varchar name
+varchar category
+varchar description
+longtext content
+json variables
+json tags
+int usageCount
+boolean isActive
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+CUSTOM_DATA_TABLES {
+varchar id PK
+varchar name
+varchar description
+json columns
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+CUSTOM_DATA_ROWS {
+varchar id PK
+varchar tableId FK
+json data
+datetime createdAt
+datetime updatedAt
+}
 USERS ||--o{ CUSTOMERS : "拥有"
 CUSTOMERS ||--o{ OPPORTUNITIES : "包含"
 CUSTOMERS ||--o{ PAYMENTS : "支付"
 CUSTOMERS ||--o{ PROPOSALS : "创建"
 CUSTOMERS ||--o{ COMPANY_SEARCH_CACHE : "搜索"
+CUSTOMERS ||--o{ KNOWLEDGE_DOCUMENTS : "创建"
+CUSTOMERS ||--o{ CONTRACT_TEMPLATES : "创建"
+CUSTOMERS ||--o{ CUSTOM_DATA_TABLES : "创建"
 OPPORTUNITIES ||--|| PAYMENTS : "关联"
 USERS ||--o{ PROPOSALS : "创建"
 USERS ||--o{ PRESALES_ACTIVITIES : "创建"
+USERS ||--o{ KNOWLEDGE_DOCUMENTS : "创建"
+USERS ||--o{ CONTRACT_TEMPLATES : "创建"
+USERS ||--o{ CUSTOM_DATA_TABLES : "创建"
 PROPOSALS ||--|| REQUIREMENT_ANALYSES : "包含"
 PROPOSALS ||--|| PROPOSAL_REVIEWS : "包含"
 PROPOSALS ||--|| CUSTOMER_PROPOSAL_RECORDS : "包含"
@@ -372,6 +474,8 @@ PRESALES_ACTIVITIES ||--o{ ACTIVITY_SIGN_INS : "包含"
 PRESALES_ACTIVITIES ||--o{ ACTIVITY_QUESTIONS : "包含"
 ACTIVITY_QR_CODES ||--o{ ACTIVITY_SIGN_INS : "被使用"
 ACTIVITY_SIGN_INS ||--o{ ACTIVITY_QUESTIONS : "产生"
+KNOWLEDGE_DOCUMENTS ||--o{ PRODUCT_PRICINGS : "关联"
+CUSTOM_DATA_TABLES ||--o{ CUSTOM_DATA_ROWS : "包含"
 ```
 
 **图表来源**
@@ -383,6 +487,7 @@ ACTIVITY_SIGN_INS ||--o{ ACTIVITY_QUESTIONS : "产生"
 - [schema.prisma:822-853](file://crm-backend/prisma/schema.prisma#L822-L853)
 - [schema.prisma:856-931](file://crm-backend/prisma/schema.prisma#L856-L931)
 - [schema.prisma:1090-1108](file://crm-backend/prisma/schema.prisma#L1090-L1108)
+- [schema.prisma:1115-1216](file://crm-backend/prisma/schema.prisma#L1115-L1216)
 
 ### 枚举类型系统
 
@@ -468,6 +573,12 @@ class CompanySearchSource {
 +llm
 +mock
 }
+class KnowledgeDocumentCategory {
++product_pricing
++proposal_template
++contract_template
++custom
+}
 ```
 
 **图表来源**
@@ -475,9 +586,11 @@ class CompanySearchSource {
 - [schema.prisma:15-140](file://crm-backend/prisma/schema.prisma#L15-L140)
 - [customer.validator.ts:3-4](file://crm-backend/src/validators/customer.validator.ts#L3-L4)
 - [schema.prisma:1098](file://crm-backend/prisma/schema.prisma#L1098)
+- [knowledge.validator.ts:5-10](file://crm-backend/src/validators/knowledge.validator.ts#L5-L10)
 
 **章节来源**
 - [schema.prisma:13-140](file://crm-backend/prisma/schema.prisma#L13-L140)
+- [knowledge.validator.ts:1-206](file://crm-backend/src/validators/knowledge.validator.ts#L1-L206)
 
 ## 架构概览
 
@@ -489,6 +602,7 @@ participant Frontend as 前端应用
 participant Controller as 控制器
 participant Service as 服务层
 participant Cache as 缓存层
+participant AIService as AI服务层
 participant Prisma as Prisma客户端
 participant Database as MySQL数据库
 Frontend->>Controller : HTTP请求
@@ -500,6 +614,9 @@ Database-->>Prisma : 缓存结果
 Prisma-->>Cache : 处理后的数据
 Cache-->>Service : 缓存命中/未命中
 Service->>Service : 数据源查询
+Service->>AIService : AI分析调用
+AIService->>AIService : AI处理
+AIService-->>Service : AI结果
 Service->>Cache : 更新缓存
 Cache->>Prisma : 缓存写入
 Prisma->>Database : SQL执行
@@ -513,6 +630,8 @@ Controller-->>Frontend : HTTP响应
 **图表来源**
 - [customer.controller.ts:1-58](file://crm-backend/src/controllers/customer.controller.ts#L1-L58)
 - [customer.service.ts:1-179](file://crm-backend/src/services/customer.service.ts#L1-L179)
+- [knowledge.controller.ts:1-509](file://crm-backend/src/controllers/knowledge.controller.ts#L1-L509)
+- [knowledge.service.ts:1-693](file://crm-backend/src/services/knowledge.service.ts#L1-L693)
 
 ### 数据库关系图
 
@@ -566,6 +685,13 @@ PROPOSAL_REVIEWS[Proposal Reviews]
 CUSTOMER_PROPOSAL_RECORDS[Customer Proposal Records]
 NEGOTIATION_RECORDS[Negotiation Records]
 end
+subgraph "知识库管理"
+KNOWLEDGE_DOCUMENTS[Knowledge Documents]
+PRODUCT_PRICINGS[Product Pricings]
+CONTRACT_TEMPLATES[Contract Templates]
+CUSTOM_DATA_TABLES[Custom Data Tables]
+CUSTOM_DATA_ROWS[Custom Data Rows]
+end
 USERS --> CUSTOMERS
 USERS --> TEAM_MEMBERS
 USERS --> SCHEDULE_TASKS
@@ -580,6 +706,9 @@ USERS --> PRESALES_REQUESTS
 USERS --> SALES_PERFORMANCES
 USERS --> COACHING_SUGGESTIONS
 USERS --> PRESALES_ACTIVITIES
+USERS --> KNOWLEDGE_DOCUMENTS
+USERS --> CONTRACT_TEMPLATES
+USERS --> CUSTOM_DATA_TABLES
 CUSTOMERS --> CONTACTS
 CUSTOMERS --> BUSINESS_CARDS
 CUSTOMERS --> AUDIO_RECORDINGS
@@ -594,6 +723,10 @@ CUSTOMERS --> PRESALES_ACTIVITIES
 CUSTOMERS --> PROPOSALS
 CUSTOMERS --> COMPANY_SEARCH
 CUSTOMERS --> COMPANY_SEARCH_CACHE
+CUSTOMERS --> KNOWLEDGE_DOCUMENTS
+CUSTOMERS --> PRODUCT_PRICINGS
+CUSTOMERS --> CONTRACT_TEMPLATES
+CUSTOMERS --> CUSTOM_DATA_TABLES
 OPPORTUNITIES --> PROPOSALS
 OPPORTUNITIES --> OPPORTUNITY_SCORES
 OPPORTUNITIES --> PAYMENTS
@@ -618,10 +751,12 @@ REQUIREMENT_ANALYSES --> PROPOSALS
 PROPOSAL_REVIEWS --> PROPOSALS
 CUSTOMER_PROPOSAL_RECORDS --> PROPOSALS
 NEGOTIATION_RECORDS --> PROPOSALS
+KNOWLEDGE_DOCUMENTS --> PRODUCT_PRICINGS
+CUSTOM_DATA_TABLES --> CUSTOM_DATA_ROWS
 ```
 
 **图表来源**
-- [schema.prisma:377-1108](file://crm-backend/prisma/schema.prisma#L377-L1108)
+- [schema.prisma:377-1216](file://crm-backend/prisma/schema.prisma#L377-L1216)
 
 ## 详细组件分析
 
@@ -876,6 +1011,139 @@ ReturnSerper --> End
 - [companySearch.controller.ts:1-46](file://crm-backend/src/controllers/companySearch.controller.ts#L1-L46)
 - [companySearch.service.ts:1-677](file://crm-backend/src/services/search/companySearch.service.ts#L1-L677)
 - [companySearch.routes.ts:1-57](file://crm-backend/src/routes/companySearch.routes.ts#L1-L57)
+
+### 企业知识库管理系统
+
+**新增** 企业知识库管理系统提供了完整的知识资产管理功能，包括文档管理、产品价格表、合同模板、自定义数据表等核心功能。
+
+#### 知识库模型设计
+
+```mermaid
+erDiagram
+KNOWLEDGE_DOCUMENTS {
+varchar id PK
+varchar title
+varchar category
+varchar subCategory
+varchar description
+varchar fileUrl
+varchar fileName
+varchar fileType
+int fileSize
+longtext content
+json metadata
+json tags
+boolean isActive
+int version
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+PRODUCT_PRICINGS {
+varchar id PK
+varchar documentId FK
+varchar productName
+varchar productCode
+varchar category
+text specification
+decimal unitPrice
+varchar unit
+int minQuantity
+json discount
+datetime validFrom
+datetime validUntil
+boolean isActive
+varchar notes
+datetime createdAt
+datetime updatedAt
+}
+CONTRACT_TEMPLATES {
+varchar id PK
+varchar name
+varchar category
+varchar description
+longtext content
+json variables
+json tags
+int usageCount
+boolean isActive
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+CUSTOM_DATA_TABLES {
+varchar id PK
+varchar name
+varchar description
+json columns
+varchar createdById FK
+datetime createdAt
+datetime updatedAt
+}
+CUSTOM_DATA_ROWS {
+varchar id PK
+varchar tableId FK
+json data
+datetime createdAt
+datetime updatedAt
+}
+USERS ||--o{ KNOWLEDGE_DOCUMENTS : "创建"
+USERS ||--o{ CONTRACT_TEMPLATES : "创建"
+USERS ||--o{ CUSTOM_DATA_TABLES : "创建"
+KNOWLEDGE_DOCUMENTS ||--o{ PRODUCT_PRICINGS : "关联"
+CUSTOM_DATA_TABLES ||--o{ CUSTOM_DATA_ROWS : "包含"
+```
+
+**图表来源**
+- [schema.prisma:1115-1216](file://crm-backend/prisma/schema.prisma#L1115-L1216)
+
+#### 知识库搜索功能
+
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant KnowledgeAPI as 知识库API
+participant KnowledgeService as 知识库服务
+participant Prisma as Prisma客户端
+participant Database as MySQL数据库
+Client->>KnowledgeAPI : GET /api/v1/knowledge/search
+KnowledgeAPI->>KnowledgeService : 调用搜索方法
+KnowledgeService->>Prisma : 查询文档
+Prisma->>Database : SELECT knowledge_documents
+Database-->>Prisma : 文档结果
+Prisma-->>KnowledgeService : 文档数据
+KnowledgeService->>Prisma : 查询产品
+Prisma->>Database : SELECT product_pricings
+Database-->>Prisma : 产品结果
+Prisma-->>KnowledgeService : 产品数据
+KnowledgeService->>Prisma : 查询合同
+Prisma->>Database : SELECT contract_templates
+Database-->>Prisma : 合同结果
+Prisma-->>KnowledgeService : 合同数据
+KnowledgeService-->>KnowledgeAPI : 组合搜索结果
+KnowledgeAPI-->>Client : 返回搜索结果
+```
+
+#### 知识库AI增强功能
+
+```mermaid
+flowchart TD
+Start([知识库增强]) --> ExtractRequirements[提取需求]
+ExtractRequirements --> GetProducts[获取产品数据]
+GetProducts --> CallAI[调用AI增强]
+CallAI --> AnalyzeProducts[分析产品匹配]
+AnalyzeProducts --> GenerateSuggestions[生成建议]
+GenerateSuggestions --> EstimateBudget[估算预算]
+EstimateBudget --> GenerateInsights[生成洞察]
+GenerateInsights --> ReturnEnhanced[返回增强结果]
+```
+
+**章节来源**
+- [schema.prisma:1115-1216](file://crm-backend/prisma/schema.prisma#L1115-L1216)
+- [knowledge.controller.ts:1-509](file://crm-backend/src/controllers/knowledge.controller.ts#L1-L509)
+- [knowledge.service.ts:1-693](file://crm-backend/src/services/knowledge.service.ts#L1-L693)
+- [knowledge.validator.ts:1-206](file://crm-backend/src/validators/knowledge.validator.ts#L1-L206)
+- [knowledgeAI.ts:1-554](file://crm-backend/src/services/ai/knowledgeAI.ts#L1-L554)
 
 ### 客户管理系统
 
@@ -1297,6 +1565,11 @@ BusinessCards[Business Cards]
 AudioRecordings[Audio Recordings]
 CompanySearch[Company Search]
 CompanySearchCache[Company Search Cache]
+KnowledgeDocuments[Knowledge Documents]
+ProductPricings[Product Pricings]
+ContractTemplates[Contract Templates]
+CustomDataTables[Custom Data Tables]
+CustomDataRows[Custom Data Rows]
 end
 subgraph "销售相关"
 Opportunities[Opportunities]
@@ -1334,6 +1607,9 @@ Users --> Contacts
 Users --> Opportunities
 Users --> Proposals
 Users --> Payments
+Users --> KnowledgeDocuments
+Users --> ContractTemplates
+Users --> CustomDataTables
 Customers --> Contacts
 Customers --> BusinessCards
 Customers --> AudioRecordings
@@ -1344,6 +1620,10 @@ Customers --> PresalesActivities
 Customers --> Proposals
 Customers --> CompanySearch
 Customers --> CompanySearchCache
+Customers --> KnowledgeDocuments
+Customers --> ProductPricings
+Customers --> ContractTemplates
+Customers --> CustomDataTables
 Opportunities --> Proposals
 Opportunities --> Payments
 Opportunities --> OpportunityScores
@@ -1362,10 +1642,12 @@ RequirementAnalyses --> Proposals
 ProposalReviews --> Proposals
 CustomerProposalRecords --> Proposals
 NegotiationRecords --> Proposals
+KnowledgeDocuments --> ProductPricings
+CustomDataTables --> CustomDataRows
 ```
 
 **图表来源**
-- [schema.prisma:377-1108](file://crm-backend/prisma/schema.prisma#L377-L1108)
+- [schema.prisma:377-1216](file://crm-backend/prisma/schema.prisma#L377-L1216)
 
 ### 控制器-服务层依赖
 
@@ -1491,6 +1773,33 @@ class CompanySearchController {
 +search()
 +getDetail()
 }
+class KnowledgeController {
++getDocuments()
++getDocumentById()
++uploadDocument()
++deleteDocument()
++parseDocument()
++getProducts()
++createProduct()
++updateProduct()
++deleteProduct()
++importProducts()
++exportProducts()
++getContracts()
++getContractById()
++createContract()
++updateContract()
++deleteContract()
++getCustomTables()
++createCustomTable()
++updateCustomTable()
++deleteCustomTable()
++getCustomTableRows()
++createCustomTableRow()
++updateCustomTableRow()
++deleteCustomTableRow()
++searchKnowledge()
+}
 CustomerController --> CustomerService
 ContactController --> ContactService
 OpportunityController --> OpportunityService
@@ -1499,6 +1808,7 @@ ScheduleController --> ScheduleService
 PresalesActivityController --> PresalesActivityService
 ProposalController --> ProposalService
 CompanySearchController --> CompanySearchService
+KnowledgeController --> KnowledgeService
 ```
 
 **图表来源**
@@ -1510,6 +1820,7 @@ CompanySearchController --> CompanySearchService
 - [presalesActivity.controller.ts:9-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L9-L338)
 - [proposal.controller.ts:9-636](file://crm-backend/src/controllers/proposal.controller.ts#L9-L636)
 - [companySearch.controller.ts:5-46](file://crm-backend/src/controllers/companySearch.controller.ts#L5-L46)
+- [knowledge.controller.ts:8-509](file://crm-backend/src/controllers/knowledge.controller.ts#L8-L509)
 
 **章节来源**
 - [customer.controller.ts:1-58](file://crm-backend/src/controllers/customer.controller.ts#L1-L58)
@@ -1520,6 +1831,7 @@ CompanySearchController --> CompanySearchService
 - [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
 - [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
 - [companySearch.controller.ts:1-46](file://crm-backend/src/controllers/companySearch.controller.ts#L1-L46)
+- [knowledge.controller.ts:1-509](file://crm-backend/src/controllers/knowledge.controller.ts#L1-L509)
 
 ## 性能考虑
 
@@ -1544,6 +1856,11 @@ CompanySearchController --> CompanySearchService
 - **问题表**: activityId, signInId, customerId, category, status(复合索引)
 - **企业搜索表**: name, shortName, creditCode(复合索引)
 - **企业搜索缓存表**: companyName(唯一索引), expiresAt, source(复合索引)
+- **知识库文档表**: category, isActive(复合索引)
+- **产品价格表**: productName, category, isActive(复合索引)
+- **合同模板表**: category, isActive(复合索引)
+- **自定义数据表**: name(复合索引)
+- **自定义数据行**: tableId(复合索引)
 
 ### 查询优化
 
@@ -1554,6 +1871,8 @@ CompanySearchController --> CompanySearchService
 5. **批量操作**: 支持批量分类和批量更新操作
 6. **企业搜索优化**: 企业搜索使用模糊匹配和索引优化，支持按名称、简称和统一社会信用代码的快速检索
 7. **缓存查询优化**: 企业搜索缓存使用expiresAt索引确保过期数据的快速清理
+8. **知识库搜索优化**: 知识库搜索支持多表联合查询，使用索引优化提升搜索性能
+9. **文件上传优化**: 知识库文档上传使用分块存储和异步处理，避免阻塞主线程
 
 ### 缓存策略
 
@@ -1565,6 +1884,13 @@ CompanySearchController --> CompanySearchService
 - **索引优化**: 为companyName、expiresAt、source建立复合索引
 - **过期清理**: 自动清理过期缓存，释放存储空间
 - **降级机制**: 缓存查询失败不影响主流程，系统自动降级到数据源查询
+
+**新增** 知识库缓存策略：
+
+- **文档解析缓存**: 解析后的文档内容缓存，避免重复解析
+- **搜索结果缓存**: 知识库搜索结果缓存，提升搜索响应速度
+- **模板渲染缓存**: 合同模板渲染结果缓存，减少重复计算
+- **AI分析缓存**: AI分析结果缓存，支持降级模式运行
 
 ## 故障排除指南
 
@@ -1579,8 +1905,9 @@ CompanySearchController --> CompanySearchService
 - 查看具体的SQL错误信息
 - 确认MySQL版本兼容性
 - 检查是否有重复的索引或约束
-- **新增**: 检查企业客户相关的新字段是否正确创建
+- **新增**: 验证知识库相关的新字段是否正确创建
 - **新增**: 验证CompanySearchCache表的索引和约束
+- **新增**: 检查知识库相关表的外键约束
 
 #### 查询超时
 - 分析慢查询日志
@@ -1588,6 +1915,7 @@ CompanySearchController --> CompanySearchService
 - 考虑添加复合索引优化复杂查询
 - **新增**: 检查企业搜索相关查询的索引使用情况
 - **新增**: 验证缓存查询的性能表现
+- **新增**: 优化知识库搜索查询的索引策略
 
 #### 企业搜索异常
 - **新增**: 检查搜索关键词的长度和格式
@@ -1595,6 +1923,14 @@ CompanySearchController --> CompanySearchService
 - **新增**: 确认模拟数据库中的企业数据完整性
 - **新增**: 验证缓存表的索引和查询性能
 - **新增**: 检查数据源配置（企查查API、Serper API）
+- **新增**: 验证缓存过期时间设置是否合理
+
+#### 知识库功能异常
+- **新增**: 检查文件上传路径和权限设置
+- **新增**: 验证Excel/CSV文件解析功能
+- **新增**: 确认AI分析功能的API配置
+- **新增**: 检查自定义数据表的列定义
+- **新增**: 验证知识库搜索的全文检索功能
 
 ### 错误处理机制
 
@@ -1619,13 +1955,16 @@ ErrorHandler --> Response[标准化错误响应]
 
 该销售AI CRM系统的数据库架构设计合理，具有以下优势：
 
-1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了企业客户管理和公司搜索缓存系统**
+1. **完整的业务覆盖**: 涵盖了从客户管理到销售分析的全生命周期，**新增了企业客户管理、企业搜索缓存系统和企业知识库管理**
 2. **灵活的扩展性**: 基于Prisma的Schema设计便于后续功能扩展
 3. **强大的AI集成**: 内置的智能分析功能提升了系统的自动化水平
 4. **良好的性能设计**: 合理的索引策略和查询优化保证了系统的响应速度
 5. **清晰的架构分离**: 控制器-服务层-数据层的职责分离提高了代码的可维护性
-6. **完整的API支持**: **新增了企业客户管理和公司搜索的完整RESTful API接口**
+6. **完整的API支持**: **新增了企业客户管理、企业搜索和企业知识库的完整RESTful API接口**
 7. **高效的缓存系统**: **新增的企业搜索缓存系统通过CompanySearchCache模型实现了高性能的企业信息查询**
+8. **全面的知识库管理**: **新增的企业知识库系统支持文档管理、产品价格表、合同模板、自定义数据表的完整知识资产管理**
+9. **智能的AI增强**: **新增的AI驱动知识库搜索和增强功能，提供智能文档分析和需求增强**
+10. **完善的权限控制**: **新增的用户模型扩展支持知识库相关权限管理**
 
 **新增功能优势**:
 - **完整的B2B客户管理**: 支持企业客户分类、统一社会信用代码管理、注册资本等企业信息
@@ -1643,6 +1982,10 @@ ErrorHandler --> Response[标准化错误响应]
 - **二维码签到系统**: 支持多种类型的二维码和签到验证
 - **问题收集与分析**: 自动分类和优先级管理
 - **实时统计分析**: 多维度的活动效果评估
+- **完整的知识库管理**: 支持文档、产品、合同、自定义数据的统一管理
+- **AI增强搜索**: 智能文档分析和需求增强功能
+- **灵活的数据表**: 支持用户自定义列定义和数据类型
+- **模板化合同**: 支持变量替换和模板预览功能
 
 建议的改进方向：
 - 实施更完善的缓存策略以提升查询性能
@@ -1655,3 +1998,7 @@ ErrorHandler --> Response[标准化错误响应]
 - **新增** 增加更多报表和分析功能
 - **新增** 实现企业客户的分级管理和风险评估功能
 - **新增** 优化企业搜索缓存的清理策略和性能监控
+- **新增** 增强知识库的版本管理和权限控制
+- **新增** 优化自定义数据表的导入导出功能
+- **新增** 实现知识库的全文检索和高级搜索功能
+- **新增** 增加知识库的协作编辑和版本对比功能

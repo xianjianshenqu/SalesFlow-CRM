@@ -17,6 +17,7 @@
 - [schema.prisma](file://crm-backend/prisma/schema.prisma)
 - [migration.sql](file://crm-backend/prisma/migrations/20260317020137_add_ai_features/migration.sql)
 - [migration.sql](file://crm-backend/prisma/migrations/20260317051358_add_sales_performance_and_coaching/migration.sql)
+- [migration.sql](file://crm-backend/prisma/migrations/20260328042234_add_knowledge_base/migration.sql)
 - [package.json](file://crm-backend/package.json)
 - [OpportunityScoreCard.tsx](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx)
 - [ChurnAlertCard.tsx](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx)
@@ -33,17 +34,22 @@
 - [reportGeneration.ts](file://crm-backend/src/services/ai/reportGeneration.ts)
 - [customerInsight.ts](file://crm-backend/src/services/ai/customerInsight.ts)
 - [questionClassification.service.ts](file://crm-backend/src/services/ai/questionClassification.service.ts)
+- [knowledgeAI.ts](file://crm-backend/src/services/ai/knowledgeAI.ts)
+- [knowledge.controller.ts](file://crm-backend/src/controllers/knowledge.controller.ts)
+- [knowledge.routes.ts](file://crm-backend/src/routes/knowledge.routes.ts)
+- [knowledge.service.ts](file://crm-backend/src/services/knowledge.service.ts)
+- [knowledge.validator.ts](file://crm-backend/src/validators/knowledge.validator.ts)
 - [full-stack-dev-expert.md](file://.claude/agents/full-stack-dev-expert.md)
 - [settings.local.json](file://.claude/settings.local.json)
 </cite>
 
 ## 更新摘要
 **所做更改**
-- 新增全栈开发专家AI代理配置，整合调试、测试生成、代码重构、前端设计和API设计五大专业领域
-- 新增Claude AI代理配置文件，提供完整的开发辅助能力
-- 新增代理内存管理机制，支持持久化的开发经验积累
-- 新增代理权限控制系统，确保开发环境安全访问
-- 更新AI功能架构，扩展为包含软件开发辅助的完整生态系统
+- 新增知识库AI集成，扩展了AI服务能力，包括文档分析、语义搜索、需求增强等AI功能
+- 新增企业知识库管理功能，支持文档上传、解析、搜索和管理
+- 新增产品价格表、合同模板、自定义数据表等知识库组件
+- 新增知识库AI服务，提供智能文档分析和知识检索能力
+- 更新AI功能架构，扩展为包含知识库管理的完整生态系统
 
 ## 目录
 1. [简介](#简介)
@@ -75,11 +81,12 @@
 - **问题分类系统**：基于AI的客户问题智能分类和趋势分析
 - **阿里云DashScope Qwen模型集成**：完整的AI客户端基础设施和统一的AI服务层架构
 - **全栈开发专家AI代理**：整合调试、测试生成、代码重构、前端设计和API设计五大专业领域的开发辅助
+- **企业知识库AI集成**：新增的知识库AI服务能力，包括文档分析、语义搜索、需求增强等功能
 
-系统采用前后端分离架构，后端使用Node.js + Express + Prisma，前端使用React + TypeScript，现已发展为功能完备的AI销售助手平台，同时集成了专业的软件开发辅助AI代理。
+系统采用前后端分离架构，后端使用Node.js + Express + Prisma，前端使用React + TypeScript，现已发展为功能完备的AI销售助手平台，同时集成了专业的软件开发辅助AI代理和企业知识库管理功能。
 
 ## 项目结构
-项目采用标准的前后端分离架构，现已扩展为多层AI分析架构，并新增了全栈开发专家AI代理：
+项目采用标准的前后端分离架构，现已扩展为多层AI分析架构，并新增了全栈开发专家AI代理和企业知识库管理：
 
 ```mermaid
 graph TB
@@ -118,21 +125,32 @@ V --> AD[报告生成服务]
 V --> AE[问题分类服务]
 V --> AF[AI客户端]
 V --> AG[全栈开发专家AI代理]
+V --> AH[知识库AI服务]
+end
+subgraph "知识库管理"
+AI[knowledge.controller] --> AJ[knowledge.service]
+AI --> AK[knowledge.routes]
+AJ --> AL[文档管理]
+AJ --> AM[产品价格表]
+AJ --> AN[合同模板]
+AJ --> AO[自定义数据表]
+AJ --> AP[知识库搜索]
 end
 subgraph "Claude AI代理"
-AH[.claude/] --> AI[agents/]
-AH --> AJ[settings.local.json]
-AH --> AK[agent-memory/]
-AI --> AL[full-stack-dev-expert.md]
-AK --> AM[full-stack-dev-expert/]
+AQ[.claude/] --> AR[agents/]
+AQ --> AS[settings.local.json]
+AQ --> AT[agent-memory/]
+AR --> AU[full-stack-dev-expert.md]
+AT --> AV[full-stack-dev-expert/]
 end
 L --> V
 AF --> AG
-AG --> AN[调试专家]
-AG --> AO[测试生成专家]
-AG --> AP[重构专家]
-AG --> AQ[前端设计专家]
-AG --> AR[API设计专家]
+AH --> AI
+AJ --> AL
+AJ --> AM
+AJ --> AN
+AJ --> AO
+AJ --> AP
 ```
 
 **图表来源**
@@ -140,6 +158,10 @@ AG --> AR[API设计专家]
 - [schema.prisma:1-783](file://crm-backend/prisma/schema.prisma#L1-L783)
 - [index.ts:1-57](file://crm-backend/src/services/ai/index.ts#L1-L57)
 - [client.ts:1-224](file://crm-backend/src/services/ai/client.ts#L1-L224)
+- [knowledgeAI.ts:1-554](file://crm-backend/src/services/ai/knowledgeAI.ts#L1-L554)
+- [knowledge.controller.ts:1-509](file://crm-backend/src/controllers/knowledge.controller.ts#L1-L509)
+- [knowledge.service.ts:1-693](file://crm-backend/src/services/knowledge.service.ts#L1-L693)
+- [knowledge.routes.ts:1-512](file://crm-backend/src/routes/knowledge.routes.ts#L1-L512)
 - [full-stack-dev-expert.md:1-109](file://.claude/agents/full-stack-dev-expert.md#L1-L109)
 
 **章节来源**
@@ -147,7 +169,7 @@ AG --> AR[API设计专家]
 - [package.json:1-52](file://crm-backend/package.json#L1-L52)
 
 ## 核心组件
-系统的AI助手功能现已扩展为多层次的专业分析组件，并新增了全栈开发专家AI代理：
+系统的AI助手功能现已扩展为多层次的专业分析组件，并新增了全栈开发专家AI代理和企业知识库管理功能：
 
 ### 后端核心组件
 1. **AI控制器 (ai.controller.ts)**：处理所有AI相关的HTTP请求
@@ -167,6 +189,7 @@ AG --> AR[API设计专家]
 7. **跟进分析服务 (followUpAnalysis.ts)**：基于客户互动数据的跟进建议生成
 8. **报告生成服务 (reportGeneration.ts)**：自动生成日报/周报
 9. **问题分类服务 (questionClassification.service.ts)**：AI驱动的问题智能分类
+10. **知识库AI服务 (knowledgeAI.ts)**：新增的企业知识库AI服务能力
 
 ### 新增全栈开发专家AI代理
 1. **调试专家**：系统性诊断和修复代码问题
@@ -174,6 +197,12 @@ AG --> AR[API设计专家]
 3. **重构专家**：安全地应用重构模式
 4. **前端设计专家**：创建响应式和高性能UI组件
 5. **API设计专家**：设计符合行业标准的API
+
+### 新增企业知识库管理
+1. **知识库控制器 (knowledge.controller.ts)**：处理知识库相关的HTTP请求
+2. **知识库服务 (knowledge.service.ts)**：封装知识库业务逻辑
+3. **知识库路由 (knowledge.routes.ts)**：定义知识库功能的REST API接口
+4. **知识库验证器 (knowledge.validator.ts)**：提供知识库数据验证
 
 ### 前端核心组件
 1. **AI助手页面**：提供智能报告生成功能
@@ -184,6 +213,7 @@ AG --> AR[API设计专家]
 6. **销售教练面板**：提供个性化改进建议
 7. **资源匹配面板**：显示资源匹配结果和分配建议
 8. **录音分析页面**：处理通话录音的AI分析
+9. **知识库页面**：提供企业知识库管理界面
 
 **章节来源**
 - [ai.controller.ts:1-800](file://crm-backend/src/controllers/ai.controller.ts#L1-L800)
@@ -201,9 +231,13 @@ AG --> AR[API设计专家]
 - [reportGeneration.ts:1-379](file://crm-backend/src/services/ai/reportGeneration.ts#L1-L379)
 - [customerInsight.ts:1-548](file://crm-backend/src/services/ai/customerInsight.ts#L1-L548)
 - [questionClassification.service.ts:1-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L1-L372)
+- [knowledgeAI.ts:1-554](file://crm-backend/src/services/ai/knowledgeAI.ts#L1-L554)
+- [knowledge.controller.ts:1-509](file://crm-backend/src/controllers/knowledge.controller.ts#L1-L509)
+- [knowledge.service.ts:1-693](file://crm-backend/src/services/knowledge.service.ts#L1-L693)
+- [knowledge.routes.ts:1-512](file://crm-backend/src/routes/knowledge.routes.ts#L1-L512)
 
 ## 架构总览
-系统采用分层架构设计，现已扩展为多层AI分析架构，并集成了全栈开发专家AI代理：
+系统采用分层架构设计，现已扩展为多层AI分析架构，并集成了全栈开发专家AI代理和企业知识库管理功能：
 
 ```mermaid
 graph TB
@@ -215,6 +249,7 @@ FE4[报价生成面板]
 FE5[销售教练面板]
 FE6[资源匹配面板]
 FE7[开发代理界面]
+FE8[知识库管理界面]
 end
 subgraph "API网关层"
 GW[Express应用]
@@ -233,6 +268,9 @@ FA[跟进分析服务]
 RG[报告生成服务]
 QC[问题分类服务]
 DA[全栈开发代理]
+KA[知识库AI服务]
+KC[知识库控制器]
+KS[知识库服务]
 end
 subgraph "AI引擎层"
 AI_CLIENT[AI客户端]
@@ -253,6 +291,14 @@ FRONTEND_EXPERT[前端设计专家]
 API_EXPERT[API设计专家]
 AGENT_MEMORY[代理内存]
 end
+subgraph "知识库层"
+KNOWLEDGE_DB[知识库数据库]
+DOCUMENTS[文档管理]
+PRODUCTS[产品价格表]
+CONTRACTS[合同模板]
+TABLES[自定义数据表]
+SEARCH[知识库搜索]
+end
 FE1 --> GW
 FE2 --> GW
 FE3 --> GW
@@ -260,6 +306,7 @@ FE4 --> GW
 FE5 --> GW
 FE6 --> GW
 FE7 --> DEV_AGENT
+FE8 --> KC
 GW --> MW
 MW --> AC
 AC --> AS
@@ -272,6 +319,7 @@ AS --> RM
 AS --> FA
 AS --> RG
 AS --> QC
+AS --> KA
 AS --> AI_CLIENT
 AI_CLIENT --> DASHSCOPE
 AI_CLIENT --> MOCK
@@ -283,6 +331,13 @@ DA --> REFACTOR_EXPERT
 DA --> FRONTEND_EXPERT
 DA --> API_EXPERT
 DA --> AGENT_MEMORY
+KC --> KS
+KS --> KNOWLEDGE_DB
+KNOWLEDGE_DB --> DOCUMENTS
+KNOWLEDGE_DB --> PRODUCTS
+KNOWLEDGE_DB --> CONTRACTS
+KNOWLEDGE_DB --> TABLES
+KNOWLEDGE_DB --> SEARCH
 ```
 
 **图表来源**
@@ -291,6 +346,9 @@ DA --> AGENT_MEMORY
 - [ai.service.ts:79-699](file://crm-backend/src/services/ai.service.ts#L79-L699)
 - [index.ts:37-55](file://crm-backend/src/services/ai/index.ts#L37-L55)
 - [client.ts:50-224](file://crm-backend/src/services/ai/client.ts#L50-L224)
+- [knowledgeAI.ts:18-554](file://crm-backend/src/services/ai/knowledgeAI.ts#L18-L554)
+- [knowledge.controller.ts:11-509](file://crm-backend/src/controllers/knowledge.controller.ts#L11-L509)
+- [knowledge.service.ts:21-693](file://crm-backend/src/services/knowledge.service.ts#L21-L693)
 - [full-stack-dev-expert.md:8-74](file://.claude/agents/full-stack-dev-expert.md#L8-L74)
 
 ## 详细组件分析
@@ -442,6 +500,16 @@ class QuestionClassificationService {
 +suggestAnswer(question, category, context?) Promise~string~
 +analyzeTrends(questions) Promise~TrendAnalysis~
 }
+class KnowledgeAIService {
++analyzeDocument(content, fileType) Promise~DocumentAnalysisResult~
++generateDocumentSummary(content) Promise~string~
++searchRelevantKnowledge(query, context?) Promise~RelevantKnowledgeResult~
++enhanceRequirementAnalysis(requirements, knowledgeContext) Promise~EnhancedRequirementResult~
+-private callRealDocumentAnalysis(content, fileType) Promise~DocumentAnalysisResult~
+-private mockDocumentAnalysis(content, fileType) Promise~DocumentAnalysisResult~
+-private callRealEnhancement(requirements, knowledgeProducts, knowledgeContext) Promise~EnhancedRequirementResult~
+-private mockEnhancement(requirements, knowledgeProducts, knowledgeContext) Promise~EnhancedRequirementResult~
+}
 AIService --> OpportunityScoringService : "使用"
 AIService --> ChurnAnalysisService : "使用"
 AIService --> ProposalAIService : "使用"
@@ -451,6 +519,7 @@ AIService --> CustomerInsightService : "使用"
 AIService --> FollowUpAnalysisService : "使用"
 AIService --> ReportGenerationService : "使用"
 AIService --> QuestionClassificationService : "使用"
+AIService --> KnowledgeAIService : "使用"
 ```
 
 **图表来源**
@@ -464,6 +533,7 @@ AIService --> QuestionClassificationService : "使用"
 - [followUpAnalysis.ts:22-480](file://crm-backend/src/services/ai/followUpAnalysis.ts#L22-L480)
 - [reportGeneration.ts:17-379](file://crm-backend/src/services/ai/reportGeneration.ts#L17-L379)
 - [questionClassification.service.ts:25-372](file://crm-backend/src/services/ai/questionClassification.service.ts#L25-L372)
+- [knowledgeAI.ts:18-554](file://crm-backend/src/services/ai/knowledgeAI.ts#L18-L554)
 
 ### 全栈开发专家AI代理
 新增的全栈开发专家AI代理整合了五大专业领域的开发能力：
@@ -532,8 +602,87 @@ AgentCapabilities --> APIDesignExpert : "包含"
 **图表来源**
 - [full-stack-dev-expert.md:8-74](file://.claude/agents/full-stack-dev-expert.md#L8-L74)
 
+### 企业知识库架构
+新增的企业知识库管理功能提供了完整的知识资产管理能力：
+
+```mermaid
+classDiagram
+class KnowledgeController {
+-getDocuments(req, res, next) Promise~Response~
+-getDocumentById(req, res, next) Promise~Response~
+-uploadDocument(req, res, next) Promise~Response~
+-deleteDocument(req, res, next) Promise~Response~
+-parseDocument(req, res, next) Promise~Response~
+-getProducts(req, res, next) Promise~Response~
+-createProduct(req, res, next) Promise~Response~
+-updateProduct(req, res, next) Promise~Response~
+-deleteProduct(req, res, next) Promise~Response~
+-importProducts(req, res, next) Promise~Response~
+-exportProducts(req, res, next) Promise~Response~
+-getContracts(req, res, next) Promise~Response~
+-createContract(req, res, next) Promise~Response~
+-updateContract(req, res, next) Promise~Response~
+-deleteContract(req, res, next) Promise~Response~
+-getCustomTables(req, res, next) Promise~Response~
+-createCustomTable(req, res, next) Promise~Response~
+-updateCustomTable(req, res, next) Promise~Response~
+-deleteCustomTable(req, res, next) Promise~Response~
+-getCustomTableRows(req, res, next) Promise~Response~
+-createCustomTableRow(req, res, next) Promise~Response~
+-updateCustomTableRow(req, res, next) Promise~Response~
+-deleteCustomTableRow(req, res, next) Promise~Response~
+-searchKnowledge(req, res, next) Promise~Response~
+}
+class KnowledgeService {
+-private prisma : PrismaClient
+-getDocuments(query) Promise~DocumentResult~
+-getDocumentById(id) Promise~KnowledgeDocument~
+-uploadDocument(data, userId) Promise~KnowledgeDocument~
+-deleteDocument(id) Promise~void~
+-parseDocument(id) Promise~KnowledgeDocument~
+-getProducts(query) Promise~ProductResult~
+-createProduct(data) Promise~ProductPricing~
+-updateProduct(id, data) Promise~ProductPricing~
+-deleteProduct(id) Promise~void~
+-importProducts(rows, documentId?) Promise~ImportResult~
+-exportProducts(query?) Promise~ProductPricing[]~
+-getContracts(query) Promise~ContractResult~
+-getContractById(id) Promise~ContractTemplate~
+-createContract(data, userId) Promise~ContractTemplate~
+-updateContract(id, data) Promise~ContractTemplate~
+-deleteContract(id) Promise~void~
+-incrementContractUsage(id) Promise~ContractTemplate~
+-getCustomTables(userId) Promise~CustomDataTable[]~
+-createCustomTable(data, userId) Promise~CustomDataTable~
+-updateCustomTable(id, data) Promise~CustomDataTable~
+-deleteCustomTable(id) Promise~void~
+-getCustomTableRows(tableId, query) Promise~RowResult~
+-createCustomTableRow(tableId, data) Promise~CustomDataRow~
+-updateCustomTableRow(tableId, rowId, data) Promise~CustomDataRow~
+-deleteCustomTableRow(tableId, rowId) Promise~void~
+-searchKnowledge(query) Promise~SearchResult~
+}
+class KnowledgeAIService {
+-analyzeDocument(content, fileType) Promise~DocumentAnalysisResult~
+-generateDocumentSummary(content) Promise~string~
+-searchRelevantKnowledge(query, context?) Promise~RelevantKnowledgeResult~
+-enhanceRequirementAnalysis(requirements, knowledgeContext) Promise~EnhancedRequirementResult~
+-callRealDocumentAnalysis(content, fileType) Promise~DocumentAnalysisResult~
+-mockDocumentAnalysis(content, fileType) Promise~DocumentAnalysisResult~
+-callRealEnhancement(requirements, knowledgeProducts, knowledgeContext) Promise~EnhancedRequirementResult~
+-mockEnhancement(requirements, knowledgeProducts, knowledgeContext) Promise~EnhancedRequirementResult~
+}
+KnowledgeController --> KnowledgeService : "使用"
+KnowledgeService --> KnowledgeAIService : "使用"
+```
+
+**图表来源**
+- [knowledge.controller.ts:11-509](file://crm-backend/src/controllers/knowledge.controller.ts#L11-L509)
+- [knowledge.service.ts:21-693](file://crm-backend/src/services/knowledge.service.ts#L21-L693)
+- [knowledgeAI.ts:18-554](file://crm-backend/src/services/ai/knowledgeAI.ts#L18-L554)
+
 ### 数据模型设计
-系统使用Prisma定义了完整的AI功能数据模型，现已扩展：
+系统使用Prisma定义了完整的AI功能数据模型，现已扩展包括企业知识库：
 
 ```mermaid
 erDiagram
@@ -571,6 +720,13 @@ OPPORTUNITY_SCORE ||--|| USER : "生成"
 CUSTOMER_INSIGHT ||--|| USER : "生成"
 PRE_SALES_REQUEST ||--|| USER : "生成"
 PRE_SALES_RESOURCE ||--|| USER : "生成"
+KNOWLEDGE_DOCUMENT ||--o{ PRODUCT_PRICING : "关联"
+KNOWLEDGE_DOCUMENT ||--o{ CUSTOM_DATA_ROW : "关联"
+CONTRACT_TEMPLATE ||--|| USER : "创建"
+PRODUCT_PRICING ||--|| USER : "创建"
+CUSTOM_DATA_TABLE ||--|| USER : "创建"
+CUSTOM_DATA_TABLE ||--o{ CUSTOM_DATA_ROW : "包含"
+CUSTOM_DATA_ROW ||--|| CUSTOM_DATA_TABLE : "属于"
 note for USER "用户表<br/>包含认证信息和角色"
 note for CUSTOMER "客户表<br/>包含客户基本信息和AI字段"
 note for AUDIO_RECORDING "录音表<br/>存储通话录音和分析结果"
@@ -584,44 +740,198 @@ note for COACHING_SUGGESTION "教练建议表<br/>AI生成的改进建议"
 note for PRE_SALES_REQUEST "售前需求表<br/>售前资源需求"
 note for PRE_SALES_RESOURCE "售前资源表<br/>售前技术支持人员"
 note for RESOURCE_MATCH_RECORD "资源匹配记录表<br/>资源匹配结果"
+note for KNOWLEDGE_DOCUMENT "知识库文档表<br/>企业知识文档"
+note for PRODUCT_PRICING "产品价格表<br/>产品定价信息"
+note for CONTRACT_TEMPLATE "合同模板表<br/>合同模板库"
+note for CUSTOM_DATA_TABLE "自定义数据表<br/>灵活的数据表格"
+note for CUSTOM_DATA_ROW "自定义数据行<br/>表格中的具体数据"
 ```
 
 **图表来源**
 - [schema.prisma:572-613](file://crm-backend/prisma/schema.prisma#L572-L613)
 
 ### API接口设计
-AI功能提供了完整的REST API接口，现已扩展为多服务架构：
+AI功能和知识库功能提供了完整的REST API接口，现已扩展为多服务架构：
 
 ```mermaid
 sequenceDiagram
 participant Client as "前端应用"
 participant Auth as "认证中间件"
-participant Controller as "AI控制器"
-participant Service as "AI服务层"
+participant AIController as "AI控制器"
+participant KnowledgeController as "知识库控制器"
+participant AIService as "AI服务层"
+participant KnowledgeService as "知识库服务"
 participant DB as "数据库"
 Client->>Auth : 发送带令牌的请求
 Auth->>Auth : 验证JWT令牌
-Auth->>Controller : 转发已认证请求
-Controller->>Service : 调用AI分析方法
-Service->>DB : 查询客户数据
-DB-->>Service : 返回客户信息
-Service->>Service : 执行AI分析
-Service->>DB : 保存分析结果
-DB-->>Service : 确认保存
-Service-->>Controller : 返回分析结果
-Controller-->>Client : 返回JSON响应
+Auth->>AIController : 转发已认证请求
+AIController->>AIService : 调用AI分析方法
+AIService->>DB : 查询客户数据
+DB-->>AIService : 返回客户信息
+AIService->>AIService : 执行AI分析
+AIService->>DB : 保存分析结果
+DB-->>AIService : 确认保存
+AIService-->>AIController : 返回分析结果
+AIController-->>Client : 返回JSON响应
+Client->>Auth : 发送带令牌的请求
+Auth->>Auth : 验证JWT令牌
+Auth->>KnowledgeController : 转发已认证请求
+KnowledgeController->>KnowledgeService : 调用知识库方法
+KnowledgeService->>DB : 查询知识库数据
+DB-->>KnowledgeService : 返回知识库信息
+KnowledgeService->>DB : 保存知识库操作
+DB-->>KnowledgeService : 确认保存
+KnowledgeService-->>KnowledgeController : 返回知识库结果
+KnowledgeController-->>Client : 返回JSON响应
 ```
 
 **图表来源**
 - [ai.routes.ts:32-98](file://crm-backend/src/routes/ai.routes.ts#L32-L98)
 - [ai.controller.ts:13-191](file://crm-backend/src/controllers/ai.controller.ts#L13-L191)
+- [knowledge.routes.ts:106-512](file://crm-backend/src/routes/knowledge.routes.ts#L106-L512)
+- [knowledge.controller.ts:18-509](file://crm-backend/src/controllers/knowledge.controller.ts#L18-L509)
 
 **章节来源**
 - [ai.controller.ts:1-800](file://crm-backend/src/controllers/ai.controller.ts#L1-L800)
 - [ai.routes.ts:1-98](file://crm-backend/src/routes/ai.routes.ts#L1-L98)
+- [knowledge.controller.ts:1-509](file://crm-backend/src/controllers/knowledge.controller.ts#L1-L509)
+- [knowledge.routes.ts:1-512](file://crm-backend/src/routes/knowledge.routes.ts#L1-L512)
 - [schema.prisma:572-613](file://crm-backend/prisma/schema.prisma#L572-L613)
 
 ## 新增AI功能详解
+
+### 企业知识库AI集成
+新增的企业知识库AI集成为系统提供了完整的知识资产管理能力，包括文档分析、语义搜索、需求增强等功能：
+
+#### 知识库AI服务架构
+知识库AI服务采用模块化设计，提供多种AI分析能力：
+
+```mermaid
+classDiagram
+class KnowledgeAIService {
+-analyzeDocument(content, fileType) Promise~DocumentAnalysisResult~
+-generateDocumentSummary(content) Promise~string~
+-searchRelevantKnowledge(query, context?) Promise~RelevantKnowledgeResult~
+-enhanceRequirementAnalysis(requirements, knowledgeContext) Promise~EnhancedRequirementResult~
+-callRealDocumentAnalysis(content, fileType) Promise~DocumentAnalysisResult~
+-mockDocumentAnalysis(content, fileType) Promise~DocumentAnalysisResult~
+-callRealEnhancement(requirements, knowledgeProducts, knowledgeContext) Promise~EnhancedRequirementResult~
+-mockEnhancement(requirements, knowledgeProducts, knowledgeContext) Promise~EnhancedRequirementResult~
+-simulateDelay(min, max) Promise~void~
+-extractNeedsFromText(text) string[]
+-generateSuggestedProducts(knowledgeProducts, requirements) Array
+-estimateBudget(knowledgeProducts, suggestedProducts) BudgetEstimate
+-generateInsights(requirements, context?) string[]
+-generateProductRelevanceReason(product, context?) string
+-generateSearchSuggestions(query, context?, results?) string[]
+}
+class DocumentAnalysisResult {
+-summary : string
+-keyTopics : string[]
+-entities : Entity[]
+-recommendations : string[]
+-confidence : number
+}
+class RelevantKnowledgeResult {
+-products : ProductMatch[]
+-templates : TemplateMatch[]
+-contracts : ContractMatch[]
+-suggestions : string[]
+}
+class EnhancedRequirementResult {
+-enhancedNeeds : EnhancedNeed[]
+-suggestedProducts : ProductSuggestion[]
+-estimatedBudget : BudgetEstimate
+-additionalInsights : string[]
+}
+KnowledgeAIService --> DocumentAnalysisResult : "返回"
+KnowledgeAIService --> RelevantKnowledgeResult : "返回"
+KnowledgeAIService --> EnhancedRequirementResult : "返回"
+```
+
+**图表来源**
+- [knowledgeAI.ts:18-554](file://crm-backend/src/services/ai/knowledgeAI.ts#L18-L554)
+- [types.ts:661-684](file://crm-backend/src/services/ai/types.ts#L661-L684)
+
+#### 文档分析功能
+知识库AI服务提供了强大的文档分析能力，支持多种文件类型的智能分析：
+
+**文件类型支持**：
+- **Excel/CSV文件**：自动识别数据表格，提取结构化数据
+- **PDF文件**：提取文本内容，识别合同文档特征
+- **Word文档**：提取格式化文本，识别模板文档
+- **通用文件**：提供基础的文档分析能力
+
+**分析能力**：
+- **摘要生成**：自动生成200字以内的文档摘要
+- **关键主题提取**：识别文档的核心主题和要点
+- **实体识别**：提取文档中的关键实体和相关信息
+- **建议生成**：基于文档内容提供使用建议
+- **置信度评估**：提供分析结果的可信度评分
+
+#### 知识库搜索功能
+基于知识库内容的智能搜索功能，提供语义级别的知识检索：
+
+**搜索范围**：
+- **文档搜索**：搜索知识库中的各类文档
+- **产品搜索**：搜索产品价格表中的产品信息
+- **合同模板搜索**：搜索合同模板库中的模板
+
+**搜索算法**：
+- **全文检索**：支持标题、描述、内容的全文搜索
+- **相关度排序**：基于内容相似度进行相关度排序
+- **类型过滤**：支持按文档类型进行过滤
+- **分页查询**：支持大数据量的分页检索
+
+#### 需求增强功能
+基于知识库数据的智能需求分析和增强：
+
+**增强能力**：
+- **需求识别**：从客户描述中提取关键需求
+- **优先级评估**：对需求进行优先级排序
+- **产品建议**：基于产品库推荐合适的解决方案
+- **预算估算**：提供合理的预算范围和估算
+- **额外洞察**：提供专业的业务洞察和建议
+
+**知识库集成**：
+- **产品数据集成**：实时获取产品价格和规格信息
+- **行业背景分析**：结合客户行业背景提供定制化建议
+- **历史数据利用**：利用历史销售数据提供参考
+
+#### 知识库管理功能
+企业知识库管理提供了完整的知识资产管理能力：
+
+**文档管理**：
+- **多格式支持**：支持PDF、Word、Excel、PPT等多种文件格式
+- **分类管理**：支持产品文档、销售资料、技术文档等分类
+- **标签系统**：支持多标签管理，便于检索和分类
+- **版本控制**：支持文档版本管理和历史追踪
+
+**产品价格表**：
+- **批量导入**：支持Excel/CSV批量导入产品信息
+- **价格管理**：支持产品价格、规格、折扣等信息管理
+- **导出功能**：支持Excel格式导出产品数据
+- **搜索过滤**：支持按分类、价格区间等条件搜索
+
+**合同模板库**：
+- **模板管理**：支持合同模板的创建、编辑、删除
+- **变量系统**：支持模板变量定义和填充
+- **使用统计**：统计模板使用频率和效果
+- **版本管理**：支持模板版本管理和更新
+
+**自定义数据表**：
+- **灵活配置**：支持自定义字段类型和约束
+- **数据行管理**：支持数据行的增删改查操作
+- **搜索功能**：支持JSON字段的搜索和过滤
+- **权限控制**：支持按用户权限控制数据访问
+
+**章节来源**
+- [knowledgeAI.ts:1-554](file://crm-backend/src/services/ai/knowledgeAI.ts#L1-L554)
+- [knowledge.controller.ts:1-509](file://crm-backend/src/controllers/knowledge.controller.ts#L1-L509)
+- [knowledge.service.ts:1-693](file://crm-backend/src/services/knowledge.service.ts#L1-L693)
+- [knowledge.routes.ts:1-512](file://crm-backend/src/routes/knowledge.routes.ts#L1-L512)
+- [knowledge.validator.ts:1-206](file://crm-backend/src/validators/knowledge.validator.ts#L1-L206)
+- [types.ts:661-684](file://crm-backend/src/services/ai/types.ts#L661-L684)
 
 ### 全栈开发专家AI代理配置
 新增的全栈开发专家AI代理整合了调试、测试生成、代码重构、前端设计和API设计五大专业领域的开发能力：
@@ -1001,6 +1311,14 @@ REF[重构助手]
 FRNT[前端设计器]
 API[API设计器]
 end
+subgraph "知识库管理组件"
+KD[知识库页面]
+DOC[文档管理]
+PROD[产品价格表]
+CON[合同模板]
+TAB[自定义数据表]
+SRCH[知识搜索]
+end
 AA --> RL
 AA --> RD
 AA --> GR
@@ -1012,6 +1330,12 @@ AA --> SCP
 AA --> RMC
 AA --> QC
 AA --> DA
+AA --> KD
+KD --> DOC
+KD --> PROD
+KD --> CON
+KD --> TAB
+KD --> SRCH
 OSC --> SS
 OSC --> RS
 OSC --> REC
@@ -1043,6 +1367,11 @@ DA --> TST
 DA --> REF
 DA --> FRNT
 DA --> API
+DOC --> DOC
+PROD --> PROD
+CON --> CON
+TAB --> TAB
+SRCH --> SRCH
 ```
 
 **图表来源**
@@ -1051,6 +1380,8 @@ DA --> API
 - [ChurnAlertCard.tsx:62-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L62-L326)
 - [CustomerInsightPanel.tsx:80-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L80-L381)
 - [AIAudio/index.tsx:27-441](file://crm-frontend/src/pages/AIAudio/index.tsx#L27-L441)
+- [Knowledge/index.tsx:102-261](file://crm-frontend/src/pages/Knowledge/index.tsx#L102-L261)
+- [Documents.tsx:498-702](file://crm-frontend/src/pages/Knowledge/Documents.tsx#L498-L702)
 
 ### 机会评分卡片组件
 提供可视化的商机评分展示和分析：
@@ -1204,9 +1535,53 @@ DA --> API
 **章节来源**
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 
+### 知识库管理组件
+提供企业知识库管理的完整界面：
+
+#### 知识库主页
+- **统计概览**：显示文档、产品、合同、数据表的统计信息
+- **快速导航**：提供文档管理、产品价格表、合同模板、自定义表的快捷入口
+- **最近更新**：显示最近更新的文档列表
+
+#### 文档管理
+- **文档列表**：支持分页、搜索、分类筛选的文档列表
+- **上传功能**：支持拖拽上传多种格式的文档
+- **解析功能**：自动解析文档内容，提取可检索信息
+- **标签管理**：支持文档标签的添加和管理
+
+#### 产品价格表
+- **产品列表**：支持分页、搜索、分类筛选的产品列表
+- **批量导入**：支持Excel/CSV批量导入产品信息
+- **导出功能**：支持Excel格式导出产品数据
+- **价格管理**：支持产品价格、规格、折扣等信息管理
+
+#### 合同模板
+- **模板管理**：支持合同模板的创建、编辑、删除
+- **变量系统**：支持模板变量定义和填充
+- **使用统计**：统计模板使用频率和效果
+- **版本管理**：支持模板版本管理和更新
+
+#### 自定义数据表
+- **灵活配置**：支持自定义字段类型和约束
+- **数据行管理**：支持数据行的增删改查操作
+- **搜索功能**：支持JSON字段的搜索和过滤
+- **权限控制**：支持按用户权限控制数据访问
+
+#### 知识搜索
+- **跨库搜索**：支持文档、产品、合同的联合搜索
+- **相关度排序**：基于内容相似度进行相关度排序
+- **搜索建议**：提供搜索关键词的智能建议
+- **搜索历史**：记录用户的搜索历史
+
+**章节来源**
+- [Knowledge/index.tsx:1-261](file://crm-frontend/src/pages/Knowledge/index.tsx#L1-L261)
+- [Documents.tsx:1-702](file://crm-frontend/src/pages/Knowledge/Documents.tsx#L1-L702)
+
 **章节来源**
 - [AIAssistant/index.tsx:1-376](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L376)
 - [AIAudio/index.tsx:1-441](file://crm-frontend/src/pages/AIAudio/index.tsx#L1-L441)
+- [Knowledge/index.tsx:1-261](file://crm-frontend/src/pages/Knowledge/index.tsx#L1-L261)
+- [Documents.tsx:1-702](file://crm-frontend/src/pages/Knowledge/Documents.tsx#L1-L702)
 
 ## API基础URL配置
 
@@ -1283,12 +1658,25 @@ AI --> MATCH[资源匹配服务]
 AI --> FOLLOWUP[跟进分析服务]
 AI --> REPORT[报告生成服务]
 AI --> QUESTION[问题分类服务]
+AI --> KNOWLEDGE_AI[知识库AI服务]
 AI --> DEV_AGENT[开发代理]
 DEV_AGENT --> DEBUGGING[调试专家]
 DEV_AGENT --> TESTING[测试生成专家]
 DEV_AGENT --> REFACTORING[重构专家]
 DEV_AGENT --> FRONTEND[前端设计专家]
 DEV_AGENT --> API_DESIGN[API设计专家]
+KNOWLEDGE_AI --> KNOWLEDGE_SERVICE[知识库服务]
+KNOWLEDGE_SERVICE --> PRISMA
+ENDPOINT --> KNOWLEDGE[知识库控制器]
+KNOWLEDGE --> KNOWLEDGE_SERVICE
+ENDPOINT --> AI
+AI --> PROPOSAL
+AI --> COACH
+AI --> MATCH
+AI --> FOLLOWUP
+AI --> REPORT
+AI --> QUESTION
+AI --> KNOWLEDGE_AI
 end
 subgraph "AI依赖"
 BCRYPT[bcryptjs] --> PASS[密码加密]
@@ -1324,37 +1712,48 @@ APP --> ENDPOINT
 - [package.json:1-38](file://crm-frontend/package.json#L1-L38)
 
 ## 性能考虑
-系统在设计时充分考虑了性能优化，现已针对多AI服务进行优化：
+系统在设计时充分考虑了性能优化，现已针对多AI服务和知识库功能进行优化：
 
 ### 缓存策略
 - **AI分析结果缓存**：避免重复计算相同数据
 - **前端组件缓存**：减少重复渲染
 - **数据库查询优化**：使用索引和分页
 - **API响应缓存**：热点数据缓存
+- **知识库内容缓存**：文档解析结果缓存
 
 ### 并发处理
 - **Promise并行执行**：同时获取多个数据源
-- **异步处理**：非阻塞的AI分析
+- **异步处理**：非阻塞的AI分析和知识库操作
 - **连接池管理**：数据库连接复用
 - **AI服务并发控制**：防止AI服务过载
+- **文件上传并发**：支持多文件并发上传
 
 ### 资源优化
 - **图片懒加载**：减少初始加载时间
 - **组件按需加载**：提高首屏速度
 - **压缩传输**：减少网络开销
 - **AI模型优化**：使用轻量级模型
+- **文件分块上传**：支持大文件分块上传
 
 ### 性能监控
 - **AI服务性能监控**：分析AI分析耗时
 - **数据库查询监控**：识别慢查询
 - **前端性能监控**：组件渲染性能
 - **API响应时间监控**：接口性能跟踪
+- **知识库性能监控**：文档解析和搜索性能
 
 ### 开发代理性能
 - **代理内存管理**：避免重复学习相同模式
 - **权限控制优化**：减少不必要的权限检查
 - **命令执行优化**：批量执行相似命令
 - **资源访问控制**：限制对敏感资源的访问
+
+### 知识库性能优化
+- **文档解析缓存**：避免重复解析相同文档
+- **搜索结果缓存**：缓存热门搜索结果
+- **文件存储优化**：优化文件存储和访问
+- **索引优化**：为常用查询字段建立索引
+- **分页查询优化**：大数据量的高效分页
 
 ## 故障排除指南
 常见问题及解决方案：
@@ -1466,12 +1865,35 @@ APP --> ENDPOINT
 3. 确认文件系统写入权限
 4. 检查代理内存文件格式
 
+### 知识库功能问题
+**症状**：知识库功能无法正常使用
+**原因**：知识库服务或路由配置问题
+**解决方案**：
+1. 检查知识库路由配置是否正确
+2. 验证知识库服务是否正常启动
+3. 确认数据库中知识库表结构
+4. 检查文件上传和存储权限
+5. 验证搜索功能的索引配置
+
+### 知识库搜索问题
+**症状**：知识库搜索结果不准确或无结果
+**原因**：搜索索引或查询逻辑问题
+**解决方案**：
+1. 检查搜索关键词的分词和索引
+2. 验证搜索查询的SQL语句
+3. 确认搜索结果的相关度计算
+4. 检查数据库中的搜索索引
+5. 验证搜索缓存的配置
+
 **章节来源**
 - [auth.ts:13-33](file://crm-backend/src/middlewares/auth.ts#L13-L33)
 - [ai.service.ts:66-73](file://crm-backend/src/services/ai.service.ts#L66-L73)
 - [client.ts:75-77](file://crm-backend/src/services/ai/client.ts#L75-L77)
 - [schema.prisma:8-11](file://crm-backend/prisma/schema.prisma#L8-L11)
 - [full-stack-dev-expert.md:1-109](file://.claude/agents/full-stack-dev-expert.md#L1-L109)
+- [knowledge.controller.ts:1-509](file://crm-backend/src/controllers/knowledge.controller.ts#L1-L509)
+- [knowledge.service.ts:1-693](file://crm-backend/src/services/knowledge.service.ts#L1-L693)
+- [knowledge.routes.ts:1-512](file://crm-backend/src/routes/knowledge.routes.ts#L1-L512)
 
 ## 结论
 本AI助手系统现已发展为功能完备的智能销售分析平台，通过模块化设计和分层架构，成功实现了销售场景下的全方位智能化功能。系统具备以下特点：
@@ -1487,6 +1909,7 @@ APP --> ENDPOINT
 - **智能决策**：从报价到资源分配的业务智能决策支持
 - **问题分类**：基于AI的问题智能分类和趋势分析能力
 - **全栈开发辅助**：新增的全栈开发专家AI代理，整合调试、测试生成、代码重构、前端设计和API设计五大专业领域
+- **企业知识库**：新增的企业知识库管理功能，提供完整的知识资产管理能力
 
 ### 应用价值
 - **提升效率**：自动化生成跟进策略和销售话术
@@ -1499,6 +1922,8 @@ APP --> ENDPOINT
 - **能力提升**：个性化销售培训和技能改进
 - **智能客服**：基于AI的问题分类和趋势分析
 - **开发加速**：全栈开发专家AI代理提供专业的软件开发辅助
+- **知识管理**：企业知识库提供完整的知识资产管理能力
+- **智能搜索**：基于语义的知识检索和需求增强
 
 ### 功能特色
 - **机会评分**：基于BANT模型的综合评估
@@ -1513,6 +1938,10 @@ APP --> ENDPOINT
 - **问题分类**：AI驱动的问题智能分类和趋势分析
 - **阿里云集成**：稳定的DashScope Qwen模型支持
 - **全栈开发**：专业的软件开发辅助AI代理
+- **知识库管理**：完整的知识资产管理功能
+- **文档分析**：智能文档解析和内容提取
+- **语义搜索**：基于知识库的智能检索
+- **需求增强**：结合知识库的智能需求分析
 
 ### 发展方向
 1. **AI能力增强**：集成更多阿里云AI模型和算法
@@ -1525,5 +1954,9 @@ APP --> ENDPOINT
 8. **智能客服**：基于AI的问题分类和自动回复
 9. **开发智能化**：全栈开发专家AI代理的持续优化和扩展
 10. **代理生态**：构建更丰富的AI代理生态系统
+11. **知识图谱**：构建企业知识图谱，提供更智能的知识推理
+12. **智能推荐**：基于用户行为的个性化内容推荐
+13. **自然语言处理**：增强的自然语言理解和生成能力
+14. **多模态AI**：支持文本、图像、语音等多种模态的AI分析
 
-该系统为销售团队提供了强大的AI助手，能够显著提升销售效率和客户服务质量，同时新增的全栈开发专家AI代理为软件开发团队提供了专业的开发辅助，是现代CRM系统和软件开发环境的重要发展方向。
+该系统为销售团队提供了强大的AI助手，能够显著提升销售效率和客户服务质量，同时新增的全栈开发专家AI代理和企业知识库管理功能为软件开发团队和企业知识管理提供了专业的辅助工具，是现代CRM系统和企业知识管理的重要发展方向。

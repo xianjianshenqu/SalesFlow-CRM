@@ -4,18 +4,18 @@ import { useState } from 'react';
 // 导航菜单配置
 const navItems = [
   { path: '/', icon: 'dashboard', label: '工作台' },
+  { path: '/knowledge', icon: 'school', label: '企业知识库' },
   { path: '/customers', icon: 'group', label: '客户管理' },
+  { path: '/presales', icon: 'storefront', label: '售前中心' },
+  { path: '/map', icon: 'map', label: '客户地图' },
+  { path: '/schedule', icon: 'calendar_today', label: '智能日程' },
+  { path: '/ai-audio', icon: 'settings_voice', label: 'AI 录音分析' },
+  { path: '/ai-assistant', icon: 'auto_awesome', label: 'AI 助手' },
   { path: '/funnel', icon: 'filter_alt', label: '销售漏斗' },
   { path: '/proposals', icon: 'description', label: '商务方案' },
   { path: '/service', icon: 'support_agent', label: '售后服务' },
   { path: '/payments', icon: 'payments', label: '回款统计' },
-  { path: '/knowledge', icon: 'school', label: '企业知识库' },
-  { path: '/ai-audio', icon: 'settings_voice', label: 'AI 录音分析' },
-  { path: '/ai-assistant', icon: 'auto_awesome', label: 'AI 助手' },
-  { path: '/schedule', icon: 'calendar_today', label: '智能日程' },
-  { path: '/map', icon: 'map', label: '客户地图' },
   { path: '/team', icon: 'groups', label: '团队协作' },
-  { path: '/presales', icon: 'storefront', label: '售前中心' },
 ];
 
 export function Sidebar() {

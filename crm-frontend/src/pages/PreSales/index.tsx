@@ -38,13 +38,53 @@ const mockQuestions = [
   { id: '2', question: '实施周期大概需要多久？', customer: '李总监', activity: '华为产品演示', category: '实施交付', time: '14:30' },
 ];
 
-// 售前资源Mock数据（简化版）
+// 售前资源Mock数据（增强版）
 const mockResources = [
-  { id: '1', name: '张技术', title: '高级售前工程师', status: 'available' },
-  { id: '2', name: '李方案', title: '方案架构师', status: 'busy' },
-  { id: '3', name: '王演示', title: '售前顾问', status: 'available' },
-  { id: '4', name: '赵文档', title: '技术文档工程师', status: 'busy' },
-  { id: '5', name: '陈POC', title: 'POC工程师', status: 'offline' },
+  { 
+    id: '1', 
+    name: '张技术', 
+    title: '高级售前工程师', 
+    status: 'available',
+    currentTask: '待命 - 可分配新任务',
+    phone: '13800138001',
+    email: 'zhang.tech@company.com'
+  },
+  { 
+    id: '2', 
+    name: '李方案', 
+    title: '方案架构师', 
+    status: 'busy',
+    currentTask: '阿里云POC测试支持',
+    phone: '13800138002',
+    email: 'li.solution@company.com'
+  },
+  { 
+    id: '3', 
+    name: '王演示', 
+    title: '售前顾问', 
+    status: 'available',
+    currentTask: '待命 - 可分配新任务',
+    phone: '13800138003',
+    email: 'wang.demo@company.com'
+  },
+  { 
+    id: '4', 
+    name: '赵文档', 
+    title: '技术文档工程师', 
+    status: 'busy',
+    currentTask: '金融行业方案文档编写',
+    phone: '13800138004',
+    email: 'zhao.doc@company.com'
+  },
+  { 
+    id: '5', 
+    name: '陈POC', 
+    title: 'POC工程师', 
+    status: 'offline',
+    currentTask: '休息中',
+    phone: '13800138005',
+    email: 'chen.poc@company.com'
+  },
 ];
 
 // 资源状态指示器
@@ -98,10 +138,10 @@ function BusinessStats() {
       shadowColor: 'shadow-amber-500/20'
     },
     { 
-      label: '审批中活动', 
+      label: '审批中', 
       value: '3', 
       trend: '', 
-      icon: 'pending_action', 
+      icon: 'schedule', 
       gradient: 'from-violet-500 via-purple-500 to-fuchsia-500',
       bgGradient: 'from-violet-50 to-purple-50 dark:from-violet-950/50 dark:to-purple-950/50',
       shadowColor: 'shadow-violet-500/20'
@@ -109,30 +149,30 @@ function BusinessStats() {
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {stats.map((stat, i) => (
         <div 
           key={i} 
-          className="group relative bg-gradient-to-br dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/50 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden"
+          className="group relative bg-gradient-to-br dark:bg-slate-900 rounded-xl p-4 border border-slate-200/50 dark:border-slate-700/50 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg overflow-hidden"
           style={{ background: `linear-gradient(135deg, var(--tw-gradient-stops))` }}
         >
           {/* 背景装饰 */}
           <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-50`}></div>
-          <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-8 translate-x-8"></div>
+          <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/20 to-transparent rounded-full -translate-y-6 translate-x-6"></div>
           
           <div className="relative flex items-center justify-between">
-            <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${stat.gradient} flex items-center justify-center ${stat.shadowColor} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-              <span className="material-symbols-outlined text-white text-xl drop-shadow-sm">{stat.icon}</span>
+            <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.gradient} flex items-center justify-center ${stat.shadowColor} shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+              <span className="material-symbols-outlined text-white text-lg drop-shadow-sm">{stat.icon}</span>
             </div>
             {stat.trend && (
-              <span className="flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-900/50 px-2 py-1 rounded-full">
-                <span className="material-symbols-outlined text-sm">trending_up</span>
+              <span className="flex items-center gap-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100/80 dark:bg-emerald-900/50 px-2 py-0.5 rounded-full">
+                <span className="material-symbols-outlined text-xs">trending_up</span>
                 {stat.trend}
               </span>
             )}
           </div>
-          <p className="relative text-3xl font-bold text-slate-900 dark:text-white mt-4 tracking-tight">{stat.value}</p>
-          <p className="relative text-sm text-slate-600 dark:text-slate-400 font-medium">{stat.label}</p>
+          <p className="relative text-2xl font-bold text-slate-900 dark:text-white mt-3 tracking-tight">{stat.value}</p>
+          <p className="relative text-xs text-slate-600 dark:text-slate-400 font-medium">{stat.label}</p>
         </div>
       ))}
     </div>
@@ -159,11 +199,11 @@ function TodayActivities() {
         </span>
       </div>
       
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-4">
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-3">
           <div>
-            <h4 className="font-bold text-slate-900 dark:text-white text-lg">{todayActivity.title}</h4>
-            <div className="flex items-center gap-4 mt-2 text-sm text-slate-500 dark:text-slate-400">
+            <h4 className="font-bold text-slate-900 dark:text-white text-base">{todayActivity.title}</h4>
+            <div className="flex items-center gap-3 mt-1.5 text-sm text-slate-500 dark:text-slate-400">
               {todayActivity.customer && (
                 <span className="flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
@@ -185,32 +225,32 @@ function TodayActivities() {
           </span>
         </div>
         
-        <div className="flex items-center gap-5 text-sm text-slate-500 dark:text-slate-400">
-          <span className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg">
-            <span className="material-symbols-outlined text-base text-slate-400">schedule</span>
+        <div className="flex items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
+          <span className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+            <span className="material-symbols-outlined text-sm text-slate-400">schedule</span>
             <span className="font-medium">{todayActivity.time}</span>
           </span>
-          <span className="flex items-center gap-1.5 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-1.5 rounded-lg">
-            <span className="material-symbols-outlined text-base text-emerald-500">how_to_reg</span>
+          <span className="flex items-center gap-1 bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-lg">
+            <span className="material-symbols-outlined text-sm text-emerald-500">how_to_reg</span>
             <span className="font-medium text-emerald-700 dark:text-emerald-400">{todayActivity.signIns} 人签到</span>
           </span>
-          <span className="flex items-center gap-1.5 bg-amber-50 dark:bg-amber-900/30 px-3 py-1.5 rounded-lg">
-            <span className="material-symbols-outlined text-base text-amber-500">help</span>
+          <span className="flex items-center gap-1 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-1 rounded-lg">
+            <span className="material-symbols-outlined text-sm text-amber-500">help</span>
             <span className="font-medium text-amber-700 dark:text-amber-400">{todayActivity.questions} 个问题</span>
           </span>
         </div>
       </div>
       
-      <div className="px-5 pb-5 flex gap-3">
+      <div className="px-4 pb-4 flex gap-3">
         <Link
           to={`/presales/activities/${todayActivity.id}`}
-          className="flex-1 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl text-sm font-semibold text-center hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300"
+          className="flex-1 py-2 bg-gradient-to-r from-primary to-primary/80 text-white rounded-lg text-sm font-semibold text-center hover:shadow-lg hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300"
         >
           查看详情
         </Link>
         <Link
           to={`/presales/activities/${todayActivity.id}/qrcodes`}
-          className="px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-xl text-sm font-semibold text-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+          className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold text-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
         >
           二维码
         </Link>
@@ -366,21 +406,39 @@ function PendingQuestions() {
   );
 }
 
-// 售前资源概览 - 精美卡片设计
+// 售前资源概览 - 增强版卡片设计
 function ResourceOverview() {
   const available = mockResources.filter(r => r.status === 'available').length;
   const busy = mockResources.filter(r => r.status === 'busy').length;
+  const offline = mockResources.filter(r => r.status === 'offline').length;
   
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'available': return 'from-emerald-500 to-teal-500';
+      case 'busy': return 'from-amber-500 to-orange-500';
+      default: return 'from-slate-400 to-slate-500';
+    }
+  };
+
+  const getStatusDot = (status: string) => {
+    switch (status) {
+      case 'available': return 'bg-emerald-500';
+      case 'busy': return 'bg-amber-500';
+      default: return 'bg-slate-400';
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm overflow-hidden">
+      {/* 头部 */}
+      <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-violet-50/50 to-purple-50/50 dark:from-violet-950/20 dark:to-purple-950/20">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center">
-            <span className="material-symbols-outlined text-white text-sm">groups</span>
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500 flex items-center justify-center shadow-lg shadow-violet-500/20">
+            <span className="material-symbols-outlined text-white text-lg">groups</span>
           </div>
           <h3 className="font-bold text-slate-900 dark:text-white">售前资源</h3>
         </div>
-        <div className="flex items-center gap-4 text-xs font-medium">
+        <div className="flex items-center gap-3 text-xs font-medium">
           <span className="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             {available} 空闲
@@ -389,26 +447,71 @@ function ResourceOverview() {
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             {busy} 忙碌
           </span>
+          {offline > 0 && (
+            <span className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-full">
+              <span className="w-2 h-2 rounded-full bg-slate-400"></span>
+              {offline} 离线
+            </span>
+          )}
         </div>
       </div>
-      <div className="flex flex-wrap gap-2">
+      
+      {/* 资源卡片列表 */}
+      <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         {mockResources.map((resource) => (
           <div
             key={resource.id}
-            className="flex items-center gap-2 px-3 py-2 bg-slate-50 dark:bg-slate-800/50 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer group"
+            className="group relative bg-slate-50 dark:bg-slate-800/50 rounded-xl p-3 hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-300 border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
           >
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-lg ${
-              resource.status === 'available' ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-emerald-500/20' :
-              resource.status === 'busy' ? 'bg-gradient-to-br from-amber-500 to-orange-500 shadow-amber-500/20' : 
-              'bg-gradient-to-br from-slate-400 to-slate-500 shadow-slate-500/20'
-            } group-hover:scale-110 transition-transform`}>
-              {resource.name[0]}
+            {/* 顶部：头像 + 姓名 + 状态 */}
+            <div className="flex items-center gap-2 mb-2">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shadow-lg bg-gradient-to-br ${getStatusColor(resource.status)} group-hover:scale-105 transition-transform`}>
+                {resource.name[0]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-semibold text-slate-900 dark:text-white truncate">{resource.name}</span>
+                  <span className={`w-2 h-2 rounded-full flex-shrink-0 ${getStatusDot(resource.status)}`}></span>
+                </div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 truncate block">{resource.title}</span>
+              </div>
             </div>
-            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{resource.name}</span>
-            <span className={`w-2 h-2 rounded-full ${
-              resource.status === 'available' ? 'bg-emerald-500' :
-              resource.status === 'busy' ? 'bg-amber-500' : 'bg-slate-400'
-            }`}></span>
+            
+            {/* 当前任务 */}
+            <div className="mb-3 p-2 bg-white dark:bg-slate-900/50 rounded-lg border border-slate-200/50 dark:border-slate-700/50">
+              <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1">
+                <span className="material-symbols-outlined text-sm">assignment</span>
+                <span>当前任务</span>
+              </div>
+              <p className="text-xs text-slate-700 dark:text-slate-300 font-medium line-clamp-1">{resource.currentTask}</p>
+            </div>
+            
+            {/* 联系按钮 */}
+            <div className="flex items-center gap-2">
+              <a
+                href={`tel:${resource.phone}`}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-medium hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                title="拨打电话"
+              >
+                <span className="material-symbols-outlined text-sm">call</span>
+                <span className="hidden sm:inline">电话</span>
+              </a>
+              <a
+                href={`mailto:${resource.email}`}
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg text-xs font-medium hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                title="发送邮件"
+              >
+                <span className="material-symbols-outlined text-sm">mail</span>
+                <span className="hidden sm:inline">邮件</span>
+              </a>
+              <button
+                className="flex-1 flex items-center justify-center gap-1 py-1.5 bg-violet-50 dark:bg-violet-900/30 text-violet-600 dark:text-violet-400 rounded-lg text-xs font-medium hover:bg-violet-100 dark:hover:bg-violet-900/50 transition-colors"
+                title="发送消息"
+              >
+                <span className="material-symbols-outlined text-sm">chat</span>
+                <span className="hidden sm:inline">消息</span>
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -436,8 +539,8 @@ function QuickActions() {
           {/* 悬浮渐变背景 */}
           <div className={`absolute inset-0 bg-gradient-to-br ${action.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`}></div>
           
-          <div className={`relative w-11 h-11 ${action.iconBg} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-            <span className="material-symbols-outlined text-white text-lg drop-shadow-sm">{action.icon}</span>
+          <div className={`relative w-10 h-10 ${action.iconBg} rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
+            <span className="material-symbols-outlined text-white text-base drop-shadow-sm">{action.icon}</span>
           </div>
           <span className="relative text-sm font-semibold text-slate-700 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">{action.label}</span>
           
@@ -453,25 +556,25 @@ function QuickActions() {
 
 export default function PreSales() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* 页面标题 - 现代化设计 */}
       <div className="flex items-center justify-between">
         <div>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary via-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
-              <span className="material-symbols-outlined text-white text-xl">storefront</span>
+            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-primary via-primary to-primary/70 flex items-center justify-center shadow-lg shadow-primary/20">
+              <span className="material-symbols-outlined text-white text-lg">storefront</span>
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">售前中心</h1>
-              <p className="text-slate-500 dark:text-slate-400 text-sm">管理售前活动、客户签到与问题跟进</p>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">售前中心</h1>
+              <p className="text-slate-500 dark:text-slate-400 text-xs">管理售前活动、客户签到与问题跟进</p>
             </div>
           </div>
         </div>
         <Link
           to="/presales/activities/create"
-          className="group flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-primary to-primary/80 text-white rounded-xl text-sm font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300"
+          className="group flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-primary to-primary/80 text-white rounded-lg text-sm font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all duration-300"
         >
-          <span className="material-symbols-outlined text-base group-hover:rotate-90 transition-transform duration-300">add</span>
+          <span className="material-symbols-outlined text-sm group-hover:rotate-90 transition-transform duration-300">add</span>
           新建活动
         </Link>
       </div>
@@ -483,9 +586,9 @@ export default function PreSales() {
       <QuickActions />
 
       {/* 主内容区 - 重点突出活动和签到 */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         {/* 左侧主区域 - 活动相关 */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-5">
           {/* 今日活动 */}
           <TodayActivities />
           
@@ -494,7 +597,7 @@ export default function PreSales() {
         </div>
 
         {/* 右侧区域 - 签到、问题、资源 */}
-        <div className="space-y-6">
+        <div className="space-y-5">
           {/* 最近签到 */}
           <RecentSignIns />
           
@@ -503,7 +606,7 @@ export default function PreSales() {
         </div>
       </div>
 
-      {/* 底部 - 资源概览（紧凑展示） */}
+      {/* 底部 - 资源概览 */}
       <ResourceOverview />
     </div>
   );
