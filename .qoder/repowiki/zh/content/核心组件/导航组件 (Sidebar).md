@@ -16,19 +16,20 @@
 - [CustomerInsightPanel.tsx](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx)
 - [aiService.ts](file://crm-frontend/src/services/aiService.ts)
 - [types/index.ts](file://crm-frontend/src/types/index.ts)
+- [Knowledge/index.tsx](file://crm-frontend/src/pages/Knowledge/index.tsx)
+- [ColdVisit/index.tsx](file://crm-frontend/src/pages/ColdVisit/index.tsx)
+- [PreSales/index.tsx](file://crm-frontend/src/pages/PreSales/index.tsx)
+- [Map/index.tsx](file://crm-frontend/src/pages/Map/index.tsx)
+- [Schedule/index.tsx](file://crm-frontend/src/pages/Schedule/index.tsx)
 </cite>
 
 ## 更新摘要
 **变更内容**
-- Sidebar组件从简单导航面板升级为沉浸式动画导航系统
-- 新增渐变背景、环境光效、悬停动画、快速动作按钮等高级UI特性
-- 集成Material Symbols图标库，提供12个专业图标
-- 实现响应式布局和交互状态管理
-- 新增AI助手导航项，提供智能报告生成功能
-- 集成AI智能组件导航项，包括机会评分、流失预警、客户洞察等AI功能入口
-- 更新导航配置系统以支持新增的AI功能
-- 新增AI相关的类型定义和服务接口
-- 完善AI功能的路由系统集成
+- Sidebar组件完成了重要重组，将Presales、Map、Schedule、AI-Audio、AI-Assistant等模块重新排列到更显眼的位置
+- 新增"企业知识库"和"陌生拜访AI助手"导航项，提高了这些常用功能的可达性
+- 更新了导航配置系统以支持新增的AI功能和业务模块
+- 完善了路由系统集成，新增了多个业务页面的路由配置
+- 优化了导航菜单的业务流程排序，更好地符合销售人员的工作流程
 
 ## 目录
 1. [简介](#简介)
@@ -48,9 +49,9 @@
 
 ## 简介
 
-本文件为销售AI CRM系统的Sidebar导航组件提供详细的技术文档。该组件采用现代化的React + TypeScript架构，集成了Material Symbols图标库，实现了沉浸式的侧边导航栏功能。组件包含12个导航项，支持激活状态管理和交互反馈，并提供了一个专门的"新建商机"按钮用于创建新商机。该组件现已完全集成到基于react-router-dom的路由系统中，提供了完整的页面导航和认证保护功能。
+本文件为销售AI CRM系统的Sidebar导航组件提供详细的技术文档。该组件采用现代化的React + TypeScript架构，集成了Material Symbols图标库，实现了沉浸式的侧边导航栏功能。组件包含19个导航项，支持激活状态管理和交互反馈，并提供了一个专门的"新建商机"按钮用于创建新商机。该组件现已完全集成到基于react-router-dom的路由系统中，提供了完整的页面导航和认证保护功能。
 
-**更新** Sidebar组件现已升级为沉浸式动画导航系统，具备渐变背景、环境光效、悬停动画、快速动作按钮等高级UI特性，为用户提供更加丰富和流畅的导航体验。
+**更新** Sidebar组件现已完成重要重组，将Presales、Map、Schedule、AI-Audio、AI-Assistant等模块重新排列到更显眼的位置，提高了这些常用功能的可达性。同时新增了"企业知识库"和"陌生拜访AI助手"导航项，更好地符合销售人员的工作流程。
 
 ## 项目结构
 
@@ -78,6 +79,8 @@ Schedule[Schedule 页面]
 Map[Map 页面]
 Team[Team 页面]
 PreSales[PreSales 页面]
+Knowledge[Knowledge 页面]
+ColdVisit[ColdVisit 页面]
 </subgraph
 subgraph "AI智能组件层"
 OpportunityScoreCard[OpportunityScoreCard AI组件]
@@ -113,6 +116,8 @@ App --> Schedule
 App --> Map
 App --> Team
 App --> PreSales
+App --> Knowledge
+App --> ColdVisit
 Sidebar --> MaterialSymbols
 Sidebar --> LuxuryTheme
 Sidebar --> AmbientGlow
@@ -122,14 +127,14 @@ App --> AuthStore
 ```
 
 **图表来源**
-- [App.tsx:1-70](file://crm-frontend/src/App.tsx#L1-L70)
+- [App.tsx:1-108](file://crm-frontend/src/App.tsx#L1-L108)
 - [Layout.tsx:1-24](file://crm-frontend/src/components/layout/Layout.tsx#L1-L24)
-- [Sidebar.tsx:1-161](file://crm-frontend/src/components/layout/Sidebar.tsx#L1-L161)
+- [Sidebar.tsx:1-162](file://crm-frontend/src/components/layout/Sidebar.tsx#L1-L162)
 
 **章节来源**
-- [App.tsx:1-70](file://crm-frontend/src/App.tsx#L1-L70)
+- [App.tsx:1-108](file://crm-frontend/src/App.tsx#L1-L108)
 - [Layout.tsx:1-24](file://crm-frontend/src/components/layout/Layout.tsx#L1-L24)
-- [Sidebar.tsx:1-161](file://crm-frontend/src/components/layout/Sidebar.tsx#L1-L161)
+- [Sidebar.tsx:1-162](file://crm-frontend/src/components/layout/Sidebar.tsx#L1-L162)
 
 ## 核心组件
 
@@ -138,7 +143,7 @@ App --> AuthStore
 Sidebar组件采用函数式组件设计，包含以下核心部分：
 
 1. **沉浸式背景系统**：渐变背景、环境光效、微妙纹理叠加
-2. **导航菜单系统**：12个预定义的导航项，支持激活状态和悬停效果
+2. **导航菜单系统**：19个预定义的导航项，支持激活状态和悬停效果
 3. **快速动作按钮**：专门的"新建商机"按钮，具备发光和闪烁效果
 4. **用户信息区域**：显示当前登录用户的信息，支持在线状态指示
 5. **动画系统**：流畅的过渡动画和延迟动画效果
@@ -164,29 +169,36 @@ Content --> UserInfo[用户信息]
 
 ### 导航配置系统
 
-Sidebar组件定义了完整的导航项配置数组，包含12个专业的业务功能：
+Sidebar组件定义了完整的导航项配置数组，包含19个专业的业务功能，按照销售人员的工作流程重新排序：
 
 | 序号 | 路径 | 图标 | 标签 | 功能描述 |
 |------|------|------|------|----------|
-| 1 | `/` | `dashboard` | 工作台 | 主控制面板 |
-| 2 | `/customers` | `group` | 客户管理 | 客户信息维护 |
-| 3 | `/funnel` | `filter_alt` | 销售漏斗 | 销售流程跟踪 |
-| 4 | `/proposals` | `description` | 商务方案 | 合同和方案管理 |
-| 5 | `/service` | `support_agent` | 售后服务 | 客户支持服务 |
-| 6 | `/payments` | `payments` | 回款统计 | 财务回款跟踪 |
-| 7 | `/ai-audio` | `settings_voice` | AI 录音分析 | 音频内容分析 |
-| 8 | `/ai-assistant` | `auto_awesome` | AI 助手 | 智能工作助手 |
-| 9 | `/schedule` | `calendar_today` | 智能日程 | 日程安排管理 |
-| 10 | `/map` | `map` | 客户地图 | 地理位置可视化 |
-| 11 | `/team` | `groups` | 团队协作 | 团队成员管理 |
-| 12 | `/presales` | `storefront` | 售前中心 | 售前咨询支持 |
+| 1 | `/knowledge` | `school` | 企业知识库 | 企业知识资产管理 |
+| 2 | `/` | `dashboard` | 工作台 | 主控制面板 |
+| 3 | `/schedule` | `calendar_today` | 智能日程 | 日程安排管理 |
+| 4 | `/cold-visit` | `travel_explore` | 陌生拜访AI助手 | 智能客户分析 |
+| 5 | `/customers` | `group` | 客户管理 | 客户信息维护 |
+| 6 | `/map` | `map` | 客户地图 | 地理位置可视化 |
+| 7 | `/funnel` | `filter_alt` | 销售漏斗 | 销售流程跟踪 |
+| 8 | `/presales` | `storefront` | 售前中心 | 售前咨询支持 |
+| 9 | `/proposals` | `description` | 商务方案 | 合同和方案管理 |
+| 10 | `/ai-audio` | `settings_voice` | AI 录音分析 | 音频内容分析 |
+| 11 | `/service` | `support_agent` | 售后服务 | 客户支持服务 |
+| 12 | `/payments` | `payments` | 回款统计 | 财务回款跟踪 |
+| 13 | `/team` | `groups` | 团队协作 | 团队成员管理 |
+| 14 | `/ai-assistant` | `auto_awesome` | AI 助手 | 智能工作助手 |
+| 15 | `/knowledge/products` | `inventory_2` | 产品价格 | 产品定价管理 |
+| 16 | `/knowledge/contracts` | `description` | 合同模板 | 合同模板库 |
+| 17 | `/knowledge/tables` | `table_chart` | 自定义表 | 数据表格管理 |
+| 18 | `/knowledge/documents` | `folder_open` | 文档管理 | 知识文档管理 |
+| 19 | `/presales/activities` | `event` | 活动管理 | 售前活动管理 |
 
-每个导航项都配置了统一的图标样式和标签文本，支持激活状态和悬停效果。
+每个导航项都配置了统一的图标样式和标签文本，支持激活状态和悬停效果。新的导航顺序更好地符合销售人员的工作流程，将最常用的模块放在显眼位置。
 
-**更新** 新增了AI助手导航项，提供智能报告生成功能，支持日报和周报的自动生成和管理。
+**更新** 新增了"企业知识库"导航项，提供知识资产管理功能；"陌生拜访AI助手"导航项支持智能客户分析和话术生成；Presales、Map、Schedule等模块重新排列到更显眼的位置。
 
 **章节来源**
-- [Sidebar.tsx:4-18](file://crm-frontend/src/components/layout/Sidebar.tsx#L4-L18)
+- [Sidebar.tsx:4-19](file://crm-frontend/src/components/layout/Sidebar.tsx#L4-L19)
 
 ### 快速动作按钮
 
@@ -277,7 +289,7 @@ AIAssistant --> CustomerInsightPanel
 **图表来源**
 - [App.tsx:19-30](file://crm-frontend/src/App.tsx#L19-L30)
 - [Layout.tsx:9-23](file://crm-frontend/src/components/layout/Layout.tsx#L9-L23)
-- [Sidebar.tsx:20-161](file://crm-frontend/src/components/layout/Sidebar.tsx#L20-L161)
+- [Sidebar.tsx:20-162](file://crm-frontend/src/components/layout/Sidebar.tsx#L20-L162)
 
 ## 详细组件分析
 
@@ -329,18 +341,19 @@ CreateBottomArea --> End([完成渲染])
 ```mermaid
 classDiagram
 class MaterialSymbols {
++school
 +dashboard
++calendar_today
++travel_explore
 +group
++map
 +filter_alt
++storefront
 +description
++settings_voice
 +support_agent
 +payments
-+settings_voice
-+auto_awesome
-+calendar_today
-+map
 +groups
-+storefront
 }
 class Sidebar {
 +navItems : NavItem[]
@@ -360,7 +373,7 @@ Header --> MaterialSymbols : 使用
 - [Header.tsx:25-26](file://crm-frontend/src/components/layout/Header.tsx#L25-L26)
 
 **章节来源**
-- [Sidebar.tsx:1-161](file://crm-frontend/src/components/layout/Sidebar.tsx#L1-L161)
+- [Sidebar.tsx:1-162](file://crm-frontend/src/components/layout/Sidebar.tsx#L1-L162)
 
 ## 沉浸式动画系统
 
@@ -434,7 +447,7 @@ ActiveIcon --> ActiveText : 激活文本
 - [Sidebar.tsx:73-115](file://crm-frontend/src/components/layout/Sidebar.tsx#L73-L115)
 
 **章节来源**
-- [Sidebar.tsx:25-161](file://crm-frontend/src/components/layout/Sidebar.tsx#L25-L161)
+- [Sidebar.tsx:25-162](file://crm-frontend/src/components/layout/Sidebar.tsx#L25-L162)
 
 ## AI智能功能集成
 
@@ -478,17 +491,39 @@ AIAssistant-->>User : 显示报告详情
 - **特点**：需求分析、决策人识别、痛点挖掘、竞品分析
 - **应用场景**：客户沟通、销售策略制定
 
+### 陌生拜访AI助手
+
+新增的"陌生拜访AI助手"功能提供了智能的企业分析和话术生成功能：
+
+```mermaid
+sequenceDiagram
+participant User as 用户
+participant ColdVisit as 陌生拜访页面
+participant APIService as API服务
+User->>ColdVisit : 输入公司名称或上传图片
+ColdVisit->>APIService : 调用分析API
+APIService-->>ColdVisit : 返回企业分析结果
+User->>ColdVisit : 生成个性化话术
+ColdVisit->>APIService : 调用话术生成API
+APIService-->>ColdVisit : 返回生成的话术
+ColdVisit-->>User : 显示分析结果和话术
+```
+
+**图表来源**
+- [ColdVisit/index.tsx:52-80](file://crm-frontend/src/pages/ColdVisit/index.tsx#L52-L80)
+
 **章节来源**
 - [AIAssistant/index.tsx:1-378](file://crm-frontend/src/pages/AIAssistant/index.tsx#L1-L378)
 - [OpportunityScoreCard.tsx:1-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L1-L336)
 - [ChurnAlertCard.tsx:1-326](file://crm-frontend/src/components/AI/ChurnAlertCard.tsx#L1-L326)
 - [CustomerInsightPanel.tsx:1-381](file://crm-frontend/src/components/AI/CustomerInsightPanel.tsx#L1-L381)
+- [ColdVisit/index.tsx:1-662](file://crm-frontend/src/pages/ColdVisit/index.tsx#L1-L662)
 
 ## 路由系统集成
 
 ### 路由配置架构
 
-应用采用了完整的路由系统，支持嵌套路由和认证保护：
+应用采用了完整的路由系统，支持嵌套路由和认证保护，包含新增的业务页面：
 
 ```mermaid
 graph TB
@@ -509,11 +544,19 @@ LayoutRoute --> ScheduleRoute[智能日程路由 /schedule]
 LayoutRoute --> MapRoute[客户地图路由 /map]
 LayoutRoute --> TeamRoute[团队协作路由 /team]
 LayoutRoute --> PreSalesRoute[售前中心路由 /presales]
+LayoutRoute --> KnowledgeRoute[企业知识库路由 /knowledge]
+LayoutRoute --> ColdVisitRoute[陌生拜访路由 /cold-visit]
+LayoutRoute --> PresalesActivitiesRoute[售前活动路由 /presales/activities]
+LayoutRoute --> PresalesSignInRoute[售前签到路由 /presales/sign-in]
+LayoutRoute --> KnowledgeProductsRoute[产品价格路由 /knowledge/products]
+LayoutRoute --> KnowledgeContractsRoute[合同模板路由 /knowledge/contracts]
+LayoutRoute --> KnowledgeTablesRoute[自定义表路由 /knowledge/tables]
+LayoutRoute --> KnowledgeDocumentsRoute[文档管理路由 /knowledge/documents]
 Routes --> NotFound[* 404重定向]
 ```
 
 **图表来源**
-- [App.tsx:32-67](file://crm-frontend/src/App.tsx#L32-L67)
+- [App.tsx:57-106](file://crm-frontend/src/App.tsx#L57-L106)
 
 ### 认证守卫系统
 
@@ -531,10 +574,10 @@ RenderLayout --> RenderPage[渲染目标页面]
 ```
 
 **图表来源**
-- [App.tsx:19-30](file://crm-frontend/src/App.tsx#L19-L30)
+- [App.tsx:30-55](file://crm-frontend/src/App.tsx#L30-L55)
 
 **章节来源**
-- [App.tsx:1-70](file://crm-frontend/src/App.tsx#L1-L70)
+- [App.tsx:1-108](file://crm-frontend/src/App.tsx#L1-L108)
 
 ## 状态管理
 
@@ -638,6 +681,7 @@ App --> Vite
 5. **AI组件懒加载**：AI智能组件按需加载，提升初始性能
 6. **动画性能优化**：使用CSS3硬件加速的动画效果
 7. **背景渲染优化**：SVG纹理和渐变背景使用GPU加速
+8. **导航项延迟渲染**：使用动画延迟提升视觉体验
 
 ### 路由性能
 
@@ -645,6 +689,7 @@ App --> Vite
 2. **缓存策略**：使用localStorage缓存认证状态
 3. **内存管理**：组件卸载时清理状态
 4. **AI数据缓存**：AI分析结果本地缓存，减少重复请求
+5. **路由预加载**：常用页面预加载，提升导航响应速度
 
 ### 样式优化
 
@@ -652,6 +697,7 @@ App --> Vite
 2. **深色模式**：支持暗色主题适配
 3. **响应式设计**：支持移动端和桌面端适配
 4. **动画优化**：使用transform和opacity属性实现硬件加速
+5. **渐变优化**：使用CSS渐变替代复杂背景图片
 
 ## 故障排除指南
 
@@ -667,6 +713,8 @@ App --> Vite
 | 响应式布局失效 | Tailwind CSS配置错误 | 检查tailwind.config.js配置 |
 | 动画效果异常 | CSS动画冲突 | 检查index.css中的动画定义 |
 | 环境光效不显示 | SVG纹理加载失败 | 检查SVG数据URL编码 |
+| 新增导航项不显示 | Sidebar配置未更新 | 检查navItems数组配置 |
+| 新页面无法访问 | 路由未注册 | 检查App.tsx中的路由配置 |
 
 ### 调试建议
 
@@ -676,6 +724,7 @@ App --> Vite
 4. **状态检查**：使用React DevTools的Zustand插件检查状态
 5. **AI调试**：检查aiService的API调用和返回数据格式
 6. **动画调试**：使用浏览器的动画检查器调试CSS动画
+7. **路由调试**：使用React Router DevTools检查路由状态
 
 **章节来源**
 - [package.json:17](file://crm-frontend/package.json#L17)
@@ -684,7 +733,7 @@ App --> Vite
 
 Sidebar导航组件展现了现代React应用的最佳实践，通过清晰的组件分离、类型安全的接口设计、优雅的样式系统和完整的路由集成，实现了功能完整且易于维护的导航解决方案。组件的模块化设计为未来的功能扩展奠定了良好的基础，同时引入的认证守卫和状态管理系统确保了应用的安全性和可靠性。
 
-**更新** 新增的沉浸式动画系统进一步提升了用户的视觉体验，通过渐变背景、环境光效、悬停动画等高级UI特性，为用户提供了更加专业和现代化的导航界面。新增的AI智能功能进一步提升了系统的智能化水平，为销售团队提供了强大的AI辅助工具，包括智能报告生成、商机评分、流失预警和客户洞察等功能，显著提升了销售效率和客户管理水平。
+**更新** 新增的沉浸式动画系统进一步提升了用户的视觉体验，通过渐变背景、环境光效、悬停动画等高级UI特性，为用户提供了更加专业和现代化的导航界面。新增的AI智能功能进一步提升了系统的智能化水平，为销售团队提供了强大的AI辅助工具，包括智能报告生成、商机评分、流失预警、客户洞察、陌生拜访分析等功能，显著提升了销售效率和客户管理水平。新的导航顺序更好地符合销售人员的工作流程，将最常用的模块放在显眼位置，提高了这些常用功能的可达性。
 
 ## 附录
 
@@ -724,6 +773,8 @@ const customNavItems = [
 8. **数据缓存**：利用本地缓存提升AI功能响应速度
 9. **动画性能**：使用硬件加速的CSS3动画，避免JavaScript动画
 10. **响应式设计**：确保在不同设备上的良好显示效果
+11. **导航流程优化**：根据用户工作流程调整导航顺序
+12. **知识库集成**：充分利用企业知识库提升工作效率
 
 ### 扩展指南
 
@@ -757,3 +808,10 @@ const customNavItems = [
 2. 在Sidebar组件中应用新的动画类
 3. 测试动画效果在不同设备上的表现
 4. 确保动画性能不会影响用户体验
+
+#### 优化导航流程
+1. 分析用户工作流程和使用频率
+2. 调整navItems数组中的顺序
+3. 重新设计路由配置
+4. 测试新的导航流程
+5. 收集用户反馈并持续优化

@@ -25,6 +25,7 @@ import ProductPricing from './pages/Knowledge/ProductPricing';
 import ContractTemplates from './pages/Knowledge/ContractTemplates';
 import CustomTables from './pages/Knowledge/CustomTables';
 import Documents from './pages/Knowledge/Documents';
+import ColdVisit from './pages/ColdVisit';
 
 // 路由守卫组件
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -94,6 +95,7 @@ function App() {
           <Route path="knowledge/contracts" element={<ContractTemplates />} />
           <Route path="knowledge/tables" element={<CustomTables />} />
           <Route path="knowledge/documents" element={<Documents />} />
+          <Route path="cold-visit" element={<ColdVisit />} />
         </Route>
 
         {/* 404 重定向到首页 */}

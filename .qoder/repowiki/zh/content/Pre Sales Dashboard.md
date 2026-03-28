@@ -1,13 +1,11 @@
-# 预售仪表板
+# 售前仪表板
 
 <cite>
 **本文档引用的文件**
-- [dashboard.controller.ts](file://crm-backend/src/controllers/dashboard.controller.ts)
-- [dashboard.service.ts](file://crm-backend/src/services/dashboard.service.ts)
-- [dashboard.routes.ts](file://crm-backend/src/routes/dashboard.routes.ts)
 - [presales.controller.ts](file://crm-backend/src/controllers/presales.controller.ts)
 - [presales.service.ts](file://crm-backend/src/services/presales.service.ts)
 - [presales.routes.ts](file://crm-backend/src/routes/presales.routes.ts)
+- [presales.validator.ts](file://crm-backend/src/validators/presales.validator.ts)
 - [presalesActivity.controller.ts](file://crm-backend/src/controllers/presalesActivity.controller.ts)
 - [presalesActivity.service.ts](file://crm-backend/src/services/presalesActivity.service.ts)
 - [presalesActivity.routes.ts](file://crm-backend/src/routes/presalesActivity.routes.ts)
@@ -18,7 +16,10 @@
 - [proposalAI.ts](file://crm-backend/src/services/ai/proposalAI.ts)
 - [ai/index.ts](file://crm-backend/src/services/ai/index.ts)
 - [index.tsx](file://crm-frontend/src/pages/Dashboard/index.tsx)
+- [index.tsx](file://crm-frontend/src/pages/PreSales/index.tsx)
 - [index.tsx](file://crm-frontend/src/pages/PreSales/Activities/index.tsx)
+- [ActivityForm.tsx](file://crm-frontend/src/pages/PreSales/Activities/ActivityForm.tsx)
+- [SignInPage.tsx](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx)
 - [Proposals/index.tsx](file://crm-frontend/src/pages/Proposals/index.tsx)
 - [ProposalDetail/index.tsx](file://crm-frontend/src/pages/Proposals/ProposalDetail/index.tsx)
 - [RequirementAnalysis.tsx](file://crm-frontend/src/pages/Proposals/ProposalDetail/components/RequirementAnalysis.tsx)
@@ -33,31 +34,35 @@
 
 ## 更新摘要
 **所做更改**
-- 新增提案系统功能集成，包括提案状态监控、AI智能分析、工作流程统计等与提案系统相关的功能模块
-- 更新预售仪表板的视觉设计部分，反映全面的视觉重新设计和现代化改造
-- 新增活动类型配置增强、统计卡片渐变设计、动画效果、图标集成等视觉改进
-- 更新前端组件设计章节，包含新的Material Icons集成和暗色模式支持
-- 增强性能优化策略，包含新的动画和过渡效果
+- 新增售前资源管理系统，包括资源状态管理、技能匹配、工作负载监控等功能
+- 更新售前活动管理界面，采用现代化的渐变设计和增强的交互体验
+- 新增签到系统页面，支持二维码签到、问题收集和活动管理
+- 更新统计卡片设计，采用全新的渐变背景和动画效果
+- 增强资源概览卡片，提供更直观的资源状态可视化
+- 新增快速操作模块，支持一键创建活动、签到入口等快捷功能
 
 ## 目录
 1. [项目概述](#项目概述)
 2. [系统架构](#系统架构)
 3. [核心组件分析](#核心组件分析)
-4. [预售仪表板功能](#预售仪表板功能)
-5. [提案系统集成](#提案系统集成)
-6. [数据流分析](#数据流分析)
-7. [前端组件设计](#前端组件设计)
-8. [AI智能分析集成](#ai智能分析集成)
-9. [视觉设计与现代化改造](#视觉设计与现代化改造)
-10. [性能优化策略](#性能优化策略)
-11. [故障排除指南](#故障排除指南)
-12. [总结](#总结)
+4. [售前资源管理](#售前资源管理)
+5. [售前活动管理](#售前活动管理)
+6. [签到系统](#签到系统)
+7. [统计面板](#统计面板)
+8. [快速操作](#快速操作)
+9. [数据流分析](#数据流分析)
+10. [前端组件设计](#前端组件设计)
+11. [AI智能分析集成](#ai智能分析集成)
+12. [视觉设计与现代化改造](#视觉设计与现代化改造)
+13. [性能优化策略](#性能优化策略)
+14. [故障排除指南](#故障排除指南)
+15. [总结](#总结)
 
 ## 项目概述
 
-销售AI CRM系统是一个集成了人工智能技术的客户关系管理系统，专注于销售流程的智能化管理。系统包含预售仪表板功能，为企业提供全面的销售活动监控和分析能力，现已集成了完整的提案管理系统。
+销售AI CRM系统是一个集成了人工智能技术的客户关系管理系统，专注于销售流程的智能化管理。系统包含售前仪表板功能，为企业提供全面的售前活动监控和分析能力，现已集成了完整的资源管理系统和签到功能。
 
-该系统采用前后端分离架构，后端基于Node.js + Express + Prisma ORM，前端使用React + TypeScript构建，实现了完整的销售生命周期管理，包括客户管理、销售机会跟踪、预售活动管理、AI智能分析、**提案系统管理**等功能模块。
+该系统采用前后端分离架构，后端基于Node.js + Express + Prisma ORM，前端使用React + TypeScript构建，实现了完整的售前生命周期管理，包括资源管理、活动管理、签到系统、AI智能分析、提案系统管理等功能模块。
 
 ## 系统架构
 
@@ -65,7 +70,9 @@
 graph TB
 subgraph "前端层 (React)"
 FE_Dashboard[仪表板页面]
-FE_Presales[预售管理页面]
+FE_Presales[售前中心页面]
+FE_Activities[活动管理页面]
+FE_SignIn[签到页面]
 FE_Proposals[提案管理系统]
 FE_AI[AI分析组件]
 FE_Store[状态管理]
@@ -85,6 +92,8 @@ AI_Proposal[提案AI分析]
 end
 FE_Dashboard --> BE_Router
 FE_Presales --> BE_Router
+FE_Activities --> BE_Router
+FE_SignIn --> BE_Router
 FE_Proposals --> BE_Router
 FE_AI --> BE_Router
 FE_Layout --> BE_Router
@@ -98,34 +107,23 @@ AI_Suggestions --> AI_Proposal
 ```
 
 **图表来源**
-- [dashboard.controller.ts:1-123](file://crm-backend/src/controllers/dashboard.controller.ts#L1-L123)
 - [presales.controller.ts:1-248](file://crm-backend/src/controllers/presales.controller.ts#L1-L248)
-- [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
 - [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
+- [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
 
 **章节来源**
-- [dashboard.controller.ts:1-123](file://crm-backend/src/controllers/dashboard.controller.ts#L1-L123)
 - [presales.controller.ts:1-248](file://crm-backend/src/controllers/presales.controller.ts#L1-L248)
-- [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
 - [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
+- [proposal.controller.ts:1-636](file://crm-backend/src/controllers/proposal.controller.ts#L1-L636)
 
 ## 核心组件分析
 
 ### 后端架构组件
 
-系统采用经典的三层架构模式，实现了清晰的职责分离，并新增了提案系统模块：
+系统采用经典的三层架构模式，实现了清晰的职责分离，并新增了资源管理模块：
 
 ```mermaid
 classDiagram
-class DashboardController {
-+getOverview(req, res, next)
-+getFunnelSummary(req, res, next)
-+getAISuggestions(req, res, next)
-+getTodaySchedule(req, res, next)
-+getRecentRecordings(req, res, next)
-+getSalesTrend(req, res, next)
-+getFullDashboard(req, res, next)
-}
 class PresalesController {
 +createResource(req, res, next)
 +getResources(req, res, next)
@@ -207,21 +205,19 @@ class ProposalController {
 +updateAgreedTerms(req, res, next)
 +completeNegotiation(req, res, next)
 }
-DashboardController --> DashboardService
 PresalesController --> PresalesService
 PresalesActivityController --> PresalesActivityService
 ProposalController --> ProposalService
 ```
 
 **图表来源**
-- [dashboard.controller.ts:9-121](file://crm-backend/src/controllers/dashboard.controller.ts#L9-L121)
 - [presales.controller.ts:9-248](file://crm-backend/src/controllers/presales.controller.ts#L9-L248)
 - [presalesActivity.controller.ts:9-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L9-L338)
 - [proposal.controller.ts:9-636](file://crm-backend/src/controllers/proposal.controller.ts#L9-L636)
 
 ### 数据模型设计
 
-系统使用Prisma ORM进行数据库操作，支持复杂的数据关联和查询，新增了提案相关数据模型：
+系统使用Prisma ORM进行数据库操作，支持复杂的数据关联和查询，新增了资源管理相关数据模型：
 
 ```mermaid
 erDiagram
@@ -293,111 +289,110 @@ datetime signed_at
 datetime created_at
 datetime updated_at
 }
-PROPOSAL {
+RESOURCE_WORKLOAD {
 string id PK
-string customerId FK
-string title
-number value
-string description
-json products
-string terms
-datetime validUntil
-string status
-string notes
-string createdById FK
-datetime sentAt
-datetime createdAt
-datetime updatedAt
+string resource_id FK
+int tasks_count
+int hours_worked
+datetime date
+datetime week_start
+datetime month_start
 }
-REQUIREMENT_ANALYSIS {
-string id PK
-string proposalId FK U
-string customerId FK
-string sourceType
-string recordingId
-string rawContent
-boolean aiEnhanced
-string finalContent
-json extractedNeeds
-json painPoints
-string budgetHint
-string decisionTimeline
-string status
-datetime createdAt
-datetime updatedAt
-}
-PROPOSAL_REVIEW {
-string id PK
-string proposalId FK U
-string reviewerId
-string status
-json comments
-string resultNotes
-datetime createdAt
-datetime updatedAt
-}
-PRE_SALES_RESOURCE ||--o{ PRE_SALES_REQUEST : "assigned"
-PRE_SALES_RESOURCE ||--o{ ACTIVITY_SIGN_IN : "created"
-PRE_SALES_REQUEST ||--o{ ACTIVITY_SIGN_IN : "generated"
-PROPOSAL ||--o{ REQUIREMENT_ANALYSIS : "has"
-PROPOSAL ||--o{ PROPOSAL_REVIEW : "has"
 ```
 
 **图表来源**
-- [presales.service.ts:22-37](file://crm-backend/src/services/presales.service.ts#L22-L37)
+- [presales.service.ts:17-43](file://crm-backend/src/services/presales.service.ts#L17-L43)
 - [presalesActivity.service.ts:32-54](file://crm-backend/src/services/presalesActivity.service.ts#L32-L54)
-- [proposal.service.ts:587-715](file://crm-backend/src/services/proposal.service.ts#L587-L715)
-- [schema.prisma:955-995](file://crm-backend/prisma/schema.prisma#L955-L995)
 
 **章节来源**
-- [dashboard.service.ts:7-12](file://crm-backend/src/services/dashboard.service.ts#L7-L12)
-- [presales.service.ts:10-15](file://crm-backend/src/services/presales.service.ts#L10-L15)
-- [presalesActivity.service.ts:20-25](file://crm-backend/src/services/presalesActivity.service.ts#L20-L25)
-- [proposal.service.ts:17-43](file://crm-backend/src/services/proposal.service.ts#L17-L43)
+- [presales.service.ts:17-43](file://crm-backend/src/services/presales.service.ts#L17-L43)
+- [presalesActivity.service.ts:32-54](file://crm-backend/src/services/presalesActivity.service.ts#L32-L54)
 
-## 预售仪表板功能
+## 售前资源管理
 
-### 仪表板核心指标
+### 资源状态管理
 
-预售仪表板提供了全面的销售活动监控功能，包括以下核心指标：
-
-#### 1. 销售漏斗分析
+系统提供完整的售前资源管理功能，支持资源的创建、更新、删除和状态监控：
 
 ```mermaid
-flowchart TD
-Start([开始分析]) --> GetCustomers[获取客户数据]
-GetCustomers --> GroupByStage[按阶段分组统计]
-GroupByStage --> CalculateConversion[计算转化率]
-CalculateConversion --> CalculateDropoff[计算流失率]
-CalculateDropoff --> GenerateFunnel[生成漏斗数据]
-GenerateFunnel --> End([返回漏斗分析])
-GetCustomers --> GetOpps[获取机会数据]
-GetOpps --> SumValues[汇总价值]
-SumValues --> GenerateSummary[生成汇总统计]
-GenerateSummary --> End
+stateDiagram-v2
+[*] --> 空闲
+空闲 --> 忙碌 : 分配任务
+忙碌 --> 离线 : 下班/休息
+离线 --> 空闲 : 上班/恢复
+忙碌 --> 空闲 : 完成任务
+空闲 --> 离线 : 主动离线
+离线 --> 忙碌 : 紧急任务
 ```
 
 **图表来源**
-- [dashboard.service.ts:101-154](file://crm-backend/src/services/dashboard.service.ts#L101-L154)
+- [presales.service.ts:440-503](file://crm-backend/src/services/presales.service.ts#L440-L503)
 
-#### 2. AI智能建议系统
+### 资源技能匹配
 
-系统集成了AI智能分析功能，为销售人员提供实时的业务建议：
+系统提供AI驱动的资源智能匹配功能，基于多维度评分算法实现精准匹配：
 
-| 建议类型 | 触发条件 | 优先级 | 功能描述 |
-|---------|---------|--------|----------|
-| 客户跟进 | 超过7天未联系 | 高 | 推荐跟进潜在客户 |
-| 逾期回款 | 发现逾期账款 | 高 | 提醒处理逾期款项 |
-| 机会到期 | 机会即将到期 | 中 | 关注即将到期的销售机会 |
-| 待办任务 | 存在未完成任务 | 中 | 处理积压的待办事项 |
-| 业绩概览 | 每月统计 | 低 | 展示月度销售业绩 |
+```mermaid
+sequenceDiagram
+participant Client as 客户端
+participant Controller as 控制器
+participant Service as 服务层
+participant AI as AI匹配引擎
+participant DB as 数据库
+Client->>Controller : GET /presales/requests/ : id/smart-match
+Controller->>Service : smartMatchResources(requestId)
+Service->>DB : 查询请求详情
+Service->>DB : 查询所有可用资源
+Service->>AI : 调用匹配算法
+AI->>AI : 计算技能匹配度
+AI->>AI : 评估工作负载
+AI->>AI : 计算地理位置距离
+AI->>AI : 生成综合评分
+AI-->>Service : 返回最佳匹配
+Service->>DB : 保存匹配记录
+Service-->>Controller : 返回匹配结果
+Controller-->>Client : 匹配结果
+```
+
+**图表来源**
+- [presales.controller.ts:197-205](file://crm-backend/src/controllers/presales.controller.ts#L197-L205)
+- [presales.service.ts:440-503](file://crm-backend/src/services/presales.service.ts#L440-L503)
+
+### 资源工作负载监控
+
+系统提供资源工作负载监控功能，帮助管理者合理分配任务：
+
+```mermaid
+graph TB
+subgraph "工作负载统计"
+Available[空闲资源: 15]
+Busy[忙碌资源: 8]
+Offline[离线资源: 2]
+Total[总资源: 25]
+end
+subgraph "任务分配"
+Tasks[待分配任务: 12]
+AvgLoad[平均负载: 2.4]
+MaxLoad[最大负载: 5]
+MinLoad[最小负载: 0]
+end
+Available --> Tasks
+Busy --> AvgLoad
+Offline --> MaxLoad
+Total --> MinLoad
+```
+
+**图表来源**
+- [presales.service.ts:440-503](file://crm-backend/src/services/presales.service.ts#L440-L503)
 
 **章节来源**
-- [dashboard.service.ts:160-281](file://crm-backend/src/services/dashboard.service.ts#L160-L281)
+- [presales.controller.ts:16-83](file://crm-backend/src/controllers/presales.controller.ts#L16-L83)
+- [presales.service.ts:19-121](file://crm-backend/src/services/presales.service.ts#L19-L121)
+- [presales.validator.ts:1-136](file://crm-backend/src/validators/presales.validator.ts#L1-L136)
 
-### 预售活动管理
+## 售前活动管理
 
-#### 活动生命周期管理
+### 活动生命周期管理
 
 ```mermaid
 stateDiagram-v2
@@ -415,148 +410,267 @@ stateDiagram-v2
 **图表来源**
 - [presalesActivity.service.ts:221-280](file://crm-backend/src/services/presalesActivity.service.ts#L221-L280)
 
-#### 资源智能匹配
+### 活动类型配置增强
 
-系统提供AI驱动的资源智能匹配功能，基于多维度评分算法实现精准匹配：
-
-```mermaid
-sequenceDiagram
-participant Client as 客户端
-participant Controller as 控制器
-participant Service as 服务层
-participant AI as AI匹配引擎
-participant DB as 数据库
-Client->>Controller : GET /presales/requests/ : id/smart-match
-Controller->>Service : smartMatchResources(requestId)
-Service->>DB : 查询请求详情
-Service->>DB : 查询所有可用资源
-Service->>AI : 调用匹配算法
-AI->>AI : 计算匹配分数
-AI->>AI : 评估工作负载
-AI->>AI : 生成综合评分
-AI-->>Service : 返回匹配结果
-Service->>DB : 保存匹配记录
-Service-->>Controller : 返回最佳匹配
-Controller-->>Client : 匹配结果
-```
-
-**图表来源**
-- [presales.controller.ts:197-205](file://crm-backend/src/controllers/presales.controller.ts#L197-L205)
-- [presales.service.ts:440-503](file://crm-backend/src/services/presales.service.ts#L440-L503)
-
-**章节来源**
-- [presalesActivity.controller.ts:1-338](file://crm-backend/src/controllers/presalesActivity.controller.ts#L1-L338)
-- [presalesActivity.service.ts:1-766](file://crm-backend/src/services/presalesActivity.service.ts#L1-L766)
-
-## 提案系统集成
-
-### 提案工作流程管理
-
-提案系统提供了完整的商务提案管理流程，包含五个主要阶段：
-
-```mermaid
-stateDiagram-v2
-[*] --> 草稿
-草稿 --> 需求分析中 : 开始需求分析
-需求分析中 --> 方案设计中 : 确认需求
-方案设计中 --> 待内部评审 : 设计完成
-待内部评审 --> 评审通过 : 通过评审
-待内部评审 --> 评审驳回 : 驳回评审
-评审通过 --> 客户提案中 : 发送客户
-评审驳回 --> 方案设计中 : 修改方案
-客户提案中 --> 商务谈判中 : 客户反馈
-商务谈判中 --> 已接受 : 谈判成功
-商务谈判中 --> 已拒绝 : 谈判失败
-已接受 --> [*]
-已拒绝 --> [*]
-```
-
-**图表来源**
-- [proposal.validator.ts:6-19](file://crm-backend/src/validators/proposal.validator.ts#L6-L19)
-- [ProposalDetail/index.tsx:14-27](file://crm-frontend/src/pages/Proposals/ProposalDetail/index.tsx#L14-L27)
-
-### AI智能提案分析
-
-系统集成了AI驱动的智能提案分析功能，提供深度的客户需求洞察：
-
-```mermaid
-flowchart TD
-Input[客户数据输入] --> Extract[AI提取特征]
-Extract --> Analyze[智能分析]
-Analyze --> Generate[生成洞察]
-Generate --> Output[洞察结果输出]
-Input --> Features[提取需求特征]
-Input --> Decision[提取决策特征]
-Input --> Pain[extract痛点特征]
-Input --> Competitor[extract竞品特征]
-Features --> Needs[需求分析]
-Decision --> DecisionMaker[决策人分析]
-Pain --> PainPoints[痛点分析]
-Competitor --> CompetitorInfo[竞品分析]
-Needs --> Confidence[置信度评估]
-DecisionMaker --> Confidence
-PainPoints --> Confidence
-CompetitorInfo --> Confidence
-Confidence --> FinalOutput[最终洞察报告]
-```
-
-**图表来源**
-- [RequirementAnalysis.tsx:51-92](file://crm-frontend/src/pages/Proposals/ProposalDetail/components/RequirementAnalysis.tsx#L51-L92)
-- [proposalAI.ts:347-384](file://crm-backend/src/services/ai/proposalAI.ts#L347-L384)
-
-### 提案统计分析
-
-系统提供全面的提案统计分析功能：
+系统支持五种不同的活动类型，每种类型都有独特的视觉标识和功能特性：
 
 ```mermaid
 graph TB
-subgraph "提案统计指标"
-Total[总提案数]
-Value[总价值]
-Avg[平均价值]
-Conversion[转化率]
-Status[状态分布]
+subgraph "活动类型配置"
+Demo[产品演示<br/>蓝色渐变主题]
+POC[POC测试<br/>紫色渐变主题]
+Training[培训活动<br/>绿松石渐变主题]
+Seminar[研讨会<br/>琥珀渐变主题]
+Other[其他活动<br/>灰色渐变主题]
 end
-subgraph "状态分布"
-Draft[草稿: 0]
-Requirement[需求分析: 0]
-Designing[方案设计: 0]
-Pending[待评审: 0]
-ReviewPassed[评审通过: 0]
-ReviewRejected[评审驳回: 0]
-Customer[客户提案: 0]
-Negotiation[商务谈判: 0]
-Sent[已发送: 0]
-Accepted[已接受: 0]
-Rejected[已拒绝: 0]
-Expired[已过期: 0]
+subgraph "状态配置"
+Draft[草稿<br/>灰色主题]
+Pending[待审批<br/>琥珀主题]
+Approved[已批准<br/>蓝色主题]
+Ongoing[进行中<br/>绿松石主题]
+Completed[已完成<br/>灰色主题]
+Cancelled[已取消<br/>红色主题]
 end
-Total --> Value
-Value --> Avg
-Avg --> Conversion
-Conversion --> Status
-Status --> Draft
-Status --> Requirement
-Status --> Designing
-Status --> Pending
-Status --> ReviewPassed
-Status --> ReviewRejected
-Status --> Customer
-Status --> Negotiation
-Status --> Sent
-Status --> Accepted
-Status --> Rejected
-Status --> Expired
+Demo --> BlueTheme[蓝色渐变背景]
+POC --> PurpleTheme[紫色渐变背景]
+Training --> EmeraldTheme[绿松石渐变背景]
+Seminar --> AmberTheme[琥珀渐变背景]
+Other --> SlateTheme[灰色渐变背景]
 ```
 
 **图表来源**
-- [proposal.service.ts:236-286](file://crm-backend/src/services/proposal.service.ts#L236-L286)
+- [index.tsx:32-48](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L32-L48)
+
+### 活动卡片设计
+
+系统采用现代化的卡片设计，提供丰富的视觉层次和交互体验：
+
+```mermaid
+graph LR
+subgraph "活动卡片组件"
+Card[活动卡片容器]
+Header[卡片头部区域]
+TypeBadge[活动类型徽章]
+StatusBadge[活动状态徽章]
+Content[卡片内容区域]
+Title[活动标题]
+TimeInfo[时间信息]
+LocationInfo[地点信息]
+CustomerInfo[客户信息]
+Footer[卡片底部区域]
+SignInCount[签到人数]
+QuestionCount[问题数量]
+Link[查看详情链接]
+end
+Card --> Header
+Header --> TypeBadge
+Header --> StatusBadge
+Card --> Content
+Content --> Title
+Content --> TimeInfo
+Content --> LocationInfo
+Content --> CustomerInfo
+Card --> Footer
+Footer --> SignInCount
+Footer --> QuestionCount
+Footer --> Link
+```
+
+**图表来源**
+- [index.tsx:51-121](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L51-L121)
 
 **章节来源**
-- [proposal.controller.ts:172-184](file://crm-backend/src/controllers/proposal.controller.ts#L172-L184)
-- [proposal.service.ts:236-286](file://crm-backend/src/services/proposal.service.ts#L236-L286)
-- [RequirementAnalysis.tsx:1-301](file://crm-frontend/src/pages/Proposals/ProposalDetail/components/RequirementAnalysis.tsx#L1-L301)
-- [InternalReview.tsx:1-356](file://crm-frontend/src/pages/Proposals/ProposalDetail/components/InternalReview.tsx#L1-L356)
+- [index.tsx:1-283](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L1-L283)
+- [ActivityForm.tsx:1-242](file://crm-frontend/src/pages/PreSales/Activities/ActivityForm.tsx#L1-L242)
+
+## 签到系统
+
+### 签到流程设计
+
+系统提供完整的签到流程，支持二维码验证、信息收集和问题反馈：
+
+```mermaid
+stateDiagram-v2
+[*] --> 加载中
+加载中 --> 表单页面 : 验证成功
+加载中 --> 表单页面 : 二维码无效
+表单页面 --> 问题收集 : 提交成功
+问题收集 --> 成功页面 : 完成签到
+成功页面 --> [*]
+```
+
+**图表来源**
+- [SignInPage.tsx:34-167](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx#L34-L167)
+
+### 签到表单设计
+
+系统提供简洁直观的签到表单，支持必填项验证和错误提示：
+
+```mermaid
+graph TB
+subgraph "签到表单组件"
+FormContainer[表单容器]
+ActivityInfo[活动信息展示]
+FormFields[表单字段区域]
+NameField[姓名字段]
+PhoneField[手机号字段]
+EmailField[邮箱字段]
+CompanyField[公司字段]
+TitleField[职位字段]
+NotesField[备注字段]
+SubmitButton[提交按钮]
+ErrorAlert[错误提示]
+SuccessPage[成功页面]
+QuestionsSection[问题收集区域]
+end
+FormContainer --> ActivityInfo
+FormContainer --> FormFields
+FormFields --> NameField
+FormFields --> PhoneField
+FormFields --> EmailField
+FormFields --> CompanyField
+FormFields --> TitleField
+FormFields --> NotesField
+FormFields --> SubmitButton
+FormContainer --> ErrorAlert
+FormContainer --> SuccessPage
+SuccessPage --> QuestionsSection
+```
+
+**图表来源**
+- [SignInPage.tsx:212-305](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx#L212-L305)
+
+**章节来源**
+- [SignInPage.tsx:1-366](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx#L1-L366)
+
+## 统计面板
+
+### 业务统计卡片
+
+系统提供四个核心业务统计卡片，采用现代化的渐变设计：
+
+```mermaid
+graph TB
+subgraph "业务统计卡片"
+Card1[本月活动<br/>12次<br/>+3%趋势]
+Card2[总签到人数<br/>156人<br/>+28%增长]
+Card3[待处理问题<br/>8个<br/>无趋势]
+Card4[审批中<br/>3个<br/>无趋势]
+end
+subgraph "设计特色"
+GradientBG[渐变背景]
+IconShadow[图标阴影]
+TrendBadge[趋势徽章]
+HoverEffect[悬停效果]
+Elevation[立体阴影]
+end
+Card1 --> GradientBG
+Card2 --> IconShadow
+Card3 --> TrendBadge
+Card4 --> HoverEffect
+Card1 --> Elevation
+```
+
+**图表来源**
+- [index.tsx:111-180](file://crm-frontend/src/pages/PreSales/index.tsx#L111-L180)
+
+### 今日活动卡片
+
+系统提供今日活动卡片，突出显示正在进行的活动：
+
+```mermaid
+graph LR
+subgraph "今日活动卡片"
+Header[卡片头部]
+Title[活动标题]
+CustomerInfo[客户信息]
+LocationInfo[地点信息]
+TypeInfo[活动类型标签]
+TimeInfo[时间信息]
+SignInInfo[签到统计]
+QuestionInfo[问题统计]
+ActionButtons[操作按钮]
+end
+Header --> Title
+Header --> CustomerInfo
+Header --> LocationInfo
+Header --> TypeInfo
+Header --> TimeInfo
+Header --> SignInInfo
+Header --> QuestionInfo
+Header --> ActionButtons
+```
+
+**图表来源**
+- [index.tsx:183-260](file://crm-frontend/src/pages/PreSales/index.tsx#L183-L260)
+
+### 资源概览卡片
+
+系统提供增强版资源概览卡片，展示售前资源的详细信息：
+
+```mermaid
+graph TB
+subgraph "资源概览卡片"
+ResourceCard[资源卡片容器]
+Avatar[资源头像]
+NameTitle[姓名和职位]
+StatusIndicator[状态指示器]
+CurrentTask[当前任务]
+ContactButtons[联系方式]
+PhoneButton[电话按钮]
+EmailButton[邮件按钮]
+MessageButton[消息按钮]
+end
+ResourceCard --> Avatar
+ResourceCard --> NameTitle
+ResourceCard --> StatusIndicator
+ResourceCard --> CurrentTask
+ResourceCard --> ContactButtons
+ContactButtons --> PhoneButton
+ContactButtons --> EmailButton
+ContactButtons --> MessageButton
+```
+
+**图表来源**
+- [index.tsx:410-520](file://crm-frontend/src/pages/PreSales/index.tsx#L410-L520)
+
+**章节来源**
+- [index.tsx:111-180](file://crm-frontend/src/pages/PreSales/index.tsx#L111-L180)
+- [index.tsx:183-260](file://crm-frontend/src/pages/PreSales/index.tsx#L183-L260)
+- [index.tsx:410-520](file://crm-frontend/src/pages/PreSales/index.tsx#L410-L520)
+
+## 快速操作
+
+### 快速操作模块
+
+系统提供四个快速操作按钮，支持一键访问常用功能：
+
+```mermaid
+graph TB
+subgraph "快速操作模块"
+QuickActions[快速操作容器]
+Action1[创建活动]
+Action2[签到入口]
+Action3[技术支持]
+Action4[方案设计]
+end
+subgraph "设计特色"
+GlassEffect[玻璃态效果]
+GradientBackground[渐变背景]
+HoverAnimation[悬停动画]
+ArrowIndicator[箭头指示器]
+end
+Action1 --> GlassEffect
+Action2 --> GradientBackground
+Action3 --> HoverAnimation
+Action4 --> ArrowIndicator
+```
+
+**图表来源**
+- [index.tsx:522-555](file://crm-frontend/src/pages/PreSales/index.tsx#L522-L555)
+
+**章节来源**
+- [index.tsx:522-555](file://crm-frontend/src/pages/PreSales/index.tsx#L522-L555)
 
 ## 数据流分析
 
@@ -609,62 +723,64 @@ Router-->>Frontend : HTTP响应
 ```
 
 **图表来源**
-- [dashboard.routes.ts:1-124](file://crm-backend/src/routes/dashboard.routes.ts#L1-L124)
-- [presales.routes.ts:1-536](file://crm-backend/src/routes/presales.routes.ts#L1-L536)
+- [presales.routes.ts:1-200](file://crm-backend/src/routes/presales.routes.ts#L1-L200)
+- [presalesActivity.routes.ts:1-338](file://crm-backend/src/routes/presalesActivity.routes.ts#L1-L338)
 - [proposals.routes.ts:1-653](file://crm-backend/src/routes/proposals.routes.ts#L1-L653)
 
 **章节来源**
-- [dashboard.routes.ts:1-124](file://crm-backend/src/routes/dashboard.routes.ts#L1-L124)
-- [presales.routes.ts:1-536](file://crm-backend/src/routes/presales.routes.ts#L1-L536)
+- [presales.routes.ts:1-200](file://crm-backend/src/routes/presales.routes.ts#L1-L200)
+- [presalesActivity.routes.ts:1-338](file://crm-backend/src/routes/presalesActivity.routes.ts#L1-L338)
 - [proposals.routes.ts:1-653](file://crm-backend/src/routes/proposals.routes.ts#L1-L653)
 
 ## 前端组件设计
 
-### 仪表板布局结构
+### 售前中心布局
 
 系统采用响应式设计，支持多种屏幕尺寸：
 
 ```mermaid
 graph TB
-subgraph "仪表板容器"
+subgraph "售前中心容器"
 Header[头部导航]
 Content[内容区域]
 Footer[底部信息]
 end
 subgraph "统计卡片网格"
-Card1[营收统计]
-Card2[客户统计]
-Card3[机会统计]
-Card4[日程统计]
+Card1[业务统计卡片1]
+Card2[业务统计卡片2]
+Card3[业务统计卡片3]
+Card4[业务统计卡片4]
 end
-subgraph "分析区域"
-Funnel[销售漏]
-Recording[AI录音分析]
-Score[商机评分]
-Churn[流失预警]
+subgraph "活动区域"
+TodayActivity[今日活动]
+UpcomingActivities[即将开始活动]
 end
-subgraph "日程区域"
-Schedule[今日日程]
-Suggestion[AI建议]
+subgraph "签到区域"
+RecentSignIns[最近签到]
+PendingQuestions[待处理问题]
+end
+subgraph "资源区域"
+ResourceOverview[资源概览]
+QuickActions[快速操作]
 end
 Header --> Content
 Content --> Card1
 Content --> Card2
 Content --> Card3
 Content --> Card4
-Content --> Funnel
-Content --> Recording
-Content --> Score
-Content --> Churn
-Content --> Schedule
-Content --> Suggestion
+Content --> TodayActivity
+Content --> UpcomingActivities
+Content --> RecentSignIns
+Content --> PendingQuestions
+Content --> ResourceOverview
+Content --> QuickActions
 Footer --> Content
 ```
 
 **图表来源**
-- [index.tsx:523-593](file://crm-frontend/src/pages/Dashboard/index.tsx#L523-L593)
+- [index.tsx:557-613](file://crm-frontend/src/pages/PreSales/index.tsx#L557-L613)
 
-### 预售活动管理界面
+### 活动管理界面
 
 ```mermaid
 classDiagram
@@ -682,108 +798,53 @@ class ActivityCard {
 +statusConfig : object
 +formatDate(dateStr) string
 }
-class PresalesActivity {
-+id : string
-+title : string
-+type : string
-+description? : string
-+location? : string
-+startTime : string
-+endTime : string
-+status : string
-+approvalStatus : string
-+customer? : object
-+createdBy : object
-+_count? : object
-+createdAt : string
+class ActivityForm {
++mode : string
++formData : object
++loading : boolean
++handleSubmit() void
++handleSubmitForApproval() void
 }
 ActivitiesList --> ActivityCard
 ActivityCard --> PresalesActivity
+ActivityForm --> PresalesActivity
 ```
 
 **图表来源**
 - [index.tsx:1-283](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L1-L283)
+- [ActivityForm.tsx:1-242](file://crm-frontend/src/pages/PreSales/Activities/ActivityForm.tsx#L1-L242)
 
-### 提案管理系统界面
+### 签到页面设计
 
 ```mermaid
 classDiagram
-class ProposalList {
-+proposals : Proposal[]
+class SignInPage {
++step : string
++activity : ActivityInfo
++error : string
 +loading : boolean
-+filterStatus : string
-+searchQuery : string
-+filteredProposals() Proposal[]
++signInId : string
++formData : object
++questions : QuestionData[]
++currentQuestion : string
++validateQrCode() void
++handleSignIn() void
++handleAddQuestion() void
++handleFinish() void
 }
-class ProposalCard {
-+proposal : Proposal
-+statusConfig : object
-+formatCurrency(value) string
-}
-class ProposalDetail {
-+proposal : Proposal
-+activeStage : number
-+refreshProposal() void
-}
-ProposalList --> ProposalCard
-ProposalCard --> ProposalDetail
+SignInPage --> ActivityInfo
+SignInPage --> SignInFormData
+SignInPage --> QuestionData
 ```
 
 **图表来源**
-- [Proposals/index.tsx:122-236](file://crm-frontend/src/pages/Proposals/index.tsx#L122-L236)
-- [ProposalDetail/index.tsx:46-239](file://crm-frontend/src/pages/Proposals/ProposalDetail/index.tsx#L46-L239)
+- [SignInPage.tsx:34-366](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx#L34-L366)
 
 **章节来源**
-- [index.tsx:1-593](file://crm-frontend/src/pages/Dashboard/index.tsx#L1-L593)
+- [index.tsx:1-613](file://crm-frontend/src/pages/PreSales/index.tsx#L1-L613)
 - [index.tsx:1-283](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L1-L283)
-- [Proposals/index.tsx:1-236](file://crm-frontend/src/pages/Proposals/index.tsx#L1-L236)
-- [ProposalDetail/index.tsx:1-239](file://crm-frontend/src/pages/Proposals/ProposalDetail/index.tsx#L1-L239)
-
-### Material Icons 图标系统
-
-系统全面集成了Material Icons图标系统，提供统一的视觉语言：
-
-```mermaid
-graph LR
-subgraph "图标分类"
-Schedule[schedule - 时间图标]
-Location[location_on - 位置图标]
-Business[business - 公司图标]
-Add[add - 添加图标]
-Search[search - 搜索图标]
-Groups[groups - 团队图标]
-Meeting[meeting - 会议图标]
-Visit[location_on - 拜访图标]
-Task[assignment - 任务图标]
-Call[call - 电话图标]
-Analytics[analytics - 分析图标]
-Warning[warning - 警告图标]
-Check[check_circle - 确认图标]
-Person[person - 人员图标]
-Error[error - 错误图标]
-Compare[compare - 对比图标]
-Rocket[rocket_launch - 升级图标]
-Notifications[notifications - 通知图标]
-Logout[logout - 登出图标]
-Dashboard[dashboard - 仪表板图标]
-Storefront[storefront - 售前中心图标]
-Assignment[assignment - 提案图标]
-RateReview[rate_review - 评审图标]
-Send[send - 发送图标]
-Handshake[handshake - 谈判图标]
-```
-
-**图表来源**
-- [index.tsx:87-118](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L87-L118)
-- [index.tsx:208-217](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L208-L217)
-- [index.tsx:233-245](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L233-L245)
-- [Proposals/index.tsx:45-49](file://crm-frontend/src/pages/Proposals/index.tsx#L45-L49)
-
-**章节来源**
-- [index.tsx:87-118](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L87-L118)
-- [index.tsx:208-217](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L208-L217)
-- [index.tsx:233-245](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L233-L245)
-- [Proposals/index.tsx:45-73](file://crm-frontend/src/pages/Proposals/index.tsx#L45-L73)
+- [ActivityForm.tsx:1-242](file://crm-frontend/src/pages/PreSales/Activities/ActivityForm.tsx#L1-L242)
+- [SignInPage.tsx:1-366](file://crm-frontend/src/pages/PreSales/SignIn/SignInPage.tsx#L1-L366)
 
 ## AI智能分析集成
 
@@ -856,66 +917,35 @@ FinalContent --> Proposal[生成提案]
 
 ## 视觉设计与现代化改造
 
-### 活动类型配置增强
+### 渐变设计系统
 
-预售活动管理系统现在支持五种不同的活动类型，每种类型都有独特的视觉标识：
-
-```mermaid
-graph TB
-subgraph "活动类型配置"
-Demo[产品演示<br/>蓝色主题]
-POC[POC测试<br/>紫色主题]
-Training[培训活动<br/>绿松石主题]
-Seminar[研讨会<br/>琥珀主题]
-Other[其他活动<br/>灰色主题]
-end
-subgraph "状态配置"
-Draft[草稿<br/>灰色主题]
-Pending[待审批<br/>琥珀主题]
-Approved[已批准<br/>蓝色主题]
-Ongoing[进行中<br/>绿松石主题]
-Completed[已完成<br/>灰色主题]
-Cancelled[已取消<br/>红色主题]
-end
-Demo --> BlueTheme[蓝色渐变背景]
-POC --> PurpleTheme[紫色渐变背景]
-Training --> EmeraldTheme[绿松石渐变背景]
-Seminar --> AmberTheme[琥珀渐变背景]
-Other --> SlateTheme[灰色渐变背景]
-```
-
-**图表来源**
-- [index.tsx:32-48](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L32-L48)
-
-### 统计卡片渐变设计
-
-仪表板统计卡片采用了现代化的渐变设计，提供丰富的视觉层次：
+系统采用现代化的渐变设计，提供丰富的视觉层次：
 
 ```mermaid
 graph LR
-subgraph "渐变卡片设计"
-Payments[营收统计<br/>emerald-500渐变]
-Customers[客户统计<br/>blue-500渐变]
-Funnel[漏斗价值<br/>amber-500渐变]
-Visits[今日拜访<br/>purple-500渐变]
-Proposals[提案统计<br/>indigo-500渐变]
+subgraph "渐变色彩系统"
+BlueGradient[蓝色渐变: from-blue-500 to-cyan-500]
+PurpleGradient[紫色渐变: from-violet-500 to-purple-600]
+EmeraldGradient[绿松石渐变: from-emerald-500 to-teal-500]
+AmberGradient[琥珀渐变: from-amber-500 to-orange-500]
+VioletGradient[紫罗兰渐变: from-violet-500 to-purple-500]
 end
-subgraph "图标设计"
-PaymentsIcon[payments图标]
-CustomersIcon[group图标]
-FunnelIcon[filter_alt图标]
-VisitsIcon[event图标]
-ProposalsIcon[assignment图标]
+subgraph "背景渐变系统"
+LightBackground[浅色背景渐变]
+DarkBackground[深色背景渐变]
+GlassEffect[玻璃态效果]
+ElevationShadow[立体阴影]
 end
-Payments --> PaymentsIcon
-Customers --> CustomersIcon
-Funnel --> FunnelIcon
-Visits --> VisitsIcon
-Proposals --> ProposalsIcon
+BlueGradient --> LightBackground
+PurpleGradient --> DarkBackground
+EmeraldGradient --> GlassEffect
+AmberGradient --> ElevationShadow
+VioletGradient --> LightBackground
 ```
 
 **图表来源**
-- [index.tsx:540-569](file://crm-frontend/src/pages/Dashboard/index.tsx#L540-L569)
+- [index.tsx:4-9](file://crm-frontend/src/pages/PreSales/index.tsx#L4-L9)
+- [index.tsx:111-180](file://crm-frontend/src/pages/PreSales/index.tsx#L111-L180)
 
 ### 动画效果集成
 
@@ -924,21 +954,32 @@ Proposals --> ProposalsIcon
 ```mermaid
 graph TB
 subgraph "动画效果"
-Hover[悬停动画<br/>阴影和边框变化]
-Transition[过渡动画<br/>平滑的颜色变化]
-Spin[加载动画<br/>旋转指示器]
-Pulse[脉冲动画<br/>占位符加载]
-Gradient[渐变动画<br/>背景色变化]
-Scale[缩放动画<br/>卡片放大效果]
-Opacity[透明度动画<br/>悬停时的透明度变化]
-End
+HoverAnimation[悬停动画<br/>阴影和边框变化]
+TransitionAnimation[过渡动画<br/>平滑的颜色变化]
+ScaleAnimation[缩放动画<br/>卡片放大效果]
+PulseAnimation[脉冲动画<br/>状态指示器]
+RotateAnimation[旋转动画<br/>箭头指示器]
+ShadowAnimation[阴影动画<br/>立体效果]
+GlassAnimation[玻璃态动画<br/>背景透明度变化]
 end
+subgraph "触发条件"
+Hover[鼠标悬停]
+Click[点击操作]
+Load[页面加载]
+StatusChange[状态变化]
+end
+Hover --> HoverAnimation
+Click --> TransitionAnimation
+Load --> ScaleAnimation
+StatusChange --> PulseAnimation
+Hover --> RotateAnimation
+Hover --> ShadowAnimation
+Hover --> GlassAnimation
 ```
 
 **图表来源**
-- [index.tsx:68-69](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L68)
-- [index.tsx:259](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L259)
-- [index.tsx:362-367](file://crm-frontend/src/pages/Dashboard/index.tsx#L362-L367)
+- [index.tsx:522-555](file://crm-frontend/src/pages/PreSales/index.tsx#L522-L555)
+- [index.tsx:183-260](file://crm-frontend/src/pages/PreSales/index.tsx#L183-L260)
 
 ### 暗色模式支持
 
@@ -954,13 +995,22 @@ DarkTextGray[深色辅助文字<br/>dark:text-slate-400]
 DarkHover[深色悬停效果<br/>dark:hover:border-primary/30]
 DarkPlaceholder[深色占位符<br/>dark:text-slate-600]
 DarkBackground[深色背景<br/>dark:bg-slate-800]
-End
 end
+subgraph "渐变暗色模式"
+DarkBlueGradient[深蓝渐变<br/>from-blue-950/50 to-indigo-950/50]
+DarkEmeraldGradient[深绿渐变<br/>from-emerald-950/50 to-teal-950/50]
+DarkAmberGradient[深琥珀渐变<br/>from-amber-950/50 to-orange-950/50]
+DarkVioletGradient[深紫罗兰渐变<br/>from-violet-950/50 to-purple-950/50]
+end
+DarkCard --> DarkBlueGradient
+DarkBorder --> DarkEmeraldGradient
+DarkText --> DarkAmberGradient
+DarkTextGray --> DarkVioletGradient
 ```
 
 **图表来源**
-- [index.tsx:68-69](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L68)
-- [index.tsx:32-32](file://crm-frontend/src/pages/Dashboard/index.tsx#L32)
+- [index.tsx:111-180](file://crm-frontend/src/pages/PreSales/index.tsx#L111-L180)
+- [index.tsx:410-520](file://crm-frontend/src/pages/PreSales/index.tsx#L410-L520)
 
 ### 响应式设计优化
 
@@ -971,24 +1021,42 @@ graph TB
 subgraph "响应式布局"
 Mobile[移动端<br/>1列布局]
 Tablet[平板端<br/>2列布局]
-Desktop[桌面端<br/>4列布局]
+Desktop[桌面端<br/>3-4列布局]
 LargeDesktop[大桌面端<br/>网格自适应]
-End
 end
+subgraph "组件适配"
+StatisticsCards[统计卡片<br/>1-4列自适应]
+ActivityGrid[活动网格<br/>1-3列自适应]
+ResourceGrid[资源网格<br/>1-5列自适应]
+QuickActions[快速操作<br/>2-4列自适应]
+end
+Mobile --> StatisticsCards
+Mobile --> ActivityGrid
+Mobile --> ResourceGrid
+Mobile --> QuickActions
+Tablet --> StatisticsCards
+Tablet --> ActivityGrid
+Tablet --> ResourceGrid
+Tablet --> QuickActions
+Desktop --> StatisticsCards
+Desktop --> ActivityGrid
+Desktop --> ResourceGrid
+Desktop --> QuickActions
+LargeDesktop --> StatisticsCards
+LargeDesktop --> ActivityGrid
+LargeDesktop --> ResourceGrid
+LargeDesktop --> QuickActions
 ```
 
 **图表来源**
-- [index.tsx:540-569](file://crm-frontend/src/pages/Dashboard/index.tsx#L540-L569)
-- [index.tsx:275-280](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L275-L280)
-- [Proposals/index.tsx:228-233](file://crm-frontend/src/pages/Proposals/index.tsx#L228-L233)
+- [index.tsx:557-613](file://crm-frontend/src/pages/PreSales/index.tsx#L557-L613)
+- [index.tsx:183-260](file://crm-frontend/src/pages/PreSales/index.tsx#L183-L260)
+- [index.tsx:410-520](file://crm-frontend/src/pages/PreSales/index.tsx#L410-L520)
 
 **章节来源**
-- [index.tsx:32-48](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L32-L48)
-- [index.tsx:540-569](file://crm-frontend/src/pages/Dashboard/index.tsx#L540-L569)
-- [index.tsx:68-69](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L68)
-- [index.tsx:259](file://crm-frontend/src/pages/PreSales/Activities/index.tsx#L259)
-- [index.tsx:362-367](file://crm-frontend/src/pages/Dashboard/index.tsx#L362-L367)
-- [Proposals/index.tsx:228-233](file://crm-frontend/src/pages/Proposals/index.tsx#L228-L233)
+- [index.tsx:4-9](file://crm-frontend/src/pages/PreSales/index.tsx#L4-L9)
+- [index.tsx:111-180](file://crm-frontend/src/pages/PreSales/index.tsx#L111-L180)
+- [index.tsx:522-555](file://crm-frontend/src/pages/PreSales/index.tsx#L522-L555)
 
 ## 性能优化策略
 
@@ -1014,6 +1082,9 @@ OptimizedRender[优化渲染]
 AnimationOptimization[动画性能优化]
 DarkModeOptimization[暗色模式优化]
 IconOptimization[图标系统优化]
+ResourceOptimization[资源管理优化]
+ActivityOptimization[活动管理优化]
+SignInOptimization[签到系统优化]
 ProposalOptimization[提案系统优化]
 end
 subgraph "AI性能优化"
@@ -1029,6 +1100,9 @@ Debounce --> OptimizedRender
 AnimationOptimization --> OptimizedRender
 DarkModeOptimization --> OptimizedRender
 IconOptimization --> OptimizedRender
+ResourceOptimization --> OptimizedRender
+ActivityOptimization --> OptimizedRender
+SignInOptimization --> OptimizedRender
 ProposalOptimization --> OptimizedRender
 ModelOptimization --> Caching
 BatchProcessing --> Caching
@@ -1036,9 +1110,8 @@ ParallelProcessing --> Caching
 ```
 
 **图表来源**
-- [dashboard.service.ts:29-49](file://crm-backend/src/services/dashboard.service.ts#L29-L49)
 - [presales.service.ts:440-503](file://crm-backend/src/services/presales.service.ts#L440-L503)
-- [proposal.service.ts:236-286](file://crm-backend/src/services/proposal.service.ts#L236-L286)
+- [presalesActivity.service.ts:221-280](file://crm-backend/src/services/presalesActivity.service.ts#L221-L280)
 
 ### 动画性能优化
 
@@ -1050,9 +1123,8 @@ ParallelProcessing --> Caching
 - **内存管理**: 及时清理动画相关的事件监听器
 
 **章节来源**
-- [dashboard.service.ts:29-49](file://crm-backend/src/services/dashboard.service.ts#L29-L49)
 - [presales.service.ts:440-503](file://crm-backend/src/services/presales.service.ts#L440-L503)
-- [proposal.service.ts:236-286](file://crm-backend/src/services/proposal.service.ts#L236-L286)
+- [presalesActivity.service.ts:221-280](file://crm-backend/src/services/presalesActivity.service.ts#L221-L280)
 
 ## 故障排除指南
 
@@ -1072,21 +1144,21 @@ ParallelProcessing --> Caching
 2. 验证JWT令牌有效性
 3. 确认数据库连接正常
 
-#### 2. AI分析功能异常
+#### 2. 资源管理功能异常
 
-**问题症状**: 客户洞察面板显示"暂无数据"
+**问题症状**: 资源状态无法更新或技能匹配失败
 
 **可能原因**:
-- AI服务未正确配置
-- 网络连接问题
-- API密钥配置错误
+- 资源状态转换规则错误
+- AI匹配算法异常
+- 数据验证失败
 
 **解决步骤**:
-1. 检查AI服务配置
-2. 验证网络连接
-3. 确认API密钥设置
+1. 检查资源状态转换逻辑
+2. 验证AI匹配服务状态
+3. 确认数据验证规则
 
-#### 3. 预售活动管理问题
+#### 3. 活动管理问题
 
 **问题症状**: 活动状态无法更新或二维码生成失败
 
@@ -1100,19 +1172,19 @@ ParallelProcessing --> Caching
 2. 验证二维码服务状态
 3. 确认数据验证规则
 
-#### 4. 提案系统问题
+#### 4. 签到系统问题
 
-**问题症状**: 提案状态无法更新或AI分析失败
+**问题症状**: 签到失败或二维码验证异常
 
 **可能原因**:
-- 提案状态转换规则错误
-- AI分析服务异常
-- 数据验证失败
+- 二维码验证服务异常
+- 数据库连接问题
+- 前端表单验证错误
 
 **解决步骤**:
-1. 检查提案状态转换逻辑
-2. 验证AI分析服务状态
-3. 确认数据验证规则
+1. 检查二维码验证服务状态
+2. 确认数据库连接正常
+3. 验证前端表单字段
 
 #### 5. 视觉设计问题
 
@@ -1129,22 +1201,22 @@ ParallelProcessing --> Caching
 3. 优化动画性能设置
 
 **章节来源**
-- [dashboard.controller.ts:45-47](file://crm-backend/src/controllers/dashboard.controller.ts#L45-L47)
+- [presales.controller.ts:16-83](file://crm-backend/src/controllers/presales.controller.ts#L16-L83)
 - [presalesActivity.controller.ts:19-21](file://crm-backend/src/controllers/presalesActivity.controller.ts#L19-L21)
 - [proposal.controller.ts:172-184](file://crm-backend/src/controllers/proposal.controller.ts#L172-L184)
 
 ## 总结
 
-预售仪表板是销售AI CRM系统的核心功能模块，通过集成AI智能分析技术和完善的业务流程管理，为企业提供了全面的销售活动监控和分析能力。**新增的提案系统集成为仪表板增加了完整的商务提案管理功能**，包括提案状态监控、AI智能分析、工作流程统计等与提案系统相关的功能模块。
+售前仪表板是销售AI CRM系统的核心功能模块，通过集成AI智能分析技术和完善的业务流程管理，为企业提供了全面的售前活动监控和分析能力。**新增的资源管理系统和签到功能显著提升了用户体验和功能完整性**。
 
 ### 主要特性
 
-1. **全方位数据监控**: 实时展示销售漏斗、客户统计、机会分析等关键指标
-2. **AI智能分析**: 提供客户洞察、商机评分、流失预警等智能化分析功能
-3. **预售活动管理**: 完整的活动生命周期管理，支持签到、问答、统计等功能
-4. **资源智能匹配**: 基于AI算法的资源智能匹配和自动分配
-5. **提案系统管理**: 完整的商务提案管理流程，包含需求分析、方案设计、内部评审、客户提案、商务谈判等阶段
-6. **AI驱动的提案分析**: 基于客户洞察和历史数据的智能提案生成和定价策略
+1. **资源管理**: 完整的售前资源管理功能，支持状态监控、技能匹配、工作负载分析
+2. **活动管理**: 增强的活动管理界面，采用现代化的渐变设计和交互体验
+3. **签到系统**: 全新的签到流程，支持二维码验证、信息收集和问题反馈
+4. **统计面板**: 现代化的统计卡片设计，提供业务指标的可视化展示
+5. **快速操作**: 便捷的一键操作功能，支持常用功能的快速访问
+6. **AI智能分析**: 深度集成AI功能，提供客户洞察和商机评分
 7. **响应式设计**: 支持多种设备和屏幕尺寸的完美适配
 8. **现代化视觉设计**: 全面的视觉重新设计，包含渐变色彩、动画效果、图标集成等现代化元素
 
@@ -1157,4 +1229,4 @@ ParallelProcessing --> Caching
 - **用户体验**: 现代化的视觉设计和流畅的交互体验
 - **AI集成**: 深度集成AI智能分析功能，提供智能化业务支持
 
-预售仪表板功能为企业销售管理提供了强有力的技术支撑，通过智能化的数据分析和业务流程自动化，显著提升了销售效率和客户满意度。**新增的提案系统集成为企业提供了完整的商务提案管理能力，进一步增强了系统的专业性和用户体验**。
+售前仪表板功能为企业售前管理提供了强有力的技术支撑，通过智能化的数据分析和业务流程自动化，显著提升了销售效率和客户满意度。**新增的资源管理和签到功能进一步增强了系统的专业性和用户体验**。

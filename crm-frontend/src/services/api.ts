@@ -1384,6 +1384,26 @@ export interface CustomDataRow {
   updatedAt: string;
 }
 
+// ==================== AI 报告 API ====================
+
+export const aiApi = {
+  // 生成报告
+  generateReport: (type: 'daily' | 'weekly', date?: string) =>
+    api.post('/ai/reports/generate', { type, date }),
+  
+  // 获取报告列表
+  getReports: (params?: { type?: string; page?: number; limit?: number }) => {
+    const query = new URLSearchParams();
+    if (params?.type) query.set('type', params.type);
+    if (params?.page) query.set('page', String(params.page));
+    if (params?.limit) query.set('limit', String(params.limit));
+    return api.get<{ items: any[]; total: number }>(`/ai/reports?${query}`);
+  },
+  
+  // 获取单个报告
+  getReportById: (id: string) => api.get(`/ai/reports/${id}`),
+};
+
 // ==================== 知识库 API ====================
 
 export const knowledgeApi = {

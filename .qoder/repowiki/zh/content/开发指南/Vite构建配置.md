@@ -78,12 +78,12 @@ APP --> STORES
 
 **图表来源**
 - [vite.config.ts:1-13](file://crm-frontend/vite.config.ts#L1-L13)
-- [package.json:1-38](file://crm-frontend/package.json#L1-L38)
+- [package.json:1-39](file://crm-frontend/package.json#L1-L39)
 - [tsconfig.json:1-8](file://crm-frontend/tsconfig.json#L1-L8)
 
 **章节来源**
 - [vite.config.ts:1-13](file://crm-frontend/vite.config.ts#L1-L13)
-- [package.json:1-38](file://crm-frontend/package.json#L1-L38)
+- [package.json:1-39](file://crm-frontend/package.json#L1-L39)
 - [tsconfig.json:1-8](file://crm-frontend/tsconfig.json#L1-L8)
 
 ## 核心配置组件
@@ -262,7 +262,7 @@ ServerConfig --> DevelopmentExperience : "enhances"
 **图表来源**
 - [vite.config.ts:7-11](file://crm-frontend/vite.config.ts#L7-L11)
 
-**更新** 新增了详细的开发服务器配置分析，包括端口监听、主机访问等特性
+**更新** 新增了详细的开发服务器配置分析，包括端口监听、主机访问等特性。当前配置已将端口从5174调整为5173，确保开发环境的一致性和避免端口冲突。
 
 ### 构建脚本配置
 
@@ -389,10 +389,10 @@ AUTOPREFIXER --> POSTCSS
 ```
 
 **图表来源**
-- [package.json:12-36](file://crm-frontend/package.json#L12-L36)
+- [package.json:12-39](file://crm-frontend/package.json#L12-L39)
 
 **章节来源**
-- [package.json:1-38](file://crm-frontend/package.json#L1-L38)
+- [package.json:1-39](file://crm-frontend/package.json#L1-L39)
 
 ## 性能考虑
 
@@ -489,4 +489,4 @@ BundleAnalysis --> SizeOptimization[体积优化]
 
 对于更复杂的企业级应用，可以在现有基础上添加更多高级配置，如代理服务器、自定义插件、性能监控等，但当前配置为大多数应用场景提供了良好的起点。
 
-**更新** 文档已根据实际项目配置进行了全面更新，增加了开发服务器配置、生产优化策略和性能考虑等新内容，使文档更加完整和实用。
+**更新** 文档已根据实际项目配置进行了全面更新，增加了开发服务器配置、生产优化策略和性能考虑等新内容，使文档更加完整和实用。特别地，开发服务器配置已反映实际的端口变更（从5174调整为5173），确保了文档与代码的一致性。

@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mockCustomers, filterCustomersByStage, getCustomerColor } from '../../data/customers';
 import { STAGE_LABELS, STAGE_COLORS, type Stage, type Customer } from '../../types';
-import { ColdVisitAssistant } from '../../components/ColdVisitAssistant';
 import CreateCustomerModal from '../../components/Customers/CreateCustomerModal';
 
 // 格式化金额
@@ -61,7 +60,6 @@ export default function Customers() {
   const [activeTab, setActiveTab] = useState<Stage | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showColdVisitAssistant, setShowColdVisitAssistant] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const itemsPerPage = 10;
 
@@ -100,7 +98,7 @@ export default function Customers() {
         </div>
         <div className="flex items-center gap-2">
           <button 
-            onClick={() => setShowColdVisitAssistant(true)}
+            onClick={() => navigate('/cold-visit')}
             className="flex items-center gap-2 px-4 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg text-sm font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
           >
             <span className="material-symbols-outlined text-sm">travel_explore</span>
@@ -320,12 +318,6 @@ export default function Customers() {
           </div>
         </div>
       </div>
-
-      {/* 陌生拜访AI助手弹窗 */}
-      <ColdVisitAssistant
-        isOpen={showColdVisitAssistant}
-        onClose={() => setShowColdVisitAssistant(false)}
-      />
 
       {/* 添加客户弹窗 */}
       <CreateCustomerModal

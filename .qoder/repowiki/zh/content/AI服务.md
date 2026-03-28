@@ -18,7 +18,19 @@
 - [OpportunityScoreCard.tsx](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx)
 - [index.ts](file://crm-frontend/src/components/AI/index.ts)
 - [schema.prisma](file://crm-backend/prisma/schema.prisma)
+- [authStore.ts](file://crm-frontend/src/stores/authStore.ts)
+- [api.ts](file://crm-frontend/src/services/api.ts)
+- [auth.ts](file://crm-backend/src/middlewares/auth.ts)
+- [jwt.ts](file://crm-backend/src/utils/jwt.ts)
+- [client.ts](file://crm-backend/src/services/ai/client.ts)
 </cite>
+
+## 更新摘要
+**变更内容**
+- 更新了认证机制章节，反映从'token'到'auth_token'的安全改进
+- 新增了前端认证存储安全性的说明
+- 更新了API认证流程图以反映新的存储机制
+- 增强了认证安全性的最佳实践指导
 
 ## 目录
 1. [项目概述](#项目概述)
@@ -26,10 +38,11 @@
 3. [核心组件](#核心组件)
 4. [架构概览](#架构概览)
 5. [详细组件分析](#详细组件分析)
-6. [依赖关系分析](#依赖关系分析)
-7. [性能考虑](#性能考虑)
-8. [故障排除指南](#故障排除指南)
-9. [结论](#结论)
+6. [认证机制](#认证机制)
+7. [依赖关系分析](#依赖关系分析)
+8. [性能考虑](#性能考虑)
+9. [故障排除指南](#故障排除指南)
+10. [结论](#结论)
 
 ## 项目概述
 
@@ -390,6 +403,98 @@ OpportunityScoreCard --> aiService
 - [ScriptGenerator.tsx:1-272](file://crm-frontend/src/components/AI/ScriptGenerator.tsx#L1-L272)
 - [OpportunityScoreCard.tsx:1-336](file://crm-frontend/src/components/AI/OpportunityScoreCard.tsx#L1-L336)
 
+## 认证机制
+
+系统采用JWT（JSON Web Token）进行身份认证，实现了安全的前后端通信机制。认证机制经过重要改进，采用了更加安全的令牌存储方式。
+
+### 认证架构
+
+```mermaid
+sequenceDiagram
+participant Browser as 浏览器
+participant Frontend as 前端应用
+participant Backend as 后端服务
+participant Database as 数据库
+participant JWT as JWT服务
+Browser->>Frontend : 用户登录
+Frontend->>Backend : POST /auth/login
+Backend->>Database : 验证用户凭据
+Database-->>Backend : 返回用户信息
+Backend->>JWT : 生成访问令牌
+JWT-->>Backend : 返回JWT令牌
+Backend-->>Frontend : 返回认证响应
+Frontend->>Frontend : 存储令牌到localStorage('auth_token')
+Frontend->>Backend : 带JWT令牌的API请求
+Backend->>JWT : 验证JWT令牌
+JWT-->>Backend : 返回用户信息
+Backend-->>Frontend : 返回受保护资源
+```
+
+**图表来源**
+- [authStore.ts:54-106](file://crm-frontend/src/stores/authStore.ts#L54-L106)
+- [auth.ts:13-33](file://crm-backend/src/middlewares/auth.ts#L13-L33)
+- [jwt.ts:28-42](file://crm-backend/src/utils/jwt.ts#L28-L42)
+
+### 安全改进
+
+**更新** 系统已从使用'token'键更改为使用'auth_token'键来存储JWT令牌，这一改进显著提升了系统的认证安全性：
+
+#### 令牌存储改进
+
+1. **命名空间隔离**：使用'auth_token'替代通用'token'，避免与其他模块的令牌存储产生冲突
+2. **一致性保证**：确保所有认证相关操作都使用统一的令牌键名
+3. **安全性增强**：减少令牌混淆和意外覆盖的风险
+
+#### 前端存储机制
+
+```mermaid
+graph LR
+A[用户登录] --> B[获取JWT令牌]
+B --> C[localStorage.setItem('auth_token', token)]
+C --> D[设置认证状态]
+D --> E[发起受保护请求]
+E --> F[localStorage.getItem('auth_token')]
+F --> G[添加Authorization头]
+```
+
+**图表来源**
+- [authStore.ts:58](file://crm-frontend/src/stores/authStore.ts#L58)
+- [aiService.ts:26](file://crm-frontend/src/services/aiService.ts#L26)
+
+#### 后端认证流程
+
+后端使用标准的JWT Bearer认证机制：
+
+1. **请求拦截**：前端在每个API请求中自动添加Authorization头
+2. **令牌验证**：后端中间件验证JWT令牌的有效性
+3. **用户信息注入**：验证通过后将用户信息注入到请求对象中
+4. **权限控制**：基于用户角色进行权限验证
+
+**章节来源**
+- [authStore.ts:54-106](file://crm-frontend/src/stores/authStore.ts#L54-L106)
+- [aiService.ts:24-31](file://crm-frontend/src/services/aiService.ts#L24-L31)
+- [auth.ts:13-33](file://crm-backend/src/middlewares/auth.ts#L13-L33)
+
+### 认证最佳实践
+
+#### 前端安全措施
+
+1. **令牌存储**：使用localStorage存储JWT令牌，支持持久化登录
+2. **自动添加头**：通过axios拦截器自动为所有请求添加Authorization头
+3. **错误处理**：实现401错误的自动处理和令牌刷新机制
+4. **状态管理**：使用Zustand进行全局状态管理，确保认证状态的一致性
+
+#### 后端安全措施
+
+1. **JWT验证**：使用jsonwebtoken库验证令牌的有效性和签名
+2. **中间件保护**：所有AI相关路由都必须通过认证中间件
+3. **权限控制**：基于用户角色进行细粒度的权限控制
+4. **错误处理**：统一的认证错误处理和响应格式
+
+**章节来源**
+- [jwt.ts:28-42](file://crm-backend/src/utils/jwt.ts#L28-L42)
+- [auth.ts:55-69](file://crm-backend/src/middlewares/auth.ts#L55-L69)
+
 ## 依赖关系分析
 
 系统采用模块化设计，各组件之间的依赖关系清晰：
@@ -418,6 +523,12 @@ end
 subgraph "API服务"
 L[aiService.ts]
 end
+subgraph "认证层"
+M[authStore.ts]
+N[jwt.ts]
+O[auth.ts]
+P[client.ts]
+end
 A --> B
 A --> C
 A --> D
@@ -428,6 +539,9 @@ H --> G
 I --> L
 J --> L
 K --> L
+M --> N
+O --> N
+P --> N
 ```
 
 **图表来源**
@@ -444,6 +558,8 @@ K --> L
 | Express | ^4.18.0 | Web框架 | 必需 |
 | Prisma | ^4.0.0 | ORM框架 | 必需 |
 | MySQL | ^8.0 | 数据存储 | 必需 |
+| jsonwebtoken | ^9.0.0 | JWT令牌 | 必需 |
+| bcryptjs | ^2.4.3 | 密码加密 | 必需 |
 | Alibaba Cloud Qwen | ^1.0 | AI模型 | 可选 |
 | Serper API | ^1.0 | 网络搜索 | 可选 |
 
@@ -532,6 +648,20 @@ G --> H[返回响应]
 2. 刷新认证令牌
 3. 增加请求超时时间
 
+#### 认证问题
+
+**问题症状**：用户无法登录或令牌失效
+
+**可能原因**：
+1. 令牌存储键名不正确
+2. JWT密钥配置错误
+3. 令牌过期时间设置不当
+
+**解决方案**：
+1. 检查localStorage中是否存在'auth_token'键
+2. 验证JWT_SECRET环境变量配置
+3. 调整JWT过期时间配置
+
 **章节来源**
 - [ai.service.ts:82-100](file://crm-backend/src/services/ai.service.ts#L82-L100)
 - [ai.controller.ts:1-800](file://crm-backend/src/controllers/ai.controller.ts#L1-L800)
@@ -546,6 +676,16 @@ G --> H[返回响应]
 2. **技术先进性**：采用最新的AI模型和算法
 3. **用户体验**：直观易用的前端界面设计
 4. **系统稳定性**：完善的错误处理和降级机制
+5. **安全性增强**：改进的认证机制确保令牌存储安全
+
+### 安全改进总结
+
+本次更新重点加强了系统的认证安全性：
+
+1. **令牌存储优化**：从'token'键更改为'auth_token'，避免与其他模块冲突
+2. **一致性保证**：确保所有认证相关操作使用统一的令牌键名
+3. **安全性提升**：减少令牌混淆和意外覆盖的风险
+4. **最佳实践**：遵循命名空间隔离的安全原则
 
 ### 发展方向
 
@@ -553,5 +693,6 @@ G --> H[返回响应]
 2. **功能扩展**：增加更多AI辅助功能
 3. **性能优化**：提升系统响应速度
 4. **集成能力**：支持更多第三方服务集成
+5. **安全加固**：持续改进认证和授权机制
 
 该系统为企业数字化转型提供了强有力的技术支撑，有助于提升销售效率和客户满意度。
