@@ -62,7 +62,7 @@ export default function Login() {
           <h1 className="text-3xl font-bold text-white font-['Outfit'] mb-2">
             <span className="gradient-text">Sales</span>Flow
           </h1>
-          <p className="text-gray-300">智能销售管理系统</p>
+          <p className="text-gray-300">不为管理存在，是为销售赋能的智能系统</p>
         </div>
 
         {/* 登录表单 */}
@@ -231,7 +231,7 @@ export default function Login() {
 
         {/* 版权信息 */}
         <p className="text-center text-gray-400 text-sm mt-8">
-          © 2024 <span className="text-gray-300">SalesFlow</span> CRM. All rights reserved.
+          © 2026 <span className="text-gray-300">SalesFlow</span>. All rights reserved.
         </p>
       </div>
     </div>

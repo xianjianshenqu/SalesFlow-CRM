@@ -54,7 +54,7 @@ export function Sidebar() {
               <span className="gradient-text">Sales</span>
               <span className="text-white">Flow</span>
             </h1>
-            <p className="text-xs text-gray-300 font-medium tracking-wider uppercase">AI CRM Enterprise</p>
+            <p className="text-xs text-gray-300 font-medium tracking-wider uppercase">销售赋能 · AI</p>
           </div>
         </div>
 
