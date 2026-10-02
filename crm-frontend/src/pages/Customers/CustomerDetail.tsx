@@ -71,6 +71,7 @@ export default function CustomerDetail() {
           nextFollowUp: '2023-10-20',
           source: 'conference',
           priority: 'high',
+          customerType: 'non_user',
           contactPerson: '张经理',
           phone: '13800138000',
           address: '深圳市龙岗区坂田华为基地',

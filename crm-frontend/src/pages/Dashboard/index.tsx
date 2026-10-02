@@ -343,7 +343,7 @@ function DailySchedule() {
           <div className="absolute left-[18px] top-3 bottom-3 w-px bg-gradient-to-b from-gray-700 via-gray-600 to-gray-700"></div>
           
           <div className="space-y-4">
-            {tasks.map((task, index) => {
+            {tasks.map((task) => {
               const colors = typeColors[task.type as keyof typeof typeColors];
               return (
                 <div key={task.id} className="group flex items-start gap-4 relative cursor-pointer">

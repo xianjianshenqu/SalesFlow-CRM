@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { knowledgeApi } from '../../services/api';
-import type { KnowledgeDocument, ProductPricing, ContractTemplate, CustomDataTable } from '../../services/api';
+import type { KnowledgeDocument } from '../../services/api';
 
 // 统计卡片组件
 interface StatCardProps {
