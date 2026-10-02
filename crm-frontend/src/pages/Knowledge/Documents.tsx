@@ -505,7 +505,7 @@ export default function Documents() {
   const [totalPages, setTotalPages] = useState(1);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
-  const [parsingId, setParsingId] = useState<string | null>(null);
+  const [, setParsingId] = useState<string | null>(null);
   
   const itemsPerPage = 10;
 

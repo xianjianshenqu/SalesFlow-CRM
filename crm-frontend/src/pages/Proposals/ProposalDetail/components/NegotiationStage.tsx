@@ -21,7 +21,7 @@ interface AgreedTerm {
   confirmed?: boolean;
 }
 
-export default function NegotiationStage({ proposalId, proposal, onComplete }: NegotiationStageProps) {
+export default function NegotiationStage({ proposalId, onComplete }: NegotiationStageProps) {
   const [loading, setLoading] = useState(false);
   const [negotiation, setNegotiation] = useState<NegotiationRecord | null>(null);
   
